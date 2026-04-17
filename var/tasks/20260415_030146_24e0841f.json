@@ -1,0 +1,11 @@
+{
+    "id": "20260415_030146_24e0841f",
+    "action": "refresh_public_all",
+    "label": "Actualizar estadisticas publicas",
+    "status": "done",
+    "created_at": "2026-04-15T03:01:46+02:00",
+    "started_at": "2026-04-15T03:01:46+02:00",
+    "finished_at": "2026-04-15T03:01:57+02:00",
+    "exit_code": 0,
+    "log_file": "C:\\Users\\Usuario\\Documents\\THC\\THC_GPT\\var\\tasks\\20260415_030146_24e0841f.log"
+}

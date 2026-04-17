@@ -1,0 +1,15 @@
+{
+    "id": "20260415_084847_44e20dd6",
+    "action": "refresh_expeditions_all_users",
+    "label": "Actualizar expediciones de todos los users",
+    "status": "done",
+    "created_at": "2026-04-15T08:48:47+02:00",
+    "started_at": "2026-04-15T08:48:48+02:00",
+    "finished_at": "2026-04-15T11:53:12+02:00",
+    "exit_code": 0,
+    "log_file": "C:\\Users\\Usuario\\Documents\\THC\\THC_GPT\\var\\tasks\\20260415_084847_44e20dd6.log",
+    "cancel_requested": false,
+    "cancel_requested_at": null,
+    "cancel_reason": null,
+    "process_pid": null
+}

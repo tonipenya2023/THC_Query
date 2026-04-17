@@ -1,0 +1,15 @@
+{
+    "id": "20260417_052828_0fb77a43",
+    "action": "refresh_competitions",
+    "label": "Actualizar Competiciones",
+    "status": "done",
+    "created_at": "2026-04-17T05:28:28+02:00",
+    "started_at": "2026-04-17T05:28:28+02:00",
+    "finished_at": "2026-04-17T05:28:29+02:00",
+    "exit_code": 0,
+    "log_file": "C:\\Users\\Usuario\\Documents\\THC\\THC_GPT\\logs\\tasks\\20260417_052828_0fb77a43.log",
+    "cancel_requested": false,
+    "cancel_requested_at": null,
+    "cancel_reason": null,
+    "process_pid": null
+}

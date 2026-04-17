@@ -1,0 +1,15 @@
+{
+    "id": "20260415_082330_1f3b1533",
+    "action": "refresh_expeditions_all_users",
+    "label": "TEST cancel exp all",
+    "status": "error",
+    "created_at": "2026-04-15T08:23:30+02:00",
+    "started_at": "2026-04-15T08:23:30+02:00",
+    "finished_at": "2026-04-15T08:39:27+02:00",
+    "exit_code": 1,
+    "log_file": "C:\\Users\\Usuario\\Documents\\THC\\THC_GPT\\var\\tasks\\20260415_082330_1f3b1533.log",
+    "cancel_requested": true,
+    "cancel_requested_at": "2026-04-15T08:39:27+02:00",
+    "cancel_reason": "Solicitud de usuario",
+    "process_pid": null
+}

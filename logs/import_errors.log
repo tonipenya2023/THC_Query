@@ -1,0 +1,6 @@
+[ERROR] 132089474: SQLSTATE[22P02]: Invalid text representation: 7 ERROR:  la sintaxis de entrada no es válida para tipo boolean: «»
+CONTEXT:  portal sin nombre, parámetro 10 = ''
+[ERROR] 131760446: SQLSTATE[22P02]: Invalid text representation: 7 ERROR:  la sintaxis de entrada no es válida para tipo boolean: «»
+CONTEXT:  portal sin nombre, parámetro 10 = ''
+[ERROR] 124344512: La respuesta no contiene expedition válida.
+[ERROR] 124344512: La respuesta no contiene expedition válida.

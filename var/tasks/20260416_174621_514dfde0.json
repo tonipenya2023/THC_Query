@@ -1,0 +1,15 @@
+{
+    "id": "20260416_174621_514dfde0",
+    "action": "refresh_leaderboards",
+    "label": "Actualizar Tablas Clasificaci\u00f3n",
+    "status": "done",
+    "created_at": "2026-04-16T17:46:21+02:00",
+    "started_at": "2026-04-16T17:46:21+02:00",
+    "finished_at": "2026-04-16T17:47:39+02:00",
+    "exit_code": 0,
+    "log_file": "C:\\Users\\Usuario\\Documents\\THC\\THC_GPT\\var\\tasks\\20260416_174621_514dfde0.log",
+    "cancel_requested": false,
+    "cancel_requested_at": null,
+    "cancel_reason": null,
+    "process_pid": null
+}

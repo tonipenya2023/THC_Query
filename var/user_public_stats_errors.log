@@ -1,0 +1,52 @@
+[ERROR] Bansan_: SQLSTATE[HY093]: Invalid parameter number: :payload_json
+[ERROR] bobda: SQLSTATE[HY093]: Invalid parameter number: :payload_json
+[ERROR] chory_gn: SQLSTATE[HY093]: Invalid parameter number: :payload_json
+[ERROR] chorypa: SQLSTATE[HY093]: Invalid parameter number: :payload_json
+[ERROR] elmiedoso31: SQLSTATE[HY093]: Invalid parameter number: :payload_json
+[ERROR] EmiGarcia: SQLSTATE[HY093]: Invalid parameter number: :payload_json
+[ERROR] Gerobrug: SQLSTATE[HY093]: Invalid parameter number: :payload_json
+[ERROR] hugohunter15: SQLSTATE[HY093]: Invalid parameter number: :payload_json
+[ERROR] JUDION: SQLSTATE[HY093]: Invalid parameter number: :payload_json
+[ERROR] luisfc_15: SQLSTATE[HY093]: Invalid parameter number: :payload_json
+[ERROR] Nefastix13: SQLSTATE[HY093]: Invalid parameter number: :payload_json
+[ERROR] THUNDERFRUIT: SQLSTATE[HY093]: Invalid parameter number: :payload_json
+[ERROR] xafindis: SQLSTATE[HY093]: Invalid parameter number: :payload_json
+[ERROR] Bansan_: SQLSTATE[22P02]: Invalid text representation: 7 ERROR:  la sintaxis de entrada no es válida para tipo boolean: «»
+CONTEXT:  portal sin nombre, parámetro 7 = ''
+[ERROR] bobda: SQLSTATE[22P02]: Invalid text representation: 7 ERROR:  la sintaxis de entrada no es válida para tipo boolean: «»
+CONTEXT:  portal sin nombre, parámetro 7 = ''
+[ERROR] chory_gn: SQLSTATE[22P02]: Invalid text representation: 7 ERROR:  la sintaxis de entrada no es válida para tipo boolean: «»
+CONTEXT:  portal sin nombre, parámetro 7 = ''
+[ERROR] chorypa: SQLSTATE[22P02]: Invalid text representation: 7 ERROR:  la sintaxis de entrada no es válida para tipo boolean: «»
+CONTEXT:  portal sin nombre, parámetro 7 = ''
+[ERROR] elmiedoso31: SQLSTATE[22P02]: Invalid text representation: 7 ERROR:  la sintaxis de entrada no es válida para tipo boolean: «»
+CONTEXT:  portal sin nombre, parámetro 7 = ''
+[ERROR] EmiGarcia: SQLSTATE[22P02]: Invalid text representation: 7 ERROR:  la sintaxis de entrada no es válida para tipo boolean: «»
+CONTEXT:  portal sin nombre, parámetro 7 = ''
+[ERROR] Gerobrug: SQLSTATE[22P02]: Invalid text representation: 7 ERROR:  la sintaxis de entrada no es válida para tipo boolean: «»
+CONTEXT:  portal sin nombre, parámetro 7 = ''
+[ERROR] hugohunter15: SQLSTATE[22P02]: Invalid text representation: 7 ERROR:  la sintaxis de entrada no es válida para tipo boolean: «»
+CONTEXT:  portal sin nombre, parámetro 7 = ''
+[ERROR] JUDION: SQLSTATE[22P02]: Invalid text representation: 7 ERROR:  la sintaxis de entrada no es válida para tipo boolean: «»
+CONTEXT:  portal sin nombre, parámetro 7 = ''
+[ERROR] luisfc_15: SQLSTATE[22P02]: Invalid text representation: 7 ERROR:  la sintaxis de entrada no es válida para tipo boolean: «»
+CONTEXT:  portal sin nombre, parámetro 7 = ''
+[ERROR] Nefastix13: SQLSTATE[22P02]: Invalid text representation: 7 ERROR:  la sintaxis de entrada no es válida para tipo boolean: «»
+CONTEXT:  portal sin nombre, parámetro 7 = ''
+[ERROR] THUNDERFRUIT: SQLSTATE[22P02]: Invalid text representation: 7 ERROR:  la sintaxis de entrada no es válida para tipo boolean: «»
+CONTEXT:  portal sin nombre, parámetro 7 = ''
+[ERROR] xafindis: SQLSTATE[22P02]: Invalid text representation: 7 ERROR:  la sintaxis de entrada no es válida para tipo boolean: «»
+CONTEXT:  portal sin nombre, parámetro 7 = ''
+[ERROR] Bansan_: SQLSTATE[HY093]: Invalid parameter number: :raw_json
+[ERROR] bobda: SQLSTATE[HY093]: Invalid parameter number: :raw_json
+[ERROR] chory_gn: SQLSTATE[HY093]: Invalid parameter number: :raw_json
+[ERROR] chorypa: SQLSTATE[HY093]: Invalid parameter number: :raw_json
+[ERROR] elmiedoso31: SQLSTATE[HY093]: Invalid parameter number: :raw_json
+[ERROR] EmiGarcia: SQLSTATE[HY093]: Invalid parameter number: :raw_json
+[ERROR] Gerobrug: SQLSTATE[HY093]: Invalid parameter number: :raw_json
+[ERROR] hugohunter15: SQLSTATE[HY093]: Invalid parameter number: :raw_json
+[ERROR] JUDION: SQLSTATE[HY093]: Invalid parameter number: :raw_json
+[ERROR] luisfc_15: SQLSTATE[HY093]: Invalid parameter number: :raw_json
+[ERROR] Nefastix13: SQLSTATE[HY093]: Invalid parameter number: :raw_json
+[ERROR] THUNDERFRUIT: SQLSTATE[HY093]: Invalid parameter number: :raw_json
+[ERROR] xafindis: SQLSTATE[HY093]: Invalid parameter number: :raw_json

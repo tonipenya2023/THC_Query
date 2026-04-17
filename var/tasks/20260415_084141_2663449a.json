@@ -1,0 +1,15 @@
+{
+    "id": "20260415_084141_2663449a",
+    "action": "refresh_leaderboards",
+    "label": "Actualizar ranking score/range",
+    "status": "canceled",
+    "created_at": "2026-04-15T08:41:41+02:00",
+    "started_at": "2026-04-15T08:41:41+02:00",
+    "finished_at": "2026-04-15T08:41:59+02:00",
+    "exit_code": 1,
+    "log_file": "C:\\Users\\Usuario\\Documents\\THC\\THC_GPT\\var\\tasks\\20260415_084141_2663449a.log",
+    "cancel_requested": true,
+    "cancel_requested_at": "2026-04-15T08:41:59+02:00",
+    "cancel_reason": "Prueba tecnica",
+    "process_pid": null
+}

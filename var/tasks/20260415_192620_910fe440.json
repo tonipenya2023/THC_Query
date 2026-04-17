@@ -1,0 +1,15 @@
+{
+    "id": "20260415_192620_910fe440",
+    "action": "refresh_best_all",
+    "label": "Actualizar Mejores Marcas Usuarios",
+    "status": "done",
+    "created_at": "2026-04-15T19:26:20+02:00",
+    "started_at": "2026-04-15T19:26:21+02:00",
+    "finished_at": "2026-04-15T19:26:31+02:00",
+    "exit_code": 0,
+    "log_file": "C:\\Users\\Usuario\\Documents\\THC\\THC_GPT\\var\\tasks\\20260415_192620_910fe440.log",
+    "cancel_requested": false,
+    "cancel_requested_at": null,
+    "cancel_reason": null,
+    "process_pid": null
+}

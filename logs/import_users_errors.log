@@ -1,0 +1,700 @@
+[ERROR] usuario=17201848 expedition_id=111005: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(111005, 0).
+[ERROR] usuario=17201848 expedition_id=109576: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(109576, 0).
+[ERROR] usuario=17201848 expedition_id=109422: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(109422, 0).
+[ERROR] usuario=17201848 expedition_id=109081: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(109081, 0).
+[ERROR] usuario=17201848 expedition_id=106331: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(106331, 0).
+[ERROR] usuario=17201848 expedition_id=105709: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(105709, 0).
+[ERROR] usuario=17201848 expedition_id=105145: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(105145, 0).
+[ERROR] usuario=17201848 expedition_id=102378: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(102378, 0).
+[ERROR] usuario=17201848 expedition_id=101672: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(101672, 0).
+[ERROR] usuario=17201848 expedition_id=100743: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(100743, 0).
+[ERROR] usuario=17201848 expedition_id=98571: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(98571, 0).
+[ERROR] usuario=17201848 expedition_id=98153: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(98153, 0).
+[ERROR] usuario=17201848 expedition_id=97426: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(97426, 0).
+[ERROR] usuario=17201848 expedition_id=96779: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(96779, 0).
+[ERROR] usuario=17201848 expedition_id=96030: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(96030, 0).
+[ERROR] usuario=17201848 expedition_id=90820: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(90820, 0).
+[ERROR] usuario=17201848 expedition_id=88802: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(88802, 0).
+[ERROR] usuario=17201848 expedition_id=84002: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(84002, 0).
+[ERROR] usuario=17201848 expedition_id=83190: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(83190, 0).
+[ERROR] usuario=17201848 expedition_id=82545: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(82545, 0).
+[ERROR] usuario=17201848 expedition_id=78888: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(78888, 0).
+[ERROR] usuario=17201848 expedition_id=75067: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(75067, 0).
+[ERROR] usuario=17201848 expedition_id=71975: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(71975, 0).
+[ERROR] usuario=17201848 expedition_id=71183: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(71183, 0).
+[ERROR] usuario=17201848 expedition_id=70544: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(70544, 0).
+[ERROR] usuario=17201848 expedition_id=66844: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(66844, 0).
+[ERROR] usuario=17201848 expedition_id=63947: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(63947, 0).
+[ERROR] usuario=17201848 expedition_id=62991: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(62991, 0).
+[ERROR] usuario=17201848 expedition_id=62236: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(62236, 0).
+[ERROR] usuario=17201848 expedition_id=60209: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(60209, 0).
+[ERROR] usuario=17201848 expedition_id=59040: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(59040, 0).
+[ERROR] usuario=17201848 expedition_id=56774: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(56774, 0).
+[ERROR] usuario=17201848 expedition_id=56420: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(56420, 0).
+[ERROR] usuario=17201848 expedition_id=56277: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(56277, 0).
+[ERROR] usuario=17201848 expedition_id=55722: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(55722, 0).
+[ERROR] usuario=17201848 expedition_id=54049: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(54049, 0).
+[ERROR] usuario=17201848 expedition_id=51955: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(51955, 0).
+[ERROR] usuario=17201848 expedition_id=51523: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(51523, 0).
+[ERROR] usuario=17201848 expedition_id=50009: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(50009, 0).
+[ERROR] usuario=17201848 expedition_id=49844: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(49844, 0).
+[ERROR] usuario=17201848 expedition_id=49531: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(49531, 0).
+[ERROR] usuario=17201848 expedition_id=47253: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(47253, 0).
+[ERROR] usuario=17201848 expedition_id=44941: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(44941, 0).
+[ERROR] usuario=17201848 expedition_id=44508: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(44508, 0).
+[ERROR] usuario=17201848 expedition_id=43372: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(43372, 0).
+[ERROR] usuario=17201848 expedition_id=42707: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(42707, 0).
+[ERROR] usuario=17201848 expedition_id=39617: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(39617, 0).
+[ERROR] usuario=17201848 expedition_id=38923: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(38923, 0).
+[ERROR] usuario=17201848 expedition_id=38488: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(38488, 0).
+[ERROR] usuario=17201848 expedition_id=37860: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(37860, 0).
+[ERROR] usuario=17201848 expedition_id=33058: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(33058, 0).
+[ERROR] usuario=17201848 expedition_id=32360: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(32360, 0).
+[ERROR] usuario=17201848 expedition_id=29730: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(29730, 0).
+[ERROR] usuario=17201848 expedition_id=28371: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(28371, 0).
+[ERROR] usuario=17201848 expedition_id=27765: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(27765, 0).
+[ERROR] usuario=17201848 expedition_id=27184: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(27184, 0).
+[ERROR] usuario=17201848 expedition_id=25091: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(25091, 0).
+[ERROR] usuario=17201848 expedition_id=24437: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(24437, 0).
+[ERROR] usuario=17201848 expedition_id=23511: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(23511, 0).
+[ERROR] usuario=17201848 expedition_id=22512: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(22512, 0).
+[ERROR] usuario=17201848 expedition_id=21705: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(21705, 0).
+[ERROR] usuario=17201848 expedition_id=16093: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(16093, 0).
+[ERROR] usuario=17201848 expedition_id=15325: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(15325, 0).
+[ERROR] usuario=17201848 expedition_id=14758: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(14758, 0).
+[ERROR] usuario=17201848 expedition_id=13506: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(13506, 0).
+[ERROR] usuario=17201848 expedition_id=10768: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(10768, 0).
+[ERROR] usuario=17201848 expedition_id=7170: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(7170, 0).
+[ERROR] usuario=17201848 expedition_id=6438: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(6438, 0).
+[ERROR] usuario=17201848 expedition_id=2223: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(2223, 0).
+[ERROR] usuario=17201848 expedition_id=835: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(835, 0).
+[ERROR] usuario=17201848 expedition_id=111005: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(111005, 0).
+[ERROR] usuario=17201848 expedition_id=109576: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(109576, 0).
+[ERROR] usuario=17201848 expedition_id=109422: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(109422, 0).
+[ERROR] usuario=17201848 expedition_id=109081: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(109081, 0).
+[ERROR] usuario=17201848 expedition_id=106331: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(106331, 0).
+[ERROR] usuario=17201848 expedition_id=105709: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(105709, 0).
+[ERROR] usuario=17201848 expedition_id=105145: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(105145, 0).
+[ERROR] usuario=17201848 expedition_id=102378: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(102378, 0).
+[ERROR] usuario=17201848 expedition_id=101672: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(101672, 0).
+[ERROR] usuario=17201848 expedition_id=100743: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(100743, 0).
+[ERROR] usuario=17201848 expedition_id=98571: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(98571, 0).
+[ERROR] usuario=17201848 expedition_id=98153: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(98153, 0).
+[ERROR] usuario=17201848 expedition_id=97426: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(97426, 0).
+[ERROR] usuario=17201848 expedition_id=96779: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(96779, 0).
+[ERROR] usuario=17201848 expedition_id=96030: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(96030, 0).
+[ERROR] usuario=17201848 expedition_id=90820: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(90820, 0).
+[ERROR] usuario=17201848 expedition_id=88802: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(88802, 0).
+[ERROR] usuario=17201848 expedition_id=84002: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(84002, 0).
+[ERROR] usuario=17201848 expedition_id=83190: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(83190, 0).
+[ERROR] usuario=17201848 expedition_id=82545: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(82545, 0).
+[ERROR] usuario=17201848 expedition_id=78888: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(78888, 0).
+[ERROR] usuario=17201848 expedition_id=75067: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(75067, 0).
+[ERROR] usuario=17201848 expedition_id=71975: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(71975, 0).
+[ERROR] usuario=17201848 expedition_id=71183: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(71183, 0).
+[ERROR] usuario=17201848 expedition_id=70544: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(70544, 0).
+[ERROR] usuario=17201848 expedition_id=66844: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(66844, 0).
+[ERROR] usuario=17201848 expedition_id=63947: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(63947, 0).
+[ERROR] usuario=17201848 expedition_id=62991: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(62991, 0).
+[ERROR] usuario=17201848 expedition_id=62236: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(62236, 0).
+[ERROR] usuario=17201848 expedition_id=60209: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(60209, 0).
+[ERROR] usuario=17201848 expedition_id=59040: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(59040, 0).
+[ERROR] usuario=17201848 expedition_id=56774: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(56774, 0).
+[ERROR] usuario=17201848 expedition_id=56420: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(56420, 0).
+[ERROR] usuario=17201848 expedition_id=56277: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(56277, 0).
+[ERROR] usuario=17201848 expedition_id=55722: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(55722, 0).
+[ERROR] usuario=17201848 expedition_id=54049: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(54049, 0).
+[ERROR] usuario=17201848 expedition_id=51955: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(51955, 0).
+[ERROR] usuario=17201848 expedition_id=51523: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(51523, 0).
+[ERROR] usuario=17201848 expedition_id=50009: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(50009, 0).
+[ERROR] usuario=17201848 expedition_id=49844: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(49844, 0).
+[ERROR] usuario=17201848 expedition_id=49531: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(49531, 0).
+[ERROR] usuario=17201848 expedition_id=47253: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(47253, 0).
+[ERROR] usuario=17201848 expedition_id=44941: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(44941, 0).
+[ERROR] usuario=17201848 expedition_id=44508: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(44508, 0).
+[ERROR] usuario=17201848 expedition_id=43372: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(43372, 0).
+[ERROR] usuario=17201848 expedition_id=42707: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(42707, 0).
+[ERROR] usuario=17201848 expedition_id=39617: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(39617, 0).
+[ERROR] usuario=17201848 expedition_id=38923: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(38923, 0).
+[ERROR] usuario=17201848 expedition_id=38488: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(38488, 0).
+[ERROR] usuario=17201848 expedition_id=37860: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(37860, 0).
+[ERROR] usuario=17201848 expedition_id=33058: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(33058, 0).
+[ERROR] usuario=17201848 expedition_id=32360: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(32360, 0).
+[ERROR] usuario=17201848 expedition_id=29730: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(29730, 0).
+[ERROR] usuario=17201848 expedition_id=28371: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(28371, 0).
+[ERROR] usuario=17201848 expedition_id=27765: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(27765, 0).
+[ERROR] usuario=17201848 expedition_id=27184: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(27184, 0).
+[ERROR] usuario=17201848 expedition_id=25091: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(25091, 0).
+[ERROR] usuario=17201848 expedition_id=24437: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(24437, 0).
+[ERROR] usuario=17201848 expedition_id=23511: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(23511, 0).
+[ERROR] usuario=17201848 expedition_id=22512: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(22512, 0).
+[ERROR] usuario=17201848 expedition_id=21705: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(21705, 0).
+[ERROR] usuario=17201848 expedition_id=16093: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(16093, 0).
+[ERROR] usuario=17201848 expedition_id=15325: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(15325, 0).
+[ERROR] usuario=17201848 expedition_id=14758: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(14758, 0).
+[ERROR] usuario=17201848 expedition_id=13506: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(13506, 0).
+[ERROR] usuario=17201848 expedition_id=10768: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(10768, 0).
+[ERROR] usuario=17201848 expedition_id=7170: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(7170, 0).
+[ERROR] usuario=17201848 expedition_id=6438: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(6438, 0).
+[ERROR] usuario=17201848 expedition_id=2223: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(2223, 0).
+[ERROR] usuario=17201848 expedition_id=835: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(835, 0).
+[ERROR] usuario=17201848 expedition_id=111005: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(111005, 0).
+[ERROR] usuario=17201848 expedition_id=109576: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(109576, 0).
+[ERROR] usuario=17201848 expedition_id=109422: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(109422, 0).
+[ERROR] usuario=17201848 expedition_id=109081: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(109081, 0).
+[ERROR] usuario=17201848 expedition_id=106331: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(106331, 0).
+[ERROR] usuario=17201848 expedition_id=105709: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(105709, 0).
+[ERROR] usuario=17201848 expedition_id=105145: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(105145, 0).
+[ERROR] usuario=17201848 expedition_id=102378: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(102378, 0).
+[ERROR] usuario=17201848 expedition_id=101672: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(101672, 0).
+[ERROR] usuario=17201848 expedition_id=100743: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(100743, 0).
+[ERROR] usuario=17201848 expedition_id=98571: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(98571, 0).
+[ERROR] usuario=17201848 expedition_id=98153: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(98153, 0).
+[ERROR] usuario=17201848 expedition_id=97426: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(97426, 0).
+[ERROR] usuario=17201848 expedition_id=96779: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(96779, 0).
+[ERROR] usuario=17201848 expedition_id=96030: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(96030, 0).
+[ERROR] usuario=17201848 expedition_id=90820: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(90820, 0).
+[ERROR] usuario=17201848 expedition_id=88802: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(88802, 0).
+[ERROR] usuario=17201848 expedition_id=84002: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(84002, 0).
+[ERROR] usuario=17201848 expedition_id=83190: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(83190, 0).
+[ERROR] usuario=17201848 expedition_id=82545: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(82545, 0).
+[ERROR] usuario=17201848 expedition_id=78888: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(78888, 0).
+[ERROR] usuario=17201848 expedition_id=75067: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(75067, 0).
+[ERROR] usuario=17201848 expedition_id=71975: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(71975, 0).
+[ERROR] usuario=17201848 expedition_id=71183: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(71183, 0).
+[ERROR] usuario=17201848 expedition_id=70544: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(70544, 0).
+[ERROR] usuario=17201848 expedition_id=66844: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(66844, 0).
+[ERROR] usuario=17201848 expedition_id=63947: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(63947, 0).
+[ERROR] usuario=17201848 expedition_id=62991: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(62991, 0).
+[ERROR] usuario=17201848 expedition_id=62236: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(62236, 0).
+[ERROR] usuario=17201848 expedition_id=60209: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(60209, 0).
+[ERROR] usuario=17201848 expedition_id=59040: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(59040, 0).
+[ERROR] usuario=17201848 expedition_id=56774: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(56774, 0).
+[ERROR] usuario=17201848 expedition_id=56420: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(56420, 0).
+[ERROR] usuario=17201848 expedition_id=56277: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(56277, 0).
+[ERROR] usuario=17201848 expedition_id=55722: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(55722, 0).
+[ERROR] usuario=17201848 expedition_id=54049: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(54049, 0).
+[ERROR] usuario=17201848 expedition_id=51955: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(51955, 0).
+[ERROR] usuario=17201848 expedition_id=51523: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(51523, 0).
+[ERROR] usuario=17201848 expedition_id=50009: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(50009, 0).
+[ERROR] usuario=17201848 expedition_id=49844: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(49844, 0).
+[ERROR] usuario=17201848 expedition_id=49531: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(49531, 0).
+[ERROR] usuario=17201848 expedition_id=47253: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(47253, 0).
+[ERROR] usuario=17201848 expedition_id=44941: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(44941, 0).
+[ERROR] usuario=17201848 expedition_id=44508: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(44508, 0).
+[ERROR] usuario=17201848 expedition_id=43372: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(43372, 0).
+[ERROR] usuario=17201848 expedition_id=42707: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(42707, 0).
+[ERROR] usuario=17201848 expedition_id=39617: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(39617, 0).
+[ERROR] usuario=17201848 expedition_id=38923: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(38923, 0).
+[ERROR] usuario=17201848 expedition_id=38488: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(38488, 0).
+[ERROR] usuario=17201848 expedition_id=37860: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(37860, 0).
+[ERROR] usuario=17201848 expedition_id=33058: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(33058, 0).
+[ERROR] usuario=17201848 expedition_id=32360: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(32360, 0).
+[ERROR] usuario=17201848 expedition_id=29730: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(29730, 0).
+[ERROR] usuario=17201848 expedition_id=28371: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(28371, 0).
+[ERROR] usuario=17201848 expedition_id=27765: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(27765, 0).
+[ERROR] usuario=17201848 expedition_id=27184: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(27184, 0).
+[ERROR] usuario=17201848 expedition_id=25091: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(25091, 0).
+[ERROR] usuario=17201848 expedition_id=24437: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(24437, 0).
+[ERROR] usuario=17201848 expedition_id=23511: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(23511, 0).
+[ERROR] usuario=17201848 expedition_id=22512: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(22512, 0).
+[ERROR] usuario=17201848 expedition_id=21705: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(21705, 0).
+[ERROR] usuario=17201848 expedition_id=16093: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(16093, 0).
+[ERROR] usuario=17201848 expedition_id=15325: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(15325, 0).
+[ERROR] usuario=17201848 expedition_id=14758: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(14758, 0).
+[ERROR] usuario=17201848 expedition_id=13506: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(13506, 0).
+[ERROR] usuario=17201848 expedition_id=10768: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(10768, 0).
+[ERROR] usuario=17201848 expedition_id=7170: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(7170, 0).
+[ERROR] usuario=17201848 expedition_id=6438: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(6438, 0).
+[ERROR] usuario=17201848 expedition_id=2223: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(2223, 0).
+[ERROR] usuario=17201848 expedition_id=835: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(835, 0).
+[ERROR] usuario=17201848 expedition_id=111005: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(111005, 0).
+[ERROR] usuario=17201848 expedition_id=109576: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(109576, 0).
+[ERROR] usuario=17201848 expedition_id=109422: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(109422, 0).
+[ERROR] usuario=17201848 expedition_id=109081: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(109081, 0).
+[ERROR] usuario=17201848 expedition_id=106331: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(106331, 0).
+[ERROR] usuario=17201848 expedition_id=105709: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(105709, 0).
+[ERROR] usuario=17201848 expedition_id=105145: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(105145, 0).
+[ERROR] usuario=17201848 expedition_id=102378: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(102378, 0).
+[ERROR] usuario=17201848 expedition_id=101672: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(101672, 0).
+[ERROR] usuario=17201848 expedition_id=100743: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(100743, 0).
+[ERROR] usuario=17201848 expedition_id=98571: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(98571, 0).
+[ERROR] usuario=17201848 expedition_id=98153: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(98153, 0).
+[ERROR] usuario=17201848 expedition_id=97426: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(97426, 0).
+[ERROR] usuario=17201848 expedition_id=96779: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(96779, 0).
+[ERROR] usuario=17201848 expedition_id=96030: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(96030, 0).
+[ERROR] usuario=17201848 expedition_id=90820: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(90820, 0).
+[ERROR] usuario=17201848 expedition_id=88802: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(88802, 0).
+[ERROR] usuario=17201848 expedition_id=84002: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(84002, 0).
+[ERROR] usuario=17201848 expedition_id=83190: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(83190, 0).
+[ERROR] usuario=17201848 expedition_id=82545: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(82545, 0).
+[ERROR] usuario=17201848 expedition_id=78888: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(78888, 0).
+[ERROR] usuario=17201848 expedition_id=75067: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(75067, 0).
+[ERROR] usuario=17201848 expedition_id=71975: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(71975, 0).
+[ERROR] usuario=17201848 expedition_id=71183: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(71183, 0).
+[ERROR] usuario=17201848 expedition_id=70544: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(70544, 0).
+[ERROR] usuario=17201848 expedition_id=66844: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(66844, 0).
+[ERROR] usuario=17201848 expedition_id=63947: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(63947, 0).
+[ERROR] usuario=17201848 expedition_id=62991: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(62991, 0).
+[ERROR] usuario=17201848 expedition_id=62236: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(62236, 0).
+[ERROR] usuario=17201848 expedition_id=60209: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(60209, 0).
+[ERROR] usuario=17201848 expedition_id=59040: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(59040, 0).
+[ERROR] usuario=17201848 expedition_id=56774: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(56774, 0).
+[ERROR] usuario=17201848 expedition_id=56420: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(56420, 0).
+[ERROR] usuario=17201848 expedition_id=56277: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(56277, 0).
+[ERROR] usuario=17201848 expedition_id=55722: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(55722, 0).
+[ERROR] usuario=17201848 expedition_id=54049: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(54049, 0).
+[ERROR] usuario=17201848 expedition_id=51955: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(51955, 0).
+[ERROR] usuario=17201848 expedition_id=51523: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(51523, 0).
+[ERROR] usuario=17201848 expedition_id=50009: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(50009, 0).
+[ERROR] usuario=17201848 expedition_id=49844: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(49844, 0).
+[ERROR] usuario=17201848 expedition_id=49531: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(49531, 0).
+[ERROR] usuario=17201848 expedition_id=47253: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(47253, 0).
+[ERROR] usuario=17201848 expedition_id=44941: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(44941, 0).
+[ERROR] usuario=17201848 expedition_id=44508: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(44508, 0).
+[ERROR] usuario=17201848 expedition_id=43372: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(43372, 0).
+[ERROR] usuario=17201848 expedition_id=42707: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(42707, 0).
+[ERROR] usuario=17201848 expedition_id=39617: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(39617, 0).
+[ERROR] usuario=17201848 expedition_id=38923: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(38923, 0).
+[ERROR] usuario=17201848 expedition_id=38488: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(38488, 0).
+[ERROR] usuario=17201848 expedition_id=37860: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(37860, 0).
+[ERROR] usuario=17201848 expedition_id=33058: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(33058, 0).
+[ERROR] usuario=17201848 expedition_id=32360: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(32360, 0).
+[ERROR] usuario=17201848 expedition_id=29730: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(29730, 0).
+[ERROR] usuario=17201848 expedition_id=28371: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(28371, 0).
+[ERROR] usuario=17201848 expedition_id=27765: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(27765, 0).
+[ERROR] usuario=17201848 expedition_id=27184: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(27184, 0).
+[ERROR] usuario=17201848 expedition_id=25091: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(25091, 0).
+[ERROR] usuario=17201848 expedition_id=24437: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(24437, 0).
+[ERROR] usuario=17201848 expedition_id=23511: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(23511, 0).
+[ERROR] usuario=17201848 expedition_id=22512: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(22512, 0).
+[ERROR] usuario=17201848 expedition_id=21705: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(21705, 0).
+[ERROR] usuario=17201848 expedition_id=16093: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(16093, 0).
+[ERROR] usuario=17201848 expedition_id=15325: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(15325, 0).
+[ERROR] usuario=17201848 expedition_id=14758: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(14758, 0).
+[ERROR] usuario=17201848 expedition_id=13506: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(13506, 0).
+[ERROR] usuario=17201848 expedition_id=10768: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(10768, 0).
+[ERROR] usuario=17201848 expedition_id=7170: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(7170, 0).
+[ERROR] usuario=17201848 expedition_id=6438: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(6438, 0).
+[ERROR] usuario=17201848 expedition_id=2223: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(2223, 0).
+[ERROR] usuario=17201848 expedition_id=835: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(835, 0).
+[ERROR] usuario=17201848 expedition_id=111005: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(111005, 0).
+[ERROR] usuario=17201848 expedition_id=109576: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(109576, 0).
+[ERROR] usuario=17201848 expedition_id=109422: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(109422, 0).
+[ERROR] usuario=17201848 expedition_id=109081: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(109081, 0).
+[ERROR] usuario=17201848 expedition_id=106331: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(106331, 0).
+[ERROR] usuario=17201848 expedition_id=105709: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(105709, 0).
+[ERROR] usuario=17201848 expedition_id=105145: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(105145, 0).
+[ERROR] usuario=17201848 expedition_id=102378: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(102378, 0).
+[ERROR] usuario=17201848 expedition_id=101672: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(101672, 0).
+[ERROR] usuario=17201848 expedition_id=100743: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(100743, 0).
+[ERROR] usuario=17201848 expedition_id=98571: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(98571, 0).
+[ERROR] usuario=17201848 expedition_id=98153: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(98153, 0).
+[ERROR] usuario=17201848 expedition_id=97426: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(97426, 0).
+[ERROR] usuario=17201848 expedition_id=96779: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(96779, 0).
+[ERROR] usuario=17201848 expedition_id=96030: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(96030, 0).
+[ERROR] usuario=17201848 expedition_id=90820: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(90820, 0).
+[ERROR] usuario=17201848 expedition_id=88802: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(88802, 0).
+[ERROR] usuario=17201848 expedition_id=84002: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(84002, 0).
+[ERROR] usuario=17201848 expedition_id=83190: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(83190, 0).
+[ERROR] usuario=17201848 expedition_id=82545: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(82545, 0).
+[ERROR] usuario=17201848 expedition_id=78888: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(78888, 0).
+[ERROR] usuario=17201848 expedition_id=75067: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(75067, 0).
+[ERROR] usuario=17201848 expedition_id=71975: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(71975, 0).
+[ERROR] usuario=17201848 expedition_id=71183: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(71183, 0).
+[ERROR] usuario=17201848 expedition_id=70544: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(70544, 0).
+[ERROR] usuario=17201848 expedition_id=66844: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(66844, 0).
+[ERROR] usuario=17201848 expedition_id=63947: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(63947, 0).
+[ERROR] usuario=17201848 expedition_id=62991: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(62991, 0).
+[ERROR] usuario=17201848 expedition_id=62236: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(62236, 0).
+[ERROR] usuario=17201848 expedition_id=60209: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(60209, 0).
+[ERROR] usuario=17201848 expedition_id=59040: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(59040, 0).
+[ERROR] usuario=17201848 expedition_id=56774: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(56774, 0).
+[ERROR] usuario=17201848 expedition_id=56420: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(56420, 0).
+[ERROR] usuario=17201848 expedition_id=56277: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(56277, 0).
+[ERROR] usuario=17201848 expedition_id=55722: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(55722, 0).
+[ERROR] usuario=17201848 expedition_id=54049: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(54049, 0).
+[ERROR] usuario=17201848 expedition_id=51955: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(51955, 0).
+[ERROR] usuario=17201848 expedition_id=51523: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(51523, 0).
+[ERROR] usuario=17201848 expedition_id=50009: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(50009, 0).
+[ERROR] usuario=17201848 expedition_id=49844: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(49844, 0).
+[ERROR] usuario=17201848 expedition_id=49531: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(49531, 0).
+[ERROR] usuario=17201848 expedition_id=47253: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(47253, 0).
+[ERROR] usuario=17201848 expedition_id=44941: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(44941, 0).
+[ERROR] usuario=17201848 expedition_id=44508: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(44508, 0).
+[ERROR] usuario=17201848 expedition_id=43372: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(43372, 0).
+[ERROR] usuario=17201848 expedition_id=42707: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(42707, 0).
+[ERROR] usuario=17201848 expedition_id=39617: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(39617, 0).
+[ERROR] usuario=17201848 expedition_id=38923: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(38923, 0).
+[ERROR] usuario=17201848 expedition_id=38488: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(38488, 0).
+[ERROR] usuario=17201848 expedition_id=37860: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(37860, 0).
+[ERROR] usuario=17201848 expedition_id=33058: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(33058, 0).
+[ERROR] usuario=17201848 expedition_id=32360: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(32360, 0).
+[ERROR] usuario=17201848 expedition_id=29730: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(29730, 0).
+[ERROR] usuario=17201848 expedition_id=28371: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(28371, 0).
+[ERROR] usuario=17201848 expedition_id=27765: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(27765, 0).
+[ERROR] usuario=17201848 expedition_id=27184: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(27184, 0).
+[ERROR] usuario=17201848 expedition_id=25091: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(25091, 0).
+[ERROR] usuario=17201848 expedition_id=24437: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(24437, 0).
+[ERROR] usuario=17201848 expedition_id=23511: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(23511, 0).
+[ERROR] usuario=17201848 expedition_id=22512: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(22512, 0).
+[ERROR] usuario=17201848 expedition_id=21705: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(21705, 0).
+[ERROR] usuario=17201848 expedition_id=16093: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(16093, 0).
+[ERROR] usuario=17201848 expedition_id=15325: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(15325, 0).
+[ERROR] usuario=17201848 expedition_id=14758: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(14758, 0).
+[ERROR] usuario=17201848 expedition_id=13506: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(13506, 0).
+[ERROR] usuario=17201848 expedition_id=10768: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(10768, 0).
+[ERROR] usuario=17201848 expedition_id=7170: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(7170, 0).
+[ERROR] usuario=17201848 expedition_id=6438: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(6438, 0).
+[ERROR] usuario=17201848 expedition_id=2223: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(2223, 0).
+[ERROR] usuario=17201848 expedition_id=835: SQLSTATE[23505]: Unique violation: 7 ERROR:  llave duplicada viola restricción de unicidad «exp_animal_stats_pkey»
+DETAIL:  Ya existe la llave (expedition_id, species_id)=(835, 0).

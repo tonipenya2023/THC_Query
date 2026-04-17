@@ -1,0 +1,15 @@
+{
+    "id": "20260417_052816_2f4800b5",
+    "action": "refresh_public_all",
+    "label": "Actualizar Estad\u00edsticas Usuarios",
+    "status": "done",
+    "created_at": "2026-04-17T05:28:16+02:00",
+    "started_at": "2026-04-17T05:28:16+02:00",
+    "finished_at": "2026-04-17T05:28:26+02:00",
+    "exit_code": 0,
+    "log_file": "C:\\Users\\Usuario\\Documents\\THC\\THC_GPT\\logs\\tasks\\20260417_052816_2f4800b5.log",
+    "cancel_requested": false,
+    "cancel_requested_at": null,
+    "cancel_reason": null,
+    "process_pid": null
+}
