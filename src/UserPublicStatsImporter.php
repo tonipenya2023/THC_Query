@@ -245,12 +245,12 @@ final class UserPublicStatsImporter
 
         $json = @file_get_contents($url, false, $context);
         if ($json === false) {
-            throw new RuntimeException('No se pudo obtener respuesta de la API pública.');
+            throw new RuntimeException('No se pudo obtener respuesta de la API publica.');
         }
 
         $data = json_decode($json, true);
         if (!is_array($data)) {
-            throw new RuntimeException('La API pública devolvio un JSON invalido.');
+            throw new RuntimeException('La API publica devolvio un JSON invalido.');
         }
 
         return $data;

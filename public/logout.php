@@ -12,7 +12,7 @@ if (ini_get('session.use_cookies')) {
 }
 session_destroy();
 
-header('WWW-Authenticate: Basic realm="THC GPT Panel"');
+header('WWW-Authenticate: Basic realm="THC Query Panel"');
 http_response_code(401);
 ?>
 <!doctype html>
@@ -35,4 +35,3 @@ http_response_code(401);
 </section>
 </body>
 </html>
-

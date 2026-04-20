@@ -7,7 +7,7 @@
     "started_at": "2026-04-15T08:40:21+02:00",
     "finished_at": "2026-04-15T08:41:04+02:00",
     "exit_code": 1,
-    "log_file": "C:\\Users\\Usuario\\Documents\\THC\\THC_GPT\\var\\tasks\\20260415_084021_ad8d2e4c.log",
+    "log_file": "C:\\Users\\Usuario\\Documents\\THC\\THC_Query\\var\\tasks\\20260415_084021_ad8d2e4c.log",
     "cancel_requested": true,
     "cancel_requested_at": "2026-04-15T08:41:04+02:00",
     "cancel_reason": "Prueba cancelacion",

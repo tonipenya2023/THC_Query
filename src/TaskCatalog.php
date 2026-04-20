@@ -19,7 +19,7 @@ final class TaskCatalog
                 'command' => [$php, $src . 'run_import_competitions.php'],
             ],
             'refresh_leaderboards' => [
-                'label' => 'Actualizar Tablas Clasificación',
+                'label' => 'Actualizar Tablas Clasificacion',
                 'command' => [$php, $src . 'run_import_leaderboards.php', '--type=both', '--limit=100', '--species-source=table'],
             ],
             'refresh_best_all' => [
@@ -27,7 +27,7 @@ final class TaskCatalog
                 'command' => [$php, $src . 'run_import_best_users.php'],
             ],
             'refresh_public_all' => [
-                'label' => 'Actualizar Estadísticas Usuarios',
+                'label' => 'Actualizar Estadisticas Usuarios',
                 'command' => [$php, $src . 'run_import_users_public_stats.php'],
             ],
             'refresh_expeditions_all_users' => [

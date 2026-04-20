@@ -689,6 +689,149 @@ body.theme-gaming .theme-chip.active {
     grid-column: 1 / -1;
 }
 
+.table-filters .filter-check-combo {
+    position: relative;
+}
+
+.table-filters .filter-single-combo {
+    position: relative;
+}
+
+.table-filters .filter-check-combo > summary {
+    list-style: none;
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: var(--input-bg);
+    color: var(--text-main);
+    box-sizing: border-box;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.table-filters .filter-single-combo > summary {
+    list-style: none;
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: var(--input-bg);
+    color: var(--text-main);
+    box-sizing: border-box;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.table-filters .filter-check-combo > summary::-webkit-details-marker {
+    display: none;
+}
+
+.table-filters .filter-single-combo > summary::-webkit-details-marker {
+    display: none;
+}
+
+.table-filters .filter-check-combo[open] > summary {
+    border-color: var(--accent-2);
+    box-shadow: 0 0 0 3px var(--input-focus-ring);
+}
+
+.table-filters .filter-single-combo[open] > summary {
+    border-color: var(--accent-2);
+    box-shadow: 0 0 0 3px var(--input-focus-ring);
+}
+
+.filter-check-combo-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 50;
+    max-height: 250px;
+    overflow: auto;
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    background-color: var(--panel) !important;
+    background-image: none !important;
+    opacity: 1 !important;
+    backdrop-filter: none !important;
+    box-shadow: var(--shadow-md);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.table-filters .filter-check-combo-actions {
+    display: flex;
+    gap: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 2px;
+}
+
+.table-filters .filter-check-combo-actions .btn-link {
+    padding: 4px 8px;
+    border: 0;
+    background: transparent;
+    color: var(--text-soft);
+    cursor: pointer;
+}
+
+.table-filters .filter-check-combo-actions .btn-link:hover {
+    color: var(--text-main);
+    text-decoration: underline;
+}
+
+.filter-single-combo-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 50;
+    max-height: 250px;
+    overflow: auto;
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    background-color: var(--panel) !important;
+    background-image: none !important;
+    opacity: 1 !important;
+    backdrop-filter: none !important;
+    box-shadow: var(--shadow-md);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.table-filters .filter-check-combo-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.table-filters .filter-single-combo-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.table-filters .filter-check-combo-item input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+.table-filters .filter-single-combo-item input[type="radio"] {
+    width: auto;
+    margin: 0;
+}
+
 .table-filters .visible-columns .visible-row {
     margin-top: 8px;
     display: flex;
@@ -997,32 +1140,49 @@ td > details[open] > table td > details[open] > table {
 
 .subtable-panels.stats-parallel > details[open] > table {
     margin-left: 0;
-    width: 100%;
+    width: max-content;
+    max-width: none;
 }
 
 .subtable-panels.competitions-panels {
-    grid-template-columns: repeat(2, minmax(280px, 1fr));
-    grid-template-areas:
-        "type type"
-        "species rewards";
-    align-items: start;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    align-items: flex-start;
+    justify-content: flex-start;
+    margin-left: calc(-1 * var(--comp-subtable-shift, 0px));
+    width: max-content;
+    max-width: none;
 }
 
 .subtable-panels.competitions-panels > details.comp-type-details {
-    grid-area: type;
-}
-
-.subtable-panels.competitions-panels > details.comp-species-details {
-    grid-area: species;
-}
-
-.subtable-panels.competitions-panels > details.comp-rewards-details {
-    grid-area: rewards;
+    flex: 1 0 100%;
 }
 
 .subtable-panels.competitions-panels > details[open] > table {
     margin-left: 0;
-    width: 100%;
+    width: max-content;
+    max-width: none;
+}
+
+.subtable-panels.competitions-panels > details.comp-species-details {
+    flex: 0 0 auto;
+}
+
+.subtable-panels.competitions-panels > details.comp-rewards-details {
+    flex: 0 0 auto;
+}
+
+.subtable-panels.competitions-panels > details.comp-species-details[open] > table,
+.subtable-panels.competitions-panels > details.comp-rewards-details[open] > table {
+    margin-left: 0;
+    width: max-content;
+    max-width: none;
+}
+
+.subtable-panels.competitions-panels > details > .muted {
+    display: block;
+    margin-left: 0;
 }
 
 tr.subtable-row-js {
@@ -1048,6 +1208,18 @@ tr.repeated-exp-header th {
     position: static;
     top: auto;
     z-index: auto;
+}
+
+tr.competitions-repeated-header td.repeated-head-cell {
+    background: linear-gradient(180deg, var(--th-bg-1) 0%, var(--th-bg-2) 100%);
+    color: var(--th-text);
+    border-bottom: 1px solid var(--th-border);
+    font-family: var(--font-heading);
+    font-weight: 800;
+    letter-spacing: 0.25px;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.28);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+    white-space: nowrap;
 }
 
 .advanced-note {
@@ -1263,11 +1435,24 @@ body.theme-midnight .mark-changed-value {
     }
 
     .subtable-panels.competitions-panels {
-        grid-template-columns: 1fr;
-        grid-template-areas:
-            "type"
-            "species"
-            "rewards";
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-left: 0;
+        width: auto;
+        max-width: 100%;
+    }
+
+    .subtable-panels.competitions-panels > details.comp-type-details[open] > table,
+    .subtable-panels.competitions-panels > details.comp-species-details[open] > table,
+    .subtable-panels.competitions-panels > details.comp-rewards-details[open] > table {
+        margin-left: 0;
+        width: max-content;
+        max-width: none;
+    }
+
+    .subtable-panels.competitions-panels > details > .muted {
+        margin-left: 0;
     }
 }
 
@@ -1365,5 +1550,26 @@ body.theme-midnight .delta-pos {
 
 body.theme-midnight .delta-neg {
     color: #fb7185;
+}
+
+
+.species-gender-icon {
+    width: 16px;
+    height: 16px;
+    vertical-align: -3px;
+    margin-right: 6px;
+}
+
+.species-icons-pair {
+    display: inline-flex;
+    gap: 10px;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.species-icon-slot {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 

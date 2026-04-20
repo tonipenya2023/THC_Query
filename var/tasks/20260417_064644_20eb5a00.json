@@ -7,14 +7,14 @@
     "started_at": "2026-04-17T06:46:44+02:00",
     "finished_at": "2026-04-17T06:48:29+02:00",
     "exit_code": 0,
-    "log_file": "C:\\Users\\Usuario\\Documents\\THC\\THC_GPT\\logs\\tasks\\20260417_064644_20eb5a00.log",
+    "log_file": "C:\\Users\\Usuario\\Documents\\THC\\THC_Query\\logs\\tasks\\20260417_064644_20eb5a00.log",
     "cancel_requested": false,
     "cancel_requested_at": null,
     "cancel_reason": null,
     "process_pid": null,
     "command": [
         "C:\\xampp\\php\\php.exe",
-        "C:\\Users\\Usuario\\Documents\\THC\\THC_GPT\\src\\run_import_user.php",
+        "C:\\Users\\Usuario\\Documents\\THC\\THC_Query\\src\\run_import_user.php",
         "29509787",
         "40"
     ]

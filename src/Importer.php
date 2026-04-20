@@ -29,7 +29,7 @@ final class Importer
         $reserveName = isset($expedition['reserve']) ? $this->getReserveName((int) $expedition['reserve']) : null;
 
         if (!is_array($expedition) || !isset($expedition['id'])) {
-            throw new RuntimeException('La respuesta no contiene expedition válida.');
+            throw new RuntimeException('La respuesta no contiene expedition valida.');
         }
 
         $this->pdo->beginTransaction();
@@ -129,7 +129,7 @@ final class Importer
         $data = json_decode($json, true);
 
         if (!is_array($data)) {
-            throw new RuntimeException('La API devolvió un JSON inválido.');
+            throw new RuntimeException('La API devolvio un JSON invalido.');
         }
 
         return $data;

@@ -15,7 +15,7 @@ if (!app_is_admin_user()) {
 
 $csrfToken = is_string($_POST['csrf_token'] ?? null) ? $_POST['csrf_token'] : null;
 if (!app_validate_csrf($csrfToken)) {
-    header('Location: index.php?flash=' . urlencode('CSRF inválido'));
+    header('Location: index.php?flash=' . urlencode('CSRF invalido'));
     exit;
 }
 
@@ -26,7 +26,7 @@ $intervalMin = max(1, min(10080, $intervalMin));
 
 $ok = TaskScheduleManager::updateAction($action, $enabled, $intervalMin);
 if (!$ok) {
-    header('Location: index.php?flash=' . urlencode('Tarea programada no válida'));
+    header('Location: index.php?flash=' . urlencode('Tarea programada no valida'));
     exit;
 }
 

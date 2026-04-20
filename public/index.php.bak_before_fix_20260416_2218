@@ -5451,7 +5451,7 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>THC GPT Panel</title>
+    <title>THC Query Panel</title>
     <link rel="stylesheet" href="style.css?v=<?= h($cssVersion) ?>">
 </head>
 <body class="theme-<?= h($theme) ?>">

@@ -49,7 +49,7 @@ try {
     $row = $stmt->fetch();
 
     if ($row !== false) {
-        fwrite(STDOUT, "\nCabecera de expedición:\n");
+        fwrite(STDOUT, "\nCabecera de expedicion:\n");
         foreach ($row as $key => $value) {
             fwrite(STDOUT, "{$key}: " . ($value === null ? 'NULL' : (string) $value) . "\n");
         }
@@ -57,6 +57,6 @@ try {
 
     exit(0);
 } catch (Throwable $e) {
-    fwrite(STDERR, "Error verificando importación: {$e->getMessage()}\n");
+    fwrite(STDERR, "Error verificando importacion: {$e->getMessage()}\n");
     exit(1);
 }

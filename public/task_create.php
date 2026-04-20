@@ -13,13 +13,13 @@ $action = is_string($_POST['action'] ?? null) ? trim($_POST['action']) : '';
 $csrfToken = is_string($_POST['csrf_token'] ?? null) ? $_POST['csrf_token'] : null;
 
 if (!app_validate_csrf($csrfToken)) {
-    header('Location: index.php?flash=' . urlencode('CSRF inválido'));
+    header('Location: index.php?flash=' . urlencode('CSRF invalido'));
     exit;
 }
 
 $actions = TaskCatalog::all();
 if (!isset($actions[$action])) {
-    header('Location: index.php?flash=' . urlencode('Acción no válida'));
+    header('Location: index.php?flash=' . urlencode('Accion no valida'));
     exit;
 }
 
@@ -35,7 +35,7 @@ foreach (TaskManager::list(500) as $task) {
     }
     $status = (string) ($task['status'] ?? '');
     if (in_array($status, ['queued', 'running'], true)) {
-        header('Location: index.php?flash=' . urlencode('Esta tarea ya está en ejecución'));
+        header('Location: index.php?flash=' . urlencode('Esta tarea ya esta en ejecucion'));
         exit;
     }
 }
@@ -45,7 +45,7 @@ if ($action === 'refresh_my_expeditions') {
     $authUser = app_auth_username() ?? '';
     $userId = app_player_user_id($authUser);
     if ($userId === null || $userId <= 0) {
-        header('Location: index.php?flash=' . urlencode('No se encontró IdUsuario para el usuario actual'));
+        header('Location: index.php?flash=' . urlencode('No se encontro IdUsuario para el usuario actual'));
         exit;
     }
     $php = 'C:\\xampp\\php\\php.exe';

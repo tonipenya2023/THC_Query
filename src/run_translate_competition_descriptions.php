@@ -42,7 +42,7 @@ function google_translate_text(string $text, string $from = 'auto', string $to =
         'http' => [
             'method' => 'GET',
             'timeout' => 15,
-            'header' => "User-Agent: THC-GPT-Translator/1.0\r\nAccept: application/json\r\n",
+            'header' => "User-Agent: THC-Query-Translator/1.0\r\nAccept: application/json\r\n",
         ],
     ]);
 

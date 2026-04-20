@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+app_enable_html_output_normalization();
+
 function app_env(string $name): ?string
 {
     $value = getenv($name);
@@ -74,9 +76,193 @@ function tasks_dir(): string
 
 function h(?string $value): string
 {
-    return htmlspecialchars($value ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    $normalized = app_normalize_display_text((string) ($value ?? ''));
+    return htmlspecialchars($normalized, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+function app_fix_text_encoding(string $value): string
+{
+    if ($value === '') {
+        return '';
+    }
+
+    $best = $value;
+    $bestScore = app_mojibake_score($best);
+
+    $candidate = @iconv('UTF-8', 'Windows-1252//IGNORE', $value);
+    if (is_string($candidate) && $candidate !== '') {
+        $score = app_mojibake_score($candidate);
+        if ($score < $bestScore) {
+            $best = $candidate;
+            $bestScore = $score;
+        }
+    }
+
+    if ($bestScore > 0) {
+        $candidate = @iconv('UTF-8', 'ISO-8859-1//IGNORE', $best);
+        if (is_string($candidate) && $candidate !== '') {
+            $score = app_mojibake_score($candidate);
+            if ($score < $bestScore) {
+                $best = $candidate;
+            }
+        }
+    }
+
+    return $best;
+}
+
+function app_mojibake_score(string $value): int
+{
+    if ($value === '') {
+        return 0;
+    }
+
+    $score = 0;
+    $patterns = [
+        '/\x{00C2}/u',
+        '/\x{00C3}/u',
+        '/\x{00C6}/u',
+        '/\x{00E2}/u',
+        '/\x{0192}/u',
+        '/\x{20AC}/u',
+        '/\x{2122}/u',
+        '/A(?:\x{0192}|\x{00A2}|\x{20AC}|\x{2122}|\x{00A1}|\x{00BF}|\x{00BA}|\x{00B1}|\x{00B3}|\x{00A9})/u',
+    ];
+    foreach ($patterns as $pattern) {
+        $count = preg_match_all($pattern, $value, $matches);
+        if ($count === false) {
+            continue;
+        }
+        if ($count > 0) {
+            $score += count($matches[0]);
+        }
+    }
+
+    return $score;
+}
+
+function app_strip_vowel_accents(string $value): string
+{
+    if ($value === '') {
+        return '';
+    }
+
+    $map = [
+        "\xC3\x81" => 'A', // A
+        "\xC3\x80" => 'A', // A
+        "\xC3\x82" => 'A', // A
+        "\xC3\x84" => 'A', // A
+        "\xC3\x83" => 'A', // A
+        "\xC3\xA1" => 'a', // a
+        "\xC3\xA0" => 'a', // a
+        "\xC3\xA2" => 'a', // a
+        "\xC3\xA4" => 'a', // a
+        "\xC3\xA3" => 'a', // a
+        "\xC3\x89" => 'E', // E
+        "\xC3\x88" => 'E', // E
+        "\xC3\x8A" => 'E', // E
+        "\xC3\x8B" => 'E', // E
+        "\xC3\xA9" => 'e', // e
+        "\xC3\xA8" => 'e', // e
+        "\xC3\xAA" => 'e', // e
+        "\xC3\xAB" => 'e', // e
+        "\xC3\x8D" => 'I', // I
+        "\xC3\x8C" => 'I', // I
+        "\xC3\x8E" => 'I', // I
+        "\xC3\x8F" => 'I', // I
+        "\xC3\xAD" => 'i', // i
+        "\xC3\xAC" => 'i', // i
+        "\xC3\xAE" => 'i', // i
+        "\xC3\xAF" => 'i', // i
+        "\xC3\x93" => 'O', // O
+        "\xC3\x92" => 'O', // O
+        "\xC3\x94" => 'O', // O
+        "\xC3\x96" => 'O', // O
+        "\xC3\x95" => 'O', // O
+        "\xC3\xB3" => 'o', // o
+        "\xC3\xB2" => 'o', // o
+        "\xC3\xB4" => 'o', // o
+        "\xC3\xB6" => 'o', // o
+        "\xC3\xB5" => 'o', // o
+        "\xC3\x9A" => 'U', // U
+        "\xC3\x99" => 'U', // U
+        "\xC3\x9B" => 'U', // U
+        "\xC3\x9C" => 'U', // U
+        "\xC3\xBA" => 'u', // u
+        "\xC3\xB9" => 'u', // u
+        "\xC3\xBB" => 'u', // u
+        "\xC3\xBC" => 'u', // u
+        "\xC3\x91" => 'N', // N
+        "\xC3\xB1" => 'n', // n
+        "\xC3\x87" => 'C', // C
+        "\xC3\xA7" => 'c', // c
+    ];
+
+    return strtr($value, $map);
+}
+
+function app_strip_accent_entities(string $value): string
+{
+    if ($value === '') {
+        return '';
+    }
+
+    $decoded = html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $map = [
+        '&Aacute;' => 'A', '&aacute;' => 'a',
+        '&Eacute;' => 'E', '&eacute;' => 'e',
+        '&Iacute;' => 'I', '&iacute;' => 'i',
+        '&Oacute;' => 'O', '&oacute;' => 'o',
+        '&Uacute;' => 'U', '&uacute;' => 'u',
+        '&Ntilde;' => 'N', '&ntilde;' => 'n',
+        '&Uuml;' => 'U', '&uuml;' => 'u',
+    ];
+
+    return strtr($decoded, $map);
+}
+
+function app_strip_mojibake_artifacts(string $value): string
+{
+    if ($value === '') {
+        return '';
+    }
+
+    $value = preg_replace(
+        '/A(?:\x{0192}|\x{00A2}|\x{20AC}|\x{2122}|\x{00A1}|\x{00BF}|\x{00BA}|\x{00B1}|\x{00B3}|\x{00A9}|\x{00AD}|\x{2018}|\x{2019}|\x{201C}|\x{201D}|\x{2020}|\x{2021}|\x{2039}|\x{203A})/u',
+        '',
+        $value
+    ) ?? $value;
+
+    $value = preg_replace(
+        '/[\x{00C2}\x{00C3}\x{00C6}\x{00E2}\x{0192}\x{20AC}\x{2122}\x{201A}\x{201E}\x{2026}\x{02C6}\x{2030}\x{0160}\x{2039}\x{0152}\x{017D}\x{2018}\x{2019}\x{201C}\x{201D}\x{2022}\x{2013}\x{2014}\x{02DC}\x{0161}\x{203A}\x{0153}\x{017E}\x{0178}]/u',
+        '',
+        $value
+    ) ?? $value;
+
+    return $value;
+}
+
+function app_normalize_display_text(string $value): string
+{
+    if ($value === '') {
+        return '';
+    }
+
+    $value = str_replace(["\xEF\xBB\xBF", "\0"], '', $value);
+    $value = app_fix_text_encoding($value);
+    $value = app_strip_accent_entities($value);
+    $value = app_strip_vowel_accents($value);
+    $value = app_strip_mojibake_artifacts($value);
+    $value = preg_replace('/[^\x09\x0A\x0D\x20-\x7E]/', '', $value) ?? '';
+    $value = preg_replace('/ {2,}/', ' ', $value) ?? $value;
+
+    return $value;
+}
+
+function app_enable_html_output_normalization(): void
+{
+    return;
+}
 function app_query_all(string $sql, array $params = []): array
 {
     $stmt = app_pdo()->prepare($sql);
@@ -138,7 +324,7 @@ function app_require_panel_auth(): void
     $providedPass = $_SERVER['PHP_AUTH_PW'] ?? null;
 
     if (!is_string($providedUser) || !is_string($providedPass)) {
-        header('WWW-Authenticate: Basic realm="THC GPT Panel"');
+        header('WWW-Authenticate: Basic realm="THC Query Panel"');
         http_response_code(401);
         echo 'Acceso no autorizado';
         exit;
@@ -161,7 +347,7 @@ function app_require_panel_auth(): void
         return;
     }
 
-    header('WWW-Authenticate: Basic realm="THC GPT Panel"');
+    header('WWW-Authenticate: Basic realm="THC Query Panel"');
     http_response_code(401);
     echo 'Acceso no autorizado';
     exit;

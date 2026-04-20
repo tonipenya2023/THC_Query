@@ -17,7 +17,7 @@ if ($userId <= 0 || $expeditionId <= 0) {
 try {
     $importer = new Importer($config);
     $importer->importExpedition($userId, $expeditionId);
-    fwrite(STDOUT, "Importación completada para expedition_id={$expeditionId}\n");
+    fwrite(STDOUT, "Importacion completada para expedition_id={$expeditionId}\n");
     exit(0);
 } catch (Throwable $e) {
     fwrite(STDERR, "Error: {$e->getMessage()}\n");
