@@ -1185,6 +1185,41 @@ td > details[open] > table td > details[open] > table {
     margin-left: 0;
 }
 
+.exp-kills-layout {
+    display: grid;
+    grid-template-columns: max-content max-content;
+    gap: 14px;
+    align-items: start;
+    justify-content: start;
+    width: max-content;
+    max-width: none;
+}
+
+.exp-kills-left,
+.exp-hits-sidepanel {
+    flex: 0 0 auto;
+}
+
+.exp-hits-sidepanel {
+    display: none;
+}
+
+.exp-hits-sidepanel.is-visible {
+    display: block;
+}
+
+.exp-kills-layout table {
+    margin-top: 0 !important;
+    margin-left: 0 !important;
+}
+
+.exp-kills-left > table,
+.exp-hits-sidepanel > table {
+    width: max-content !important;
+    max-width: none !important;
+    display: inline-table;
+}
+
 tr.subtable-row-js {
     background: transparent !important;
 }
@@ -1193,6 +1228,10 @@ tr.subtable-row-js > td {
     border-bottom: 0;
     padding-top: 4px;
     padding-bottom: 10px;
+}
+
+tr.subtable-row-js > td.subtable-container {
+    overflow-x: auto;
 }
 
 tr.subtable-row-js > td.subtable-offset {
@@ -1208,6 +1247,17 @@ tr.repeated-exp-header th {
     position: static;
     top: auto;
     z-index: auto;
+}
+
+.hit-details-table {
+    table-layout: fixed;
+}
+
+.hit-details-table th,
+.hit-details-table td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 tr.competitions-repeated-header td.repeated-head-cell {
@@ -1454,6 +1504,18 @@ body.theme-midnight .mark-changed-value {
     .subtable-panels.competitions-panels > details > .muted {
         margin-left: 0;
     }
+
+    .exp-kills-layout {
+        grid-template-columns: 1fr;
+        width: auto;
+        max-width: 100%;
+    }
+
+    .exp-kills-left,
+    .exp-hits-sidepanel {
+        width: 100%;
+        max-width: 100%;
+    }
 }
 
 
@@ -1554,15 +1616,39 @@ body.theme-midnight .delta-neg {
 
 
 .species-gender-icon {
-    width: 16px;
-    height: 16px;
-    vertical-align: -3px;
+    width: auto;
+    height: 1.9em;
+    max-width: 3.2em;
+    vertical-align: middle;
     margin-right: 6px;
+    object-fit: contain;
+}
+
+.gender-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.45em;
+    height: 1.45em;
+    border-radius: 999px;
+    color: #fff;
+    font-size: 0.82em;
+    font-weight: 800;
+    line-height: 1;
+    flex: 0 0 auto;
+}
+
+.gender-badge-m {
+    background: #15803d;
+}
+
+.gender-badge-f {
+    background: #b91c1c;
 }
 
 .species-icons-pair {
     display: inline-flex;
-    gap: 10px;
+    gap: 12px;
     align-items: center;
     white-space: nowrap;
 }
@@ -1570,6 +1656,6 @@ body.theme-midnight .delta-neg {
 .species-icon-slot {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
 }
 

@@ -1,10 +1,10 @@
 {
     "refresh_best_all": {
-        "enabled": true,
+        "enabled": false,
         "interval_min": 180
     },
     "refresh_competitions": {
-        "enabled": true,
+        "enabled": false,
         "interval_min": 180
     },
     "refresh_expeditions_all_users": {
@@ -16,11 +16,11 @@
         "interval_min": 180
     },
     "refresh_my_expeditions": {
-        "enabled": true,
+        "enabled": false,
         "interval_min": 180
     },
     "refresh_public_all": {
-        "enabled": true,
+        "enabled": false,
         "interval_min": 180
     }
 }

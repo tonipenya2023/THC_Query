@@ -60,7 +60,6 @@ final class TaskCatalog
             'refresh_best_all',
             'refresh_public_all',
             'export_best_xml',
-            'scrape_kill_urls',
             'refresh_my_expeditions',
         ];
     }

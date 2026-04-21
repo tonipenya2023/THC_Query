@@ -128,6 +128,32 @@ function species_icon_key(string $value): string
     return trim($value);
 }
 
+function normalize_species_icon_src(string $speciesKey, string $src): string
+{
+    $src = trim($src);
+    if ($src === '') {
+        return '';
+    }
+
+    if ($speciesKey === 'puma') {
+        $src = str_replace(
+            ['Cougar_male_common.png', 'Cougar_female_common.png'],
+            ['Puma_male_common.png', 'Puma_female_common.png'],
+            $src
+        );
+    }
+
+    if ($speciesKey === 'cabra salvaje' || $speciesKey === 'feral goat') {
+        $src = str_replace(
+            ['Feral_goat_male_common.png', 'Feral_goat_female_common.png'],
+            ['Feral_goat_male_brown.png', 'Feral_goat_female_brown.png'],
+            $src
+        );
+    }
+
+    return $src;
+}
+
 function species_icon_map(): array
 {
     static $map = null;
@@ -151,7 +177,10 @@ function species_icon_map(): array
             if ($key === '') {
                 continue;
             }
-            $map[$key] = ['m' => $iconM, 'f' => $iconF];
+            $map[$key] = [
+                'm' => normalize_species_icon_src($key, $iconM),
+                'f' => normalize_species_icon_src($key, $iconF),
+            ];
         }
     }
     return $map;
@@ -171,12 +200,66 @@ function gender_species_icon_html(string $speciesName, mixed $genderValue): stri
     if ($code === null) {
         return '';
     }
-    $src = $code === 'M' ? (string) ($map[$key]['m'] ?? '') : (string) ($map[$key]['f'] ?? '');
+    $sharedCommonKeys = [
+        'bisonte' => true,
+        'bison' => true,
+        'oso pardo' => true,
+        'brown bear' => true,
+        'oso grizzly' => true,
+        'grizzly bear' => true,
+        'oso negro' => true,
+        'black bear' => true,
+        'lobo gris' => true,
+        'grey wolf' => true,
+        'coyote' => true,
+        'zorro rojo' => true,
+        'red fox' => true,
+        'zorro artico' => true,
+        'arctic fox' => true,
+        'lince europeo' => true,
+        'eurasian lynx' => true,
+        'lince rojo' => true,
+        'bobcat' => true,
+        'conejo europeo' => true,
+        'european rabbit' => true,
+        'conejo de cola algodon' => true,
+        'cottontail rabit' => true,
+        'cottontail rabbit' => true,
+        'liebre artica' => true,
+        'liebre americana' => true,
+        'snowshoe hare' => true,
+        'ganso del canada' => true,
+        'ganso de canada' => true,
+        'canada goose' => true,
+        'ganso urraca' => true,
+        'ganso urraco' => true,
+        'magpie goose' => true,
+    ];
+    if (isset($sharedCommonKeys[$key]) && trim((string) ($map[$key]['m'] ?? '')) !== '') {
+        $srcPrimary = (string) ($map[$key]['m'] ?? '');
+        $srcSecondary = (string) ($map[$key]['f'] ?? '');
+    } else {
+        $srcPrimary = $code === 'M' ? (string) ($map[$key]['m'] ?? '') : (string) ($map[$key]['f'] ?? '');
+        $srcSecondary = $code === 'M' ? (string) ($map[$key]['f'] ?? '') : (string) ($map[$key]['m'] ?? '');
+    }
+    $src = $srcPrimary !== '' ? $srcPrimary : $srcSecondary;
     if ($src === '') {
         return '';
     }
     $alt = $code === 'M' ? 'Macho' : 'Hembra';
     return '<img class="species-gender-icon" src="' . h($src) . '" alt="' . h($alt) . '" title="' . h($alt) . '" loading="lazy" decoding="async" onerror="this.remove()">';
+}
+
+function gender_badge_html(mixed $genderValue): string
+{
+    $code = gender_code_from_value($genderValue);
+    if ($code === null) {
+        $text = trim((string) $genderValue);
+        return $text === '' ? '' : h($text);
+    }
+
+    $class = $code === 'M' ? 'gender-badge gender-badge-m' : 'gender-badge gender-badge-f';
+    return '<span class="' . $class . '" title="' . h($code === 'M' ? 'Macho' : 'Hembra') . '">' . h($code) . '</span>';
 }
 
 function species_icons_pair_html(string $speciesName): string
@@ -186,7 +269,7 @@ function species_icons_pair_html(string $speciesName): string
     if ($iconM === '' && $iconF === '') {
         return '';
     }
-    return '<span class="species-icons-pair"><span class="species-icon-slot">M ' . $iconM . '</span><span class="species-icon-slot">F ' . $iconF . '</span></span>';
+    return '<span class="species-icons-pair"><span class="species-icon-slot">' . gender_badge_html('M') . $iconM . '</span><span class="species-icon-slot">' . gender_badge_html('F') . $iconF . '</span></span>';
 }
 
 function query_raw(string $key): string
@@ -1191,13 +1274,6 @@ function render_dashboard(): void
     ];
 
     $tasks = TaskManager::list(8);
-    $latestCompetitions = app_query_all(
-        'SELECT c.competition_id, t.type_name, c.start_at, c.end_at, c.entrants, c.updated_at
-         FROM gpt.comp_competitions c
-         LEFT JOIN gpt.comp_types t ON t.competition_type_id = c.competition_type_id
-         ORDER BY c.updated_at DESC, c.competition_id DESC
-         LIMIT 8'
-    );
 
     echo '<section class="grid cards">';
     foreach ($counts as $label => $value) {
@@ -1211,13 +1287,12 @@ function render_dashboard(): void
     echo '<input type="hidden" name="csrf_token" value="' . h(app_csrf_token()) . '">';
     echo '<button name="action" value="refresh_competitions">Actualizar Competiciones</button>';
     echo '<button name="action" value="refresh_my_expeditions">Actualizar mis Expediciones</button>';
+    echo '<button name="action" value="refresh_leaderboards">Actualizar Tablas Clasificacion</button>';
+    echo '<button name="action" value="refresh_best_all">Actualizar Mejores Marcas Usuarios</button>';
+    echo '<button name="action" value="refresh_public_all">Actualizar Estadisticas Usuarios</button>';
     if ($isAdmin) {
-        echo '<button name="action" value="refresh_leaderboards">Actualizar Tablas Clasificacion</button>';
-        echo '<button name="action" value="refresh_best_all">Actualizar Mejores Marcas Usuarios</button>';
-        echo '<button name="action" value="refresh_public_all">Actualizar Estadisticas Usuarios</button>';
         echo '<button name="action" value="refresh_expeditions_all_users">Actualizar expediciones de todos</button>';
         echo '<button name="action" value="scrape_kill_urls">Scraper URLs de Muertes</button>';
-        echo '<button name="action" value="export_best_xml">Generar XML de Mejores Marcas</button>';
     }
     echo '</form>';
     echo '</section>';
@@ -1250,18 +1325,15 @@ function render_dashboard(): void
         }
 
         $canRun = TaskCatalog::canRunAction((string) $action, $isAdmin);
+        $saveFormId = 'task-save-' . preg_replace('/[^a-z0-9_-]/i', '-', (string) $action);
+        $runFormId = 'task-run-' . preg_replace('/[^a-z0-9_-]/i', '-', (string) $action);
 
         echo '<tr>';
-        if ($isAdmin) {
-            echo '<form method="post" action="task_schedule_save.php">';
-            echo '<input type="hidden" name="csrf_token" value="' . h(app_csrf_token()) . '">';
-            echo '<input type="hidden" name="action" value="' . h((string) $action) . '">';
-        }
         echo '<td>' . h((string) $def['label']) . '</td>';
         if ($isAdmin) {
             $checked = ((bool) ($def['enabled'] ?? false)) ? ' checked' : '';
-            echo '<td><label><input type="checkbox" name="enabled" value="1"' . $checked . '> Si</label></td>';
-            echo '<td><input type="number" name="interval_min" min="1" max="10080" value="' . h((string) ($def['interval_min'] ?? 180)) . '" style="width:92px"></td>';
+            echo '<td><label><input type="checkbox" name="enabled" value="1" form="' . h($saveFormId) . '"' . $checked . '> Si</label></td>';
+            echo '<td><input type="number" name="interval_min" min="1" max="10080" value="' . h((string) ($def['interval_min'] ?? 180)) . '" form="' . h($saveFormId) . '" style="width:92px"></td>';
         } else {
             echo '<td>' . (((bool) ($def['enabled'] ?? false)) ? 'Si' : 'No') . '</td>';
             echo '<td>' . h((string) ($def['interval_min'] ?? 180)) . '</td>';
@@ -1270,30 +1342,34 @@ function render_dashboard(): void
         echo '<td>' . h($lastStatus) . '</td>';
 
         echo '<td>';
-        if (!$canRun) {
-            echo '<span class="muted">Solo admin</span>';
-        } elseif ($isBusy) {
+        if ($canRun && $isBusy) {
             echo '<span class="muted">En ejecucion</span>';
-        } else {
-            echo '<form method="post" action="task_create.php" class="task-stop-form">';
+        } elseif ($canRun) {
+            echo '<form id="' . h($runFormId) . '" method="post" action="task_create.php" class="task-stop-form">';
             echo '<input type="hidden" name="csrf_token" value="' . h(app_csrf_token()) . '">';
             echo '<input type="hidden" name="action" value="' . h((string) $action) . '">';
             echo '<button type="submit">Ejecutar</button>';
             echo '</form>';
+        } else {
+            echo '<span class="muted">-</span>';
         }
         echo '</td>';
 
         if ($isAdmin) {
-            echo '<td><button type="submit">Guardar</button></td>';
+            echo '<td>';
+            echo '<form id="' . h($saveFormId) . '" method="post" action="task_schedule_save.php">';
+            echo '<input type="hidden" name="csrf_token" value="' . h(app_csrf_token()) . '">';
+            echo '<input type="hidden" name="action" value="' . h((string) $action) . '">';
+            echo '<button type="submit">Guardar</button>';
             echo '</form>';
+            echo '</td>';
         }
         echo '</tr>';
     }
     echo '</tbody></table>';
     echo '</section>';
 
-echo '<section class="split">';
-    echo '<article class="card">';
+    echo '<section class="card">';
     echo '<h2>Tareas recientes</h2>';
     echo '<table><thead><tr><th>Etiqueta</th><th>Estado</th><th>Creada</th><th>Log</th><th>Acci&oacute;n</th></tr></thead><tbody>';
     foreach ($tasks as $task) {
@@ -1319,21 +1395,6 @@ echo '<section class="split">';
         echo '</tr>';
     }
     echo '</tbody></table>';
-    echo '</article>';
-
-    echo '<article class="card">';
-    echo '<h2>Competiciones</h2>';
-    echo '<table><thead><tr><th>ID</th><th>Nombre</th><th>Entrants</th><th>Actualizada</th></tr></thead><tbody>';
-    foreach ($latestCompetitions as $row) {
-        echo '<tr>';
-        echo '<td>' . h((string) ($row['competition_id'] ?? '')) . '</td>';
-        echo '<td>' . h((string) ($row['type_name'] ?? '')) . '</td>';
-        echo '<td>' . h((string) ($row['entrants'] ?? '')) . '</td>';
-        echo '<td>' . h((string) ($row['updated_at'] ?? '')) . '</td>';
-        echo '</tr>';
-    }
-    echo '</tbody></table>';
-    echo '</article>';
     echo '</section>';
 }
 
@@ -1531,7 +1592,6 @@ function render_expeditions(): void
         'hits_avg_distance' => 'Dist Avg (m)',
         'hits_max_distance' => 'Dist Max (m)',
         'hits_organs' => 'Organos',
-        'hit_details' => 'Detalle disparos',
     ];
     $killNumericCols = [
         'species_id' => true,
@@ -1544,7 +1604,7 @@ function render_expeditions(): void
         'hits_avg_distance' => true,
         'hits_max_distance' => true,
     ];
-    $defaultKillCols = ['kill_id', 'player_name', 'species_name', 'species_name_es', 'hit_min_distance', 'score', 'harvest_value', 'trophy_integrity', 'weight', 'ethical', 'hits_count', 'hit_details'];
+    $defaultKillCols = ['kill_id', 'player_name', 'species_name', 'species_name_es', 'hit_min_distance', 'score', 'harvest_value', 'trophy_integrity', 'weight', 'ethical', 'hits_count'];
     $selectedKillCols = persistent_selected_columns('exp_kill_cols', $killColumnDefs, 'kcol_', $defaultKillCols);
     $killDragOrderRaw = query_text('kcol_order');
     if ($killDragOrderRaw !== null) {
@@ -1562,7 +1622,7 @@ function render_expeditions(): void
     $selectedKillCols = order_selected_keys($selectedKillCols, 'ord_kcol_');
 
     $hitColumnDefs = [
-        'hit_index' => 'Hit',
+        'hit_index' => 'Disparo',
         'player_name' => 'Jugador',
         'user_id' => 'IdUsuario',
         'distance' => 'Distancia (m)',
@@ -1630,12 +1690,6 @@ function render_expeditions(): void
     foreach (query_list('open_exp') as $raw) {
         if (preg_match('/^\d+$/', (string) $raw) === 1) {
             $openExpSet[(int) $raw] = true;
-        }
-    }
-    $openKillSet = [];
-    foreach (query_list('open_kill') as $raw) {
-        if (preg_match('/^\d+$/', (string) $raw) === 1) {
-            $openKillSet[(int) $raw] = true;
         }
     }
 
@@ -2080,8 +2134,8 @@ function render_expeditions(): void
     echo '<input type="datetime-local" name="start_at" data-col-target="e_start_at" title="Inicio desde fecha/hora" value="' . h(raw_to_datetime_local_value(query_raw('start_at'))) . '">';
     echo '<input type="datetime-local" name="end_at" data-col-target="e_end_at" title="Fin hasta fecha/hora" value="' . h(raw_to_datetime_local_value(query_raw('end_at'))) . '">';
     echo '<input type="text" name="kill_id" data-col-target="k_kill_id" placeholder="Kill ID" value="' . h(query_raw('kill_id')) . '">';
-    echo '<input type="text" name="hit_index" data-col-target="h_hit_index" placeholder="Hit Index" value="' . h(query_raw('hit_index')) . '">';
-    echo '<select name="kill_species_name[]" data-col-target="k_species_name">';
+    echo '<input type="text" name="hit_index" data-col-target="h_hit_index" placeholder="Disparo ID" value="' . h(query_raw('hit_index')) . '">';
+    echo '<select name="kill_species_name[]" multiple data-check-combo="1" data-check-combo-placeholder="Nombre especie (todas)" data-col-target="k_species_name">';
     echo '<option value="">Nombre especie (todas)</option>';
     foreach (species_es_name_suggestions() as $value) {
         $selected = in_array($value, $killSpeciesNames, true) ? ' selected' : '';
@@ -2102,9 +2156,9 @@ function render_expeditions(): void
     echo '<input type="text" name="kill_harvest_max" data-col-target="k_harvest_value" placeholder="Kill harvest max" value="' . h(query_raw('kill_harvest_max')) . '">';
     echo '<select name="mark_filter"><option value="">Marca (todas)</option><option value="any"' . ($markFilter === 'any' ? ' selected' : '') . '>MM (MMP o MMD)</option><option value="mmp"' . ($markFilter === 'mmp' ? ' selected' : '') . '>Solo MMP</option><option value="mmd"' . ($markFilter === 'mmd' ? ' selected' : '') . '>Solo MMD</option></select>';
     echo '<select name="photo_tax_filter"><option value="">Todas</option><option value="ft"' . ($photoTaxFilter === 'ft' ? ' selected' : '') . '>Foto o Tax</option><option value="f"' . ($photoTaxFilter === 'f' ? ' selected' : '') . '>Foto</option><option value="t"' . ($photoTaxFilter === 't' ? ' selected' : '') . '>Tax</option></select>';
-    echo '<input type="text" name="hit_weapon_id" data-col-target="h_weapon_id" placeholder="Hit weapon_id" value="' . h(query_raw('hit_weapon_id')) . '">';
-    echo '<input type="text" name="hit_ammo_id" data-col-target="h_ammo_id" placeholder="Hit ammo_id" value="' . h(query_raw('hit_ammo_id')) . '">';
-    echo '<input type="text" name="hit_organ" data-col-target="h_organ" placeholder="Hit organ" value="' . h(query_raw('hit_organ')) . '">';
+    echo '<input type="text" name="hit_weapon_id" data-col-target="h_weapon_id" placeholder="Disparo weapon_id" value="' . h(query_raw('hit_weapon_id')) . '">';
+    echo '<input type="text" name="hit_ammo_id" data-col-target="h_ammo_id" placeholder="Disparo ammo_id" value="' . h(query_raw('hit_ammo_id')) . '">';
+    echo '<input type="text" name="hit_organ" data-col-target="h_organ" placeholder="Disparo organo" value="' . h(query_raw('hit_organ')) . '">';
     echo '<input type="text" name="exp_duration_min" placeholder="Duracion" value="' . h(query_raw('exp_duration_min')) . '">';
     echo '<input type="text" name="exp_duration_max" placeholder="Duracion" value="' . h(query_raw('exp_duration_max')) . '">';
     echo '<input type="date" name="date_from" data-col-target="e_start_at" title="Fecha inicio" value="' . h(query_raw('date_from') !== '' ? query_raw('date_from') : query_raw('start_at_from')) . '">';
@@ -2826,170 +2880,159 @@ function render_expeditions(): void
             foreach ($selectedKillCols as $colKey) {
                 $thStyle = isset($killNumericCols[$colKey]) ? ' style="text-align:right"' : '';
                 $label = $killColumnDefs[$colKey] ?? $colKey;
-                if ($colKey === 'hit_details' || !isset($killSortDefs[$colKey])) {
+                if (!isset($killSortDefs[$colKey])) {
                     echo '<th data-col-key="k_' . h($colKey) . '"' . $thStyle . '>' . h($label) . '</th>';
                 } else {
                     echo '<th data-col-key="k_' . h($colKey) . '"' . $thStyle . '>' . sort_link_param('k_sort', 'k_dir', $colKey, $label, $killSortKey, $killSortDir) . '</th>';
+                }
+            }
+            foreach ($selectedHitCols as $hcolKey) {
+                $hitThStyle = isset($hitNumericCols[$hcolKey]) ? ' style="text-align:right"' : '';
+                $hlabel = $hitColumnDefs[$hcolKey] ?? $hcolKey;
+                if (!isset($hitSortDefs[$hcolKey])) {
+                    echo '<th data-col-key="h_' . h($hcolKey) . '"' . $hitThStyle . '>' . h($hlabel) . '</th>';
+                } else {
+                    echo '<th data-col-key="h_' . h($hcolKey) . '"' . $hitThStyle . '>' . sort_link_param('h_sort', 'h_dir', $hcolKey, $hlabel, $hitSortKey, $hitSortDir) . '</th>';
                 }
             }
             echo '</tr></thead><tbody>';
             foreach ($killRows as $krow) {
                 $currentKillId = (int) ($krow['kill_id'] ?? 0);
                 $hitRows = $hitsByKill[$currentKillId] ?? [];
-                echo '<tr>';
-                foreach ($selectedKillCols as $colKey) {
-                    if ($colKey === 'hit_details') {
-                        echo '<td>';
-                        if ($hitRows === []) {
-                            echo '<span class="muted">Sin disparos</span>';
-                        } else {
-                            $killOpenAttr = isset($openKillSet[$currentKillId]) ? ' open' : '';
-                            echo '<details class="kill-hits-details" data-kill-id="' . h((string) $currentKillId) . '"' . $killOpenAttr . '><summary>Ver disparos (' . h((string) count($hitRows)) . ')</summary>';
-                            echo '<table><thead><tr>';
-                            foreach ($selectedHitCols as $hcolKey) {
-                                $hitThStyle = isset($hitNumericCols[$hcolKey]) ? ' style="text-align:right"' : '';
-                                $hlabel = $hitColumnDefs[$hcolKey] ?? $hcolKey;
-                                if (!isset($hitSortDefs[$hcolKey])) {
-                                    echo '<th data-col-key="h_' . h($hcolKey) . '"' . $hitThStyle . '>' . h($hlabel) . '</th>';
-                                } else {
-                                    echo '<th data-col-key="h_' . h($hcolKey) . '"' . $hitThStyle . '>' . sort_link_param('h_sort', 'h_dir', $hcolKey, $hlabel, $hitSortKey, $hitSortDir) . '</th>';
-                                }
-                            }
-                            echo '</tr></thead><tbody>';
-                            foreach ($hitRows as $hrow) {
-                                echo '<tr>';
-                                foreach ($selectedHitCols as $hcolKey) {
-                                    $value = $hrow[$hcolKey] ?? '';
-                                    if ($hcolKey === 'player_name' && ($value === null || $value === '')) {
-                                        $value = $hrow['user_id'] ?? '';
-                                    }
-                                    if ($hcolKey === 'distance' && $value !== null && $value !== '' && is_numeric((string) $value)) {
-                                        $value = number_format(((float) $value) / 1000, 3, '.', '');
-                                    }
-                                    $hitTdStyle = isset($hitNumericCols[$hcolKey]) ? ' style="text-align:right"' : '';
-                                    echo '<td data-col-key="h_' . h($hcolKey) . '"' . $hitTdStyle . '>' . h($value === null ? '' : (string) $value) . '</td>';
-                                }
-                                echo '</tr>';
-                            }
-                            echo '</tbody></table>';
-                            echo '</details>';
+                $combinedHitRows = $hitRows !== [] ? array_values($hitRows) : [[]];
+                foreach ($combinedHitRows as $hitRowIndex => $hrow) {
+                    echo '<tr>';
+                    foreach ($selectedKillCols as $colKey) {
+                        if ($hitRowIndex > 0) {
+                            echo '<td data-col-key="k_' . h($colKey) . '"></td>';
+                            continue;
                         }
-                        echo '</td>';
-                        continue;
+
+                        $value = $krow[$colKey] ?? '';
+                        $scoreCellColor = null;
+                        if ($colKey === 'species_name' && ($value === null || $value === '')) {
+                            $value = $krow['species_id'] ?? '';
+                        }
+                        if ($colKey === 'species_name_es' && ($value === null || $value === '')) {
+                            $value = $krow['species_name'] ?? ($krow['species_id'] ?? '');
+                        }
+                        if ($colKey === 'hits_count' && ($value === null || $value === '')) {
+                            $value = '0';
+                        }
+                        if ($value !== null && $value !== '' && is_numeric((string) $value)) {
+                            if ($colKey === 'score') {
+                                $scoreNumeric = (float) $value;
+                                $speciesCandidates = [
+                                    (string) ($krow['species_name_es'] ?? ''),
+                                    (string) ($krow['species_name'] ?? ''),
+                                ];
+                                foreach ($speciesCandidates as $candidate) {
+                                    $skey = species_key_normalized($candidate);
+                                    if ($skey === '' || !isset($ppftBySpecies[$skey])) {
+                                        continue;
+                                    }
+                                    $thresholds = $ppftBySpecies[$skey];
+                                    $tax = $thresholds['tax'] ?? null;
+                                    $foto = $thresholds['foto'] ?? null;
+                                    if ($tax !== null && $scoreNumeric >= (float) $tax) {
+                                        $scoreCellColor = '#1f9d55';
+                                    } elseif ($foto !== null && $scoreNumeric >= (float) $foto) {
+                                        $scoreCellColor = '#d97706';
+                                    }
+                                    break;
+                                }
+                                $value = number_format($scoreNumeric, 4, '.', '');
+                            } elseif ($colKey === 'harvest_value') {
+                                $value = number_format((float) $value, 3, '.', '');
+                            } elseif ($colKey === 'trophy_integrity') {
+                                $value = number_format((float) $value, 2, '.', '');
+                            } elseif ($colKey === 'weight') {
+                                $value = number_format(((float) $value) / 1000, 3, '.', '');
+                            }
+                        }
+                        if ($colKey === 'confirm_at') {
+                            $value = format_datetime_display($value);
+                        }
+                        $killTdStyle = isset($killNumericCols[$colKey]) ? ' style="text-align:right"' : '';
+                        if ($colKey === 'score' && $scoreCellColor !== null) {
+                            $killTdStyle = ' style="text-align:right;color:' . h($scoreCellColor) . ';font-weight:700"';
+                        }
+                        if ($colKey === 'gender') {
+                            echo '<td data-col-key="k_' . h($colKey) . '"' . $killTdStyle . '>' . gender_badge_html($value) . '</td>';
+                            continue;
+                        }
+                        if ($colKey === 'ethical') {
+                            $isEthical = in_array((string) $value, ['1', 'true', 't'], true);
+                            $icon = $isEthical ? '&#10004;' : '&#10008;';
+                            $color = $isEthical ? '#1f9d55' : '#c53030';
+                            echo '<td data-col-key="k_' . h($colKey) . '"' . $killTdStyle . '><span style="color:' . h($color) . ';font-weight:700">' . $icon . '</span></td>';
+                            continue;
+                        }
+                        $killText = h($value === null ? '' : (string) $value);
+                        if ($colKey === 'kill_id' && $killText !== '' && $isKillBestMark($krow)) {
+                            $killBadge = 'MM';
+                            if ($isKillMmp($krow) && $isKillMmd($krow)) {
+                                $killBadge = 'MMP/MMD';
+                            } elseif ($isKillMmp($krow)) {
+                                $killBadge = 'MMP';
+                            } elseif ($isKillMmd($krow)) {
+                                $killBadge = 'MMD';
+                            }
+                            $killText = '<span style="color:#c53030;font-weight:700">' . h($killBadge) . '</span> ' . $killText;
+                        }
+                        if ($colKey === 'score' && $killText !== '') {
+                            $scoreBadge = '';
+                            if ($isKillMmp($krow)) {
+                                $scoreBadge = 'MMP';
+                            }
+                            $pt = $killPhotoTaxBadge($krow);
+                            $scoreBadge = $combineBadges([$scoreBadge, $pt]);
+                            if ($scoreBadge !== '') {
+                                $killText = '<span style="color:#c53030;font-weight:700">' . h($scoreBadge) . '</span> ' . $killText;
+                            }
+                        }
+                        if ($colKey === 'hit_min_distance' && $killText !== '' && $isKillMmd($krow)) {
+                            $killText = '<span style="color:#c53030;font-weight:700">MMD</span> ' . $killText;
+                        }
+                        if (in_array($colKey, ['species_name', 'species_name_es'], true) && $killText !== '') {
+                            $iconSpeciesName = (string) ($krow['species_name_es'] ?? $krow['species_name'] ?? '');
+                            $killText = gender_species_icon_html($iconSpeciesName, $krow['gender'] ?? null) . $killText;
+                        }
+                        if ($colKey === 'kill_id' && $killText !== '') {
+                            $killPlayerRaw = trim((string) ($krow['player_name'] ?? ($row['e_player_name'] ?? '')));
+                            if ($killPlayerRaw !== '') {
+                                $killPlayerSlug = rawurlencode(strtolower($killPlayerRaw));
+                                $killIdValue = trim((string) ($krow['kill_id'] ?? ''));
+                                if ($killIdValue !== '') {
+                                    $killUrl = 'https://www.thehunter.com/#profile/' . $killPlayerSlug . '/score/' . rawurlencode($killIdValue);
+                                    $killText = '<a class="record-link record-link-kill" href="' . h($killUrl) . '" target="_blank" rel="noopener noreferrer">' . $killText . '</a>';
+                                }
+                            }
+                        }
+                        echo '<td data-col-key="k_' . h($colKey) . '"' . $killTdStyle . '>' . $killText . '</td>';
                     }
 
-                    $value = $krow[$colKey] ?? '';
-                    $scoreCellColor = null;
-                    if ($colKey === 'species_name' && ($value === null || $value === '')) {
-                        $value = $krow['species_id'] ?? '';
-                    }
-                    if ($colKey === 'species_name_es' && ($value === null || $value === '')) {
-                        $value = $krow['species_name'] ?? ($krow['species_id'] ?? '');
-                    }
-                    if ($colKey === 'hits_count' && ($value === null || $value === '')) {
-                        $value = '0';
-                    }
-                    if ($value !== null && $value !== '' && is_numeric((string) $value)) {
-                        if ($colKey === 'score') {
-                            $scoreNumeric = (float) $value;
-                            $speciesCandidates = [
-                                (string) ($krow['species_name_es'] ?? ''),
-                                (string) ($krow['species_name'] ?? ''),
-                            ];
-                            foreach ($speciesCandidates as $candidate) {
-                                $skey = species_key_normalized($candidate);
-                                if ($skey === '' || !isset($ppftBySpecies[$skey])) {
-                                    continue;
-                                }
-                                $thresholds = $ppftBySpecies[$skey];
-                                $tax = $thresholds['tax'] ?? null;
-                                $foto = $thresholds['foto'] ?? null;
-                                if ($tax !== null && $scoreNumeric >= (float) $tax) {
-                                    $scoreCellColor = '#1f9d55';
-                                } elseif ($foto !== null && $scoreNumeric >= (float) $foto) {
-                                    $scoreCellColor = '#d97706';
-                                }
-                                break;
+                    foreach ($selectedHitCols as $hcolKey) {
+                        $value = $hrow[$hcolKey] ?? '';
+                        if ($hrow === []) {
+                            if ($hcolKey === $selectedHitCols[0]) {
+                                echo '<td data-col-key="h_' . h($hcolKey) . '"><span class="muted">Sin disparos</span></td>';
+                            } else {
+                                echo '<td data-col-key="h_' . h($hcolKey) . '"></td>';
                             }
-                            $value = number_format($scoreNumeric, 4, '.', '');
-                        } elseif ($colKey === 'harvest_value') {
-                            $value = number_format((float) $value, 3, '.', '');
-                        } elseif ($colKey === 'trophy_integrity') {
-                            $value = number_format((float) $value, 2, '.', '');
-                        } elseif ($colKey === 'weight') {
+                            continue;
+                        }
+                        if ($hcolKey === 'player_name' && ($value === null || $value === '')) {
+                            $value = $hrow['user_id'] ?? '';
+                        }
+                        if ($hcolKey === 'distance' && $value !== null && $value !== '' && is_numeric((string) $value)) {
                             $value = number_format(((float) $value) / 1000, 3, '.', '');
                         }
+                        $hitTdStyle = isset($hitNumericCols[$hcolKey]) ? ' style="text-align:right"' : '';
+                        echo '<td data-col-key="h_' . h($hcolKey) . '"' . $hitTdStyle . '>' . h($value === null ? '' : (string) $value) . '</td>';
                     }
-                    if ($colKey === 'confirm_at') {
-                        $value = format_datetime_display($value);
-                    }
-                    $killTdStyle = isset($killNumericCols[$colKey]) ? ' style="text-align:right"' : '';
-                    if ($colKey === 'score' && $scoreCellColor !== null) {
-                        $killTdStyle = ' style="text-align:right;color:' . h($scoreCellColor) . ';font-weight:700"';
-                    }
-                    if ($colKey === 'gender') {
-                        $genderText = '';
-                        if ((string) $value === '0') {
-                            $genderText = 'M';
-                        } elseif ((string) $value === '1') {
-                            $genderText = 'F';
-                        } else {
-                            $genderText = ($value === null ? '' : (string) $value);
-                        }
-                        echo '<td data-col-key="k_' . h($colKey) . '"' . $killTdStyle . '>' . h($genderText) . '</td>';
-                        continue;
-                    }
-                    if ($colKey === 'ethical') {
-                        $isEthical = in_array((string) $value, ['1', 'true', 't'], true);
-                        $icon = $isEthical ? '&#10004;' : '&#10008;';
-                        $color = $isEthical ? '#1f9d55' : '#c53030';
-                        echo '<td data-col-key="k_' . h($colKey) . '"' . $killTdStyle . '><span style="color:' . h($color) . ';font-weight:700">' . $icon . '</span></td>';
-                        continue;
-                    }
-                    $killText = h($value === null ? '' : (string) $value);
-                    if ($colKey === 'kill_id' && $killText !== '' && $isKillBestMark($krow)) {
-                        $killBadge = 'MM';
-                        if ($isKillMmp($krow) && $isKillMmd($krow)) {
-                            $killBadge = 'MMP/MMD';
-                        } elseif ($isKillMmp($krow)) {
-                            $killBadge = 'MMP';
-                        } elseif ($isKillMmd($krow)) {
-                            $killBadge = 'MMD';
-                        }
-                        $killText = '<span style="color:#c53030;font-weight:700">' . h($killBadge) . '</span> ' . $killText;
-                    }
-                    if ($colKey === 'score' && $killText !== '') {
-                        $scoreBadge = '';
-                        if ($isKillMmp($krow)) {
-                            $scoreBadge = 'MMP';
-                        }
-                        $pt = $killPhotoTaxBadge($krow);
-                        $scoreBadge = $combineBadges([$scoreBadge, $pt]);
-                        if ($scoreBadge !== '') {
-                            $killText = '<span style="color:#c53030;font-weight:700">' . h($scoreBadge) . '</span> ' . $killText;
-                        }
-                    }
-                    if ($colKey === 'hit_min_distance' && $killText !== '' && $isKillMmd($krow)) {
-                        $killText = '<span style="color:#c53030;font-weight:700">MMD</span> ' . $killText;
-                    }
-                    if (in_array($colKey, ['species_name', 'species_name_es'], true) && $killText !== '') {
-                        $iconSpeciesName = (string) ($krow['species_name_es'] ?? $krow['species_name'] ?? '');
-                        $killText = gender_species_icon_html($iconSpeciesName, $krow['gender'] ?? null) . $killText;
-                    }
-                    if ($colKey === 'kill_id' && $killText !== '') {
-                        $killPlayerRaw = trim((string) ($krow['player_name'] ?? ($row['e_player_name'] ?? '')));
-                        if ($killPlayerRaw !== '') {
-                            $killPlayerSlug = rawurlencode(strtolower($killPlayerRaw));
-                            $killIdValue = trim((string) ($krow['kill_id'] ?? ''));
-                            if ($killIdValue !== '') {
-                                $killUrl = 'https://www.thehunter.com/#profile/' . $killPlayerSlug . '/score/' . rawurlencode($killIdValue);
-                                $killText = '<a class="record-link record-link-kill" href="' . h($killUrl) . '" target="_blank" rel="noopener noreferrer">' . $killText . '</a>';
-                            }
-                        }
-                    }
-                    echo '<td data-col-key="k_' . h($colKey) . '"' . $killTdStyle . '>' . $killText . '</td>';
+                    echo '</tr>';
                 }
-                echo '</tr>';
             }
             echo '</tbody></table>';
             echo '</details>';
@@ -3184,7 +3227,7 @@ function render_best(): void
     }
     echo '</select>';
     echo '<input type="text" name="hunter_score" placeholder="Hunter Score" value="' . h(query_raw('hunter_score')) . '">';
-    echo '<select name="species_name_es[]">';
+    echo '<select name="species_name_es[]" multiple data-check-combo="1" data-check-combo-placeholder="Especie (todas)">';
     echo '<option value="">Especie (todas)</option>';
     foreach (species_es_name_suggestions() as $name) {
         $selected = in_array($name, $speciesNames, true) ? ' selected' : '';
@@ -4455,7 +4498,7 @@ function render_competitions(): void
     echo '<select name="finished"><option value="">Finalizada</option><option value="true"' . ($finishedUi === 'true' ? ' selected' : '') . '>Si</option><option value="false"' . ($finishedUi === 'false' ? ' selected' : '') . '>No</option></select>';
     echo '<input type="datetime-local" name="start_at" title="Inicio desde" value="' . h(raw_to_datetime_local_value(query_raw('start_at'))) . '">';
     echo '<input type="datetime-local" name="end_at" title="Fin hasta" value="' . h(raw_to_datetime_local_value(query_raw('end_at'))) . '">';
-    echo '<select name="species_name_es[]">';
+    echo '<select name="species_name_es[]" multiple data-check-combo="1" data-check-combo-placeholder="Especie ES (todas)">';
     echo '<option value="">Especie ES (todas)</option>';
     foreach (species_es_name_suggestions() as $name) {
         $selected = in_array($name, $speciesNames, true) ? ' selected' : '';
@@ -4766,7 +4809,7 @@ function render_classifications(): void
     echo '<option value="score"' . (query_raw('leaderboard_type') === 'score' ? ' selected' : '') . '>Puntuaci&oacute;n</option>';
     echo '<option value="range"' . (query_raw('leaderboard_type') === 'range' ? ' selected' : '') . '>Distancia</option>';
     echo '</select>';
-    echo '<select name="species_name[]">';
+    echo '<select name="species_name[]" multiple data-check-combo="1" data-check-combo-placeholder="Especie ES (todas)">';
     echo '<option value="">Especie ES (todas)</option>';
     foreach (species_es_name_suggestions() as $name) {
         $selected = in_array($name, $speciesNames, true) ? ' selected' : '';
@@ -5015,7 +5058,7 @@ function render_classifications_history(): void
     echo '</select>';
     echo '<select name="leaderboard_type"><option value="">Tipo (todos)</option><option value="score"' . (query_raw('leaderboard_type') === 'score' ? ' selected' : '') . '>Puntuaci&oacute;n</option><option value="range"' . (query_raw('leaderboard_type') === 'range' ? ' selected' : '') . '>Distancia</option></select>';
     echo '<input type="text" name="rank_pos" placeholder="Rank actual" value="' . h(query_raw('rank_pos')) . '">';
-    echo '<select name="species_name[]"><option value="">Especie (todas)</option>';
+    echo '<select name="species_name[]" multiple data-check-combo="1" data-check-combo-placeholder="Especie (todas)"><option value="">Especie (todas)</option>';
     foreach (species_es_name_suggestions() as $name) {
         $selected = in_array($name, $speciesNames, true) ? ' selected' : '';
         echo '<option value="' . h($name) . '"' . $selected . '>' . h($name) . '</option>';
@@ -6656,6 +6699,94 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
 </script>
 <script>
 (() => {
+    const ensureExpHitsLayout = (expDetails) => {
+        if (!(expDetails instanceof HTMLDetailsElement)) {
+            return null;
+        }
+
+        const existing = expDetails.querySelector(':scope > .exp-kills-layout');
+        if (existing instanceof HTMLDivElement) {
+            return existing;
+        }
+
+        const killsTable = expDetails.querySelector(':scope > table');
+        if (!(killsTable instanceof HTMLTableElement)) {
+            return null;
+        }
+
+        const layout = document.createElement('div');
+        layout.className = 'exp-kills-layout';
+
+        const left = document.createElement('div');
+        left.className = 'exp-kills-left';
+
+        const side = document.createElement('div');
+        side.className = 'exp-hits-sidepanel';
+
+        killsTable.replaceWith(layout);
+        left.appendChild(killsTable);
+        layout.appendChild(left);
+        layout.appendChild(side);
+
+        return layout;
+    };
+
+    const wireHitsSidePanel = (details) => {
+        const expDetails = details.closest('.exp-kills-details');
+        const layout = ensureExpHitsLayout(expDetails);
+        if (!(layout instanceof HTMLDivElement)) {
+            return;
+        }
+
+        const sidePanel = layout.querySelector(':scope > .exp-hits-sidepanel');
+        if (!(sidePanel instanceof HTMLDivElement)) {
+            return;
+        }
+
+        let home = details.querySelector(':scope > .kill-hits-home');
+        if (!(home instanceof HTMLDivElement)) {
+            home = document.createElement('div');
+            home.className = 'kill-hits-home';
+            home.style.display = 'none';
+            details.appendChild(home);
+        }
+
+        const directTable = details.querySelector(':scope > table');
+        if (directTable instanceof HTMLTableElement) {
+            home.appendChild(directTable);
+        }
+
+        const hitTable = home.querySelector(':scope > table');
+        if (!(hitTable instanceof HTMLTableElement)) {
+            return;
+        }
+
+        const sync = () => {
+            if (details.open) {
+                expDetails.querySelectorAll('.kill-hits-details[open]').forEach((other) => {
+                    if (other !== details) {
+                        other.open = false;
+                    }
+                });
+                sidePanel.replaceChildren(hitTable);
+                sidePanel.classList.add('is-visible');
+                return;
+            }
+
+            if (sidePanel.contains(hitTable)) {
+                home.appendChild(hitTable);
+            }
+            if (!expDetails.querySelector('.kill-hits-details[open]')) {
+                sidePanel.classList.remove('is-visible');
+                sidePanel.replaceChildren();
+            }
+        };
+
+        details.addEventListener('toggle', sync);
+        sync();
+        details.dataset.wiredSubrow = '1';
+    };
+
     const wireDetailsToSubRow = (details) => {
         if (!(details instanceof HTMLDetailsElement)) {
             return;
@@ -6664,6 +6795,11 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
             return;
         }
         if (details.closest('.subtable-panels.stats-parallel') || details.closest('.subtable-panels.competitions-panels')) {
+            return;
+        }
+
+        if (details.classList.contains('kill-hits-details')) {
+            wireHitsSidePanel(details);
             return;
         }
 
@@ -6953,7 +7089,155 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
 })();
 </script>
 <script>
-(() => {})();
+(() => {
+    const syncNativeSelect = (select, selectedValues) => {
+        const selectedSet = new Set(selectedValues);
+        Array.from(select.options).forEach((option) => {
+            option.selected = option.value !== '' && selectedSet.has(option.value);
+        });
+    };
+
+    const wireCheckCombo = (select) => {
+        if (!(select instanceof HTMLSelectElement) || !select.multiple || select.dataset.comboWired === '1') {
+            return;
+        }
+
+        const placeholder = select.dataset.checkComboPlaceholder || select.options[0]?.textContent?.trim() || 'Seleccionar';
+        const colTarget = select.dataset.colTarget || select.name || '';
+        const options = Array.from(select.options).filter((option) => option.value !== '');
+        if (options.length === 0) {
+            return;
+        }
+
+        const details = document.createElement('details');
+        details.className = 'filter-check-combo';
+        details.dataset.colTarget = colTarget;
+
+        const summary = document.createElement('summary');
+        details.appendChild(summary);
+
+        const menu = document.createElement('div');
+        menu.className = 'filter-check-combo-menu';
+
+        const actions = document.createElement('div');
+        actions.className = 'filter-check-combo-actions';
+
+        const selectAllBtn = document.createElement('button');
+        selectAllBtn.type = 'button';
+        selectAllBtn.className = 'btn-link';
+        selectAllBtn.textContent = 'Todos';
+
+        const clearBtn = document.createElement('button');
+        clearBtn.type = 'button';
+        clearBtn.className = 'btn-link';
+        clearBtn.textContent = 'Limpiar';
+
+        actions.appendChild(selectAllBtn);
+        actions.appendChild(clearBtn);
+        menu.appendChild(actions);
+
+        const checkboxMap = new Map();
+        options.forEach((option) => {
+            const label = document.createElement('label');
+            label.className = 'filter-check-combo-item';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = option.value;
+            checkbox.checked = option.selected;
+            checkbox.dataset.colTarget = colTarget;
+
+            const text = document.createElement('span');
+            text.textContent = option.textContent || option.value;
+
+            label.appendChild(checkbox);
+            label.appendChild(text);
+            menu.appendChild(label);
+            checkboxMap.set(option.value, checkbox);
+        });
+
+        details.appendChild(menu);
+
+        const updateSummary = () => {
+            const selectedLabels = options
+                .filter((option) => option.selected)
+                .map((option) => (option.textContent || option.value).trim())
+                .filter(Boolean);
+
+            if (selectedLabels.length === 0) {
+                summary.textContent = placeholder;
+                return;
+            }
+
+            if (selectedLabels.length <= 2) {
+                summary.textContent = selectedLabels.join(', ');
+                return;
+            }
+
+            summary.textContent = `${selectedLabels.length} especies`;
+        };
+
+        const dispatchChange = () => {
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+        };
+
+        const applySelection = (selectedValues) => {
+            syncNativeSelect(select, selectedValues);
+            checkboxMap.forEach((checkbox, value) => {
+                checkbox.checked = selectedValues.includes(value);
+            });
+            updateSummary();
+            dispatchChange();
+        };
+
+        checkboxMap.forEach((checkbox) => {
+            checkbox.addEventListener('change', () => {
+                const selectedValues = Array.from(checkboxMap.entries())
+                    .filter(([, cb]) => cb.checked)
+                    .map(([currentValue]) => currentValue);
+                applySelection(selectedValues);
+            });
+        });
+
+        selectAllBtn.addEventListener('click', () => {
+            applySelection(options.map((option) => option.value));
+        });
+
+        clearBtn.addEventListener('click', () => {
+            applySelection([]);
+        });
+
+        details.addEventListener('toggle', () => {
+            if (!details.open) {
+                return;
+            }
+            document.querySelectorAll('.filter-check-combo[open]').forEach((other) => {
+                if (other !== details) {
+                    other.open = false;
+                }
+            });
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!details.open) {
+                return;
+            }
+            if (event.target instanceof Node && details.contains(event.target)) {
+                return;
+            }
+            details.open = false;
+        });
+
+        select.style.display = 'none';
+        select.insertAdjacentElement('afterend', details);
+        select.dataset.comboWired = '1';
+        updateSummary();
+    };
+
+    document.querySelectorAll('select[data-check-combo="1"]').forEach((select) => {
+        wireCheckCombo(select);
+    });
+})();
 
 
 

@@ -1,3 +1,6 @@
 var/tasks/*
 *.json
 *.log
+var/task_schedule_tick.json
+logs/best_import_errors.log
+var/task_schedules.json
