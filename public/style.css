@@ -834,10 +834,13 @@ body.theme-gaming .theme-chip.active {
 
 .table-filters .visible-columns .visible-row {
     margin-top: 8px;
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, max-content));
     gap: 10px 16px;
-    align-items: center;
+    align-items: start;
+    justify-content: start;
+    width: 100%;
+    max-width: 100%;
 }
 
 .table-filters .visible-columns .visible-item {
@@ -846,6 +849,7 @@ body.theme-gaming .theme-chip.active {
     gap: 8px;
     cursor: grab;
     user-select: none;
+    min-width: 0;
 }
 
 .table-filters .visible-columns .visible-item.dragging {
@@ -854,9 +858,11 @@ body.theme-gaming .theme-chip.active {
 }
 
 .table-filters .visible-columns .btn-reset-cols {
-    margin-left: auto;
+    margin-left: 0;
     padding: 8px 14px;
     border-radius: 10px;
+    grid-column: 1 / -1;
+    justify-self: start;
 }
 
 .table-filters .cols-grid {
@@ -1144,45 +1150,79 @@ td > details[open] > table td > details[open] > table {
     max-width: none;
 }
 
-.subtable-panels.competitions-panels {
+.competition-detail-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+    margin-top: 14px;
+    width: max-content;
+    max-width: 100%;
+}
+
+.competition-detail-grid {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px 14px;
+    gap: 12px 14px;
     align-items: flex-start;
     justify-content: flex-start;
-    margin-left: calc(-1 * var(--comp-subtable-shift, 0px));
     width: max-content;
-    max-width: none;
+    max-width: 100%;
 }
 
-.subtable-panels.competitions-panels > details.comp-type-details {
-    flex: 1 0 100%;
-}
-
-.subtable-panels.competitions-panels > details[open] > table {
-    margin-left: 0;
-    width: max-content;
-    max-width: none;
-}
-
-.subtable-panels.competitions-panels > details.comp-species-details {
-    flex: 0 0 auto;
-}
-
-.subtable-panels.competitions-panels > details.comp-rewards-details {
-    flex: 0 0 auto;
-}
-
-.subtable-panels.competitions-panels > details.comp-species-details[open] > table,
-.subtable-panels.competitions-panels > details.comp-rewards-details[open] > table {
-    margin-left: 0;
-    width: max-content;
-    max-width: none;
-}
-
-.subtable-panels.competitions-panels > details > .muted {
+.competition-detail-block {
     display: block;
+    width: max-content;
+    max-width: 100%;
+}
+
+.competition-detail-title {
+    margin-bottom: 6px;
+    font-weight: 800;
+    font-size: 15px;
+}
+
+.competition-detail-type {
+    width: min(100%, 980px);
+}
+
+.competition-detail-type > table {
+    width: min(100%, 980px);
+    table-layout: fixed;
+}
+
+.competition-detail-type > table col.comp-type-col-id {
+    width: 90px;
+}
+
+.competition-detail-type > table col.comp-type-col-name {
+    width: 240px;
+}
+
+.competition-detail-type > table col.comp-type-col-desc {
+    width: 480px;
+}
+
+.competition-detail-type > table col.comp-type-col-flag {
+    width: 120px;
+}
+
+.competition-detail-type > table col.comp-type-col-num {
+    width: 110px;
+}
+
+.competition-detail-type > table th,
+.competition-detail-type > table td {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.competition-detail-species > table,
+.competition-detail-rewards > table {
     margin-left: 0;
+    width: max-content;
+    max-width: 100%;
 }
 
 .exp-kills-layout {
@@ -1237,6 +1277,36 @@ tr.subtable-row-js > td.subtable-container {
 tr.subtable-row-js > td.subtable-offset {
     width: 1%;
     min-width: 30px;
+}
+
+.competition-results {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: 100%;
+}
+
+.competition-entry {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.competition-entry-main {
+    width: max-content !important;
+    max-width: none !important;
+    display: inline-table;
+}
+
+.competition-entry-detail {
+    padding-left: var(--competition-detail-indent, 0px);
+    width: max-content;
+    max-width: none;
 }
 
 tr.row-toggle-subtable > td {

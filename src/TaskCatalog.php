@@ -30,6 +30,10 @@ final class TaskCatalog
                 'label' => 'Actualizar Estadisticas Usuarios',
                 'command' => [$php, $src . 'run_import_users_public_stats.php'],
             ],
+            'refresh_trophies_all' => [
+                'label' => 'Actualizar Trofeos Usuarios',
+                'command' => [$php, $src . 'run_import_users_trophies.php'],
+            ],
             'refresh_expeditions_all_users' => [
                 'label' => 'Actualizar Expediciones de todos los users',
                 'command' => [$php, $src . 'run_import_users.php', '--page-size=40'],
@@ -59,6 +63,7 @@ final class TaskCatalog
             'refresh_leaderboards',
             'refresh_best_all',
             'refresh_public_all',
+            'refresh_trophies_all',
             'export_best_xml',
             'refresh_my_expeditions',
         ];

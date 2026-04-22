@@ -78,6 +78,17 @@ function query_list(string $key): array
     return array_keys($out);
 }
 
+function thehunter_kill_url(?string $playerName, mixed $killId): ?string
+{
+    $playerName = trim((string) $playerName);
+    $killId = trim((string) $killId);
+    if ($playerName === '' || $killId === '') {
+        return null;
+    }
+
+    return 'https://www.thehunter.com/#profile/' . rawurlencode(strtolower($playerName)) . '/score/' . rawurlencode($killId);
+}
+
 function default_player_filter(array $playerNames, string $paramKey = 'player_name'): array
 {
     if ($playerNames !== []) {
@@ -147,6 +158,14 @@ function normalize_species_icon_src(string $speciesKey, string $src): string
         $src = str_replace(
             ['Feral_goat_male_common.png', 'Feral_goat_female_common.png'],
             ['Feral_goat_male_brown.png', 'Feral_goat_female_brown.png'],
+            $src
+        );
+    }
+
+    if ($speciesKey === 'bisonte' || $speciesKey === 'bison') {
+        $src = str_replace(
+            ['Bison_common.png'],
+            ['Bison_male_common.png'],
             $src
         );
     }
@@ -270,6 +289,11 @@ function species_icons_pair_html(string $speciesName): string
         return '';
     }
     return '<span class="species-icons-pair"><span class="species-icon-slot">' . gender_badge_html('M') . $iconM . '</span><span class="species-icon-slot">' . gender_badge_html('F') . $iconF . '</span></span>';
+}
+
+function species_single_icon_html(string $speciesName): string
+{
+    return gender_species_icon_html($speciesName, 'M');
 }
 
 function query_raw(string $key): string
@@ -1290,6 +1314,7 @@ function render_dashboard(): void
     echo '<button name="action" value="refresh_leaderboards">Actualizar Tablas Clasificacion</button>';
     echo '<button name="action" value="refresh_best_all">Actualizar Mejores Marcas Usuarios</button>';
     echo '<button name="action" value="refresh_public_all">Actualizar Estadisticas Usuarios</button>';
+    echo '<button name="action" value="refresh_trophies_all">Actualizar Trofeos Usuarios</button>';
     if ($isAdmin) {
         echo '<button name="action" value="refresh_expeditions_all_users">Actualizar expediciones de todos</button>';
         echo '<button name="action" value="scrape_kill_urls">Scraper URLs de Muertes</button>';
@@ -3140,6 +3165,9 @@ function render_best(): void
     [$sortKey, $sortDir] = query_sort($defaultSort, 'asc', $sortable);
 
     $selectParts = [];
+    $selectParts[] = 'b.player_name AS "__link_player_name"';
+    $selectParts[] = 'b.best_score_animal_id AS "__best_score_kill_id"';
+    $selectParts[] = 'b.best_distance_animal_id AS "__best_distance_kill_id"';
     foreach ($selectedCols as $key) {
         $selectParts[] = $columnDefs[$key]['expr'] . ' AS ' . quote_ident($key);
     }
@@ -3263,8 +3291,8 @@ function render_best(): void
     );
     echo '<div class="table-head-wrap">';
     echo '<div class="totals-inline-right">';
-    echo '<span><strong>N? Top\'s D:</strong> <span class="totals-value-red">' . h((string) $topDCount) . '</span></span>';
-    echo '<span><strong>N? Top\'s P:</strong> <span class="totals-value-red">' . h((string) $topPCount) . '</span></span>';
+    echo '<span><strong>Top\'s D:</strong> <span class="totals-value-red">' . h((string) $topDCount) . '</span></span>';
+    echo '<span><strong>Top\'s P:</strong> <span class="totals-value-red">' . h((string) $topPCount) . '</span></span>';
     echo '</div>';
     echo '<table><thead><tr>';
     foreach ($selectedCols as $key) {
@@ -3276,6 +3304,9 @@ function render_best(): void
         $tops = $topBySpecies[$speciesKey] ?? ['score' => null, 'distance' => null];
         $score = $row['best_score_value'] ?? null;
         $distance = $row['best_distance_m'] ?? null;
+        $bestPlayerName = trim((string) ($row['__link_player_name'] ?? ($row['player_name'] ?? '')));
+        $bestScoreKillUrl = thehunter_kill_url($bestPlayerName, $row['__best_score_kill_id'] ?? null);
+        $bestDistanceKillUrl = thehunter_kill_url($bestPlayerName, $row['__best_distance_kill_id'] ?? null);
         $isTopScore = is_numeric((string) $score) && is_numeric((string) $tops['score']) && ((float) $score >= ((float) $tops['score'] - 0.0001));
         $isTopDistance = is_numeric((string) $distance) && is_numeric((string) $tops['distance']) && ((float) $distance >= ((float) $tops['distance'] - 0.0005));
 
@@ -3285,11 +3316,17 @@ function render_best(): void
             $cell = h((string) ($row[$key] ?? ''));
             if ($key === 'best_score_value' && $isTopScore && $cell !== '') {
                 $cell = '<span class="best-species-badge">TOP P</span> ' . $cell;
+                if ($bestScoreKillUrl !== null) {
+                    $cell = '<a class="record-link record-link-kill" href="' . h($bestScoreKillUrl) . '" target="_blank" rel="noopener noreferrer">' . $cell . '</a>';
+                }
                 echo '<td class="best-species-score">' . $cell . '</td>';
                 continue;
             }
             if ($key === 'best_distance_m' && $isTopDistance && $cell !== '') {
                 $cell = '<span class="best-species-badge">TOP D</span> ' . $cell;
+                if ($bestDistanceKillUrl !== null) {
+                    $cell = '<a class="record-link record-link-kill" href="' . h($bestDistanceKillUrl) . '" target="_blank" rel="noopener noreferrer">' . $cell . '</a>';
+                }
                 echo '<td class="best-species-distance">' . $cell . '</td>';
                 continue;
             }
@@ -3302,6 +3339,12 @@ function render_best(): void
                     $tags[] = 'D';
                 }
                 $cell = '<span class="best-species-tag">[' . h(implode('/', $tags)) . ']</span> ' . $cell;
+            }
+            if ($key === 'best_score_value' && $cell !== '' && $bestScoreKillUrl !== null) {
+                $cell = '<a class="record-link record-link-kill" href="' . h($bestScoreKillUrl) . '" target="_blank" rel="noopener noreferrer">' . $cell . '</a>';
+            }
+            if ($key === 'best_distance_m' && $cell !== '' && $bestDistanceKillUrl !== null) {
+                $cell = '<a class="record-link record-link-kill" href="' . h($bestDistanceKillUrl) . '" target="_blank" rel="noopener noreferrer">' . $cell . '</a>';
             }
             echo '<td>' . $cell . '</td>';
         }
@@ -4203,6 +4246,7 @@ function render_competitions(): void
     $hasTypePointType = isset($compTypeCols['point_type']);
     $pointTypeIsBoolean = (($compTypeCols['point_type'] ?? '') === 'boolean');
     $hasTypeDescriptionEs = isset($compTypeCols['description_es']);
+    $hasTypeDescriptionShort = isset($compTypeCols['description_short']);
     $attemptsExpr = $hasTypeAttempts
         ? 't.attempts'
         : "CASE WHEN COALESCE(t.raw_json->>'attempts','') ~ '^-?[0-9]+$' THEN (t.raw_json->>'attempts')::int ELSE NULL END";
@@ -4212,6 +4256,9 @@ function render_competitions(): void
     $descriptionEsExpr = $hasTypeDescriptionEs
         ? 't.description_es'
         : "COALESCE(t.raw_json->>'description_es','')";
+    $descriptionOriginalExpr = $hasTypeDescriptionShort
+        ? 't.description_short'
+        : "COALESCE(t.raw_json->>'description_short','')";
 
     $columnDefs = [
         'competition_id' => ['expr' => 'c.competition_id', 'sort' => 'c.competition_id', 'label' => 'ID'],
@@ -4250,6 +4297,46 @@ function render_competitions(): void
             $selectedCols = $ordered;
         }
     }
+
+    $typeColumnDefs = [
+        'competition_type_id' => 'Type ID',
+        'type_name' => 'Nombre tipo',
+        'description_es' => 'Descripcion ES',
+        'description_short' => 'Descripcion original',
+        'singleplayer' => 'Singleplayer',
+        'entrant_rules' => 'Entrant rules',
+        'attempts' => 'Attempts',
+        'point_type' => 'Point type',
+    ];
+    $defaultTypeCols = ['competition_type_id', 'type_name', 'description_es', 'description_short', 'singleplayer', 'entrant_rules', 'attempts', 'point_type'];
+    $selectedTypeCols = [];
+    $hasTypeChoice = false;
+    foreach ($typeColumnDefs as $key => $_label) {
+        if (array_key_exists('ctcol_' . $key, $_GET)) {
+            $hasTypeChoice = true;
+            $raw = $_GET['ctcol_' . $key];
+            if ((is_string($raw) && $raw === '1') || $raw === 1) {
+                $selectedTypeCols[] = $key;
+            }
+        }
+    }
+    if (!$hasTypeChoice || $selectedTypeCols === []) {
+        $selectedTypeCols = $defaultTypeCols;
+    }
+    $dragTypeOrderRaw = query_text('ctcol_order');
+    if ($dragTypeOrderRaw !== null) {
+        $ordered = array_values(array_filter(array_map('trim', explode(',', $dragTypeOrderRaw))));
+        $ordered = array_values(array_filter($ordered, static fn (string $k): bool => in_array($k, $selectedTypeCols, true)));
+        foreach ($selectedTypeCols as $k) {
+            if (!in_array($k, $ordered, true)) {
+                $ordered[] = $k;
+            }
+        }
+        if ($ordered !== []) {
+            $selectedTypeCols = $ordered;
+        }
+    }
+    $selectedTypeCols = order_selected_keys($selectedTypeCols, 'ord_ctcol_');
 
     $speciesColumnDefs = [
         'species_id' => 'IdEspecie',
@@ -4482,6 +4569,7 @@ function render_competitions(): void
     echo '<input type="hidden" name="view" value="competitions">';
     echo '<input type="hidden" name="page" value="1">';
     echo '<input type="hidden" name="ccol_order" value="' . h(query_raw('ccol_order')) . '">';
+    echo '<input type="hidden" name="ctcol_order" value="' . h(query_raw('ctcol_order')) . '">';
     echo '<input type="hidden" name="cscol_order" value="' . h(query_raw('cscol_order')) . '">';
     echo '<input type="hidden" name="crcol_order" value="' . h(query_raw('crcol_order')) . '">';
     echo '<input type="hidden" name="cs_sort" value="' . h($speciesSortKey) . '">';
@@ -4520,7 +4608,14 @@ function render_competitions(): void
     }
     echo '<button type="button" class="btn-reset-cols" data-default-cols="' . h(implode(',', $defaultCols)) . '">Restablecer</button>';
     echo '</div></details>';
-    echo '<details class="filter-details visible-columns" data-col-prefix="cscol_" data-order-field="cscol_order"><summary>Columnas Estados Especies</summary><div class="visible-row">';
+    echo '<details class="filter-details visible-columns" data-col-prefix="ctcol_" data-order-field="ctcol_order"><summary>Columnas Tipo</summary><div class="visible-row">';
+    foreach ($typeColumnDefs as $key => $label) {
+        $checked = in_array($key, $selectedTypeCols, true) ? ' checked' : '';
+        echo '<label class="visible-item" draggable="true" data-col-key="' . h($key) . '"><input class="col-check" type="checkbox" name="ctcol_' . h($key) . '" value="1"' . $checked . '><span>' . h($label) . '</span></label>';
+    }
+    echo '<button type="button" class="btn-reset-cols" data-default-cols="' . h(implode(',', $defaultTypeCols)) . '">Restablecer</button>';
+    echo '</div></details>';
+    echo '<details class="filter-details visible-columns" data-col-prefix="cscol_" data-order-field="cscol_order"><summary>Columnas Especies</summary><div class="visible-row">';
     foreach ($speciesColumnDefs as $key => $label) {
         $checked = in_array($key, $selectedSpeciesCols, true) ? ' checked' : '';
         echo '<label class="visible-item" draggable="true" data-col-key="' . h($key) . '"><input class="col-check" type="checkbox" name="cscol_' . h($key) . '" value="1"' . $checked . '><span>' . h($label) . '</span></label>';
@@ -4590,15 +4685,15 @@ function render_competitions(): void
         }
     }
 
-    echo '<table><thead><tr>';
-    foreach ($selectedCols as $key) {
-        echo '<th>' . sort_link($key, $columnDefs[$key]['label'], $sortKey, $sortDir) . '</th>';
-    }
-    echo '<th>Detalle</th>';
-    echo '</tr></thead><tbody>';
+    echo '<div class="competition-results">';
     foreach ($rows as $row) {
         $tid = (int) ($row['competition_type_id'] ?? $row['__type_id'] ?? 0);
-        echo '<tr>';
+        echo '<section class="competition-entry">';
+        echo '<table class="competition-entry-main"><thead><tr>';
+        foreach ($selectedCols as $key) {
+            echo '<th>' . sort_link($key, $columnDefs[$key]['label'], $sortKey, $sortDir) . '</th>';
+        }
+        echo '</tr></thead><tbody><tr>';
         foreach ($selectedCols as $key) {
             $value = $row[$key] ?? '';
             if (in_array($key, ['start_at', 'end_at'], true)) {
@@ -4612,10 +4707,12 @@ function render_competitions(): void
             }
             echo '<td>' . h($value === null ? '' : (string) $value) . '</td>';
         }
-        echo '<td>';
-        echo '<div class="subtable-panels competitions-panels">';
+        echo '</tr></tbody></table>';
+        echo '<div class="competition-entry-detail">';
+        echo '<div class="competition-detail-stack">';
         $typeRow = $typeById[$tid] ?? null;
-        echo '<details class="comp-type-details"><summary>Tipo</summary>';
+        echo '<div class="competition-detail-block competition-detail-type">';
+        echo '<div class="competition-detail-title">Tipo</div>';
         if (!is_array($typeRow)) {
             echo '<span class="muted">Sin tipo vinculado (competition_type_id=' . h((string) $tid) . ')</span>';
         } else {
@@ -4623,21 +4720,45 @@ function render_competitions(): void
             $er = ($typeRow['entrant_rules'] ?? null);
             $spTxt = ($sp === true || $sp === 't' || $sp === 1 || $sp === '1') ? 'Si' : 'No';
             $erTxt = ($er === true || $er === 't' || $er === 1 || $er === '1') ? 'Si' : 'No';
-            echo '<table><thead><tr><th>Type ID</th><th>Nombre tipo</th><th>Descripcion ES</th><th>Descripcion original</th><th>Singleplayer</th><th>Entrant rules</th><th>Attempts</th><th>Point type</th></tr></thead><tbody>';
+            $typeValueMap = [
+                'competition_type_id' => (string) ($typeRow['competition_type_id'] ?? ''),
+                'type_name' => (string) ($typeRow['type_name'] ?? ''),
+                'description_es' => (string) ($typeRow['description_es'] ?? ''),
+                'description_short' => (string) ($typeRow['description_short'] ?? ''),
+                'singleplayer' => $spTxt,
+                'entrant_rules' => $erTxt,
+                'attempts' => (string) ($typeRow['attempts'] ?? ''),
+                'point_type' => (string) ($typeRow['point_type'] ?? ''),
+            ];
+            echo '<table><colgroup>';
+            foreach ($selectedTypeCols as $colKey) {
+                $colClass = match ($colKey) {
+                    'competition_type_id' => 'comp-type-col-id',
+                    'type_name' => 'comp-type-col-name',
+                    'description_es', 'description_short' => 'comp-type-col-desc',
+                    'singleplayer', 'entrant_rules' => 'comp-type-col-flag',
+                    'attempts', 'point_type' => 'comp-type-col-num',
+                    default => 'comp-type-col-name',
+                };
+                echo '<col class="' . h($colClass) . '">';
+            }
+            echo '</colgroup><thead><tr>';
+            foreach ($selectedTypeCols as $colKey) {
+                echo '<th>' . h($typeColumnDefs[$colKey] ?? $colKey) . '</th>';
+            }
+            echo '</tr></thead><tbody>';
             echo '<tr>';
-            echo '<td>' . h((string) ($typeRow['competition_type_id'] ?? '')) . '</td>';
-            echo '<td>' . h((string) ($typeRow['type_name'] ?? '')) . '</td>';
-            echo '<td>' . h((string) ($typeRow['description_es'] ?? '')) . '</td>';
-            echo '<td>' . h((string) ($typeRow['description_short'] ?? '')) . '</td>';
-            echo '<td>' . h($spTxt) . '</td>';
-            echo '<td>' . h($erTxt) . '</td>';
-            echo '<td class="num-cell">' . h((string) ($typeRow['attempts'] ?? '')) . '</td>';
-            echo '<td class="num-cell">' . h((string) ($typeRow['point_type'] ?? '')) . '</td>';
+            foreach ($selectedTypeCols as $colKey) {
+                $class = in_array($colKey, ['attempts', 'point_type'], true) ? ' class="num-cell"' : '';
+                echo '<td' . $class . '>' . h($typeValueMap[$colKey] ?? '') . '</td>';
+            }
             echo '</tr>';
             echo '</tbody></table>';
         }
-        echo '</details>';
-        echo '<details class="comp-species-details"><summary>Especies (' . h((string) count($speciesByType[$tid] ?? [])) . ')</summary>';
+        echo '</div>';
+        echo '<div class="competition-detail-grid">';
+        echo '<div class="competition-detail-block competition-detail-species">';
+        echo '<div class="competition-detail-title">Especies (' . h((string) count($speciesByType[$tid] ?? [])) . ')</div>';
         if (($speciesByType[$tid] ?? []) === []) {
             echo '<span class="muted">Sin filas</span>';
         } else {
@@ -4664,8 +4785,9 @@ function render_competitions(): void
             }
             echo '</tbody></table>';
         }
-        echo '</details>';
-        echo '<details class="comp-rewards-details"><summary>Rewards (' . h((string) count($rewardsByType[$tid] ?? [])) . ')</summary>';
+        echo '</div>';
+        echo '<div class="competition-detail-block competition-detail-rewards">';
+        echo '<div class="competition-detail-title">Rewards (' . h((string) count($rewardsByType[$tid] ?? [])) . ')</div>';
         if (($rewardsByType[$tid] ?? []) === []) {
             echo '<span class="muted">Sin filas</span>';
         } else {
@@ -4693,12 +4815,12 @@ function render_competitions(): void
             }
             echo '</tbody></table>';
         }
-        echo '</details>';
         echo '</div>';
-        echo '</td>';
-        echo '</tr>';
+        echo '</div>';
+        echo '</div>';
+        echo '</section>';
     }
-    echo '</tbody></table>';
+    echo '</div>';
     render_pagination($page, $pageSize, $totalRows);
     echo '</section>';
 }
@@ -5663,7 +5785,7 @@ function render_best_xml_preview(): void
         for ($i = 1; $i <= $maxCol; $i++) {
             $v = (string) ($rowData[$i] ?? '');
             if ($i === $speciesCol) {
-                $speciesIcons = species_icons_pair_html($v);
+                $speciesIcons = species_single_icon_html($v);
                 echo '<td class="best-xml-species" data-raw="' . h($v) . '"><span class="best-species-tag">[' . h($topBadge === 'TOP D' ? 'D' : 'P') . ']</span> ' . $speciesIcons . h($v) . '</td>';
                 continue;
             }
@@ -5913,9 +6035,21 @@ function render_hall_of_fame(): void
         }
     }
 
+    $speciesCol = null;
+    foreach (['ion', 'especie', 'species', 'animal', 'nombre_especie'] as $cand) {
+        if (isset($columnsByLower[$cand])) {
+            $speciesCol = $columnsByLower[$cand];
+            break;
+        }
+    }
+    $speciesNames = query_list('species_name');
+
     $where = [];
     $params = [];
     foreach ($columns as $idx => $col) {
+        if ($speciesCol !== null && $col === $speciesCol) {
+            continue;
+        }
         $value = query_text('hf_' . $col);
         if ($value === null) {
             continue;
@@ -5923,6 +6057,15 @@ function render_hall_of_fame(): void
         $ph = ':hf_' . $idx;
         $where[] = "COALESCE(" . quote_ident($col) . "::text, '') ILIKE " . $ph;
         $params[$ph] = '%' . $value . '%';
+    }
+    if ($speciesCol !== null && $speciesNames !== []) {
+        $parts = [];
+        foreach ($speciesNames as $idx => $name) {
+            $ph = ':hf_species_name_' . $idx;
+            $parts[] = "COALESCE(" . quote_ident($speciesCol) . "::text, '') = " . $ph;
+            $params[$ph] = $name;
+        }
+        $where[] = '(' . implode(' OR ', $parts) . ')';
     }
 
     $safeCols = implode(', ', array_map(static fn(string $c): string => quote_ident($c), $columns));
@@ -5933,12 +6076,38 @@ function render_hall_of_fame(): void
     $sql .= ' LIMIT 1000';
     $rows = app_query_all($sql, $params);
 
+    $speciesOptions = [];
+    if ($speciesCol !== null) {
+        $speciesSql = 'SELECT DISTINCT COALESCE(' . quote_ident($speciesCol) . "::text, '') AS species_name
+                       FROM " . quote_ident('gpt') . '.' . quote_ident($table) . "
+                       WHERE COALESCE(" . quote_ident($speciesCol) . "::text, '') <> ''
+                       ORDER BY 1";
+        foreach (app_query_all($speciesSql) as $srow) {
+            $name = trim((string) ($srow['species_name'] ?? ''));
+            if ($name !== '') {
+                $speciesOptions[] = $name;
+            }
+        }
+    }
+
     echo '<p class="muted">Tabla: gpt.' . h($table) . '</p>';
     echo '<form class="table-filters" method="get" action="' . h(current_path()) . '">';
     echo '<input type="hidden" name="view" value="hall_of_fame">';
     foreach ($displayColumns as $col) {
+        if ($speciesCol !== null && $col === $speciesCol) {
+            continue;
+        }
         $label = $labelForCol($col);
         echo '<input type="text" name="hf_' . h($col) . '" placeholder="' . h($label) . '" value="' . h(query_raw('hf_' . $col)) . '">';
+    }
+    if ($speciesCol !== null) {
+        echo '<select name="species_name[]" multiple data-check-combo="1" data-check-combo-placeholder="Especie (todas)">';
+        echo '<option value="">Especie (todas)</option>';
+        foreach ($speciesOptions as $name) {
+            $selected = in_array($name, $speciesNames, true) ? ' selected' : '';
+            echo '<option value="' . h($name) . '"' . $selected . '>' . h($name) . '</option>';
+        }
+        echo '</select>';
     }
     echo '<details class="filter-details visible-columns" data-col-prefix="hfcol_" data-order-field="hfcol_order"><summary>Columnas visibles</summary><div class="visible-row">';
     foreach ($columnDefs as $key => $def) {
@@ -5951,13 +6120,6 @@ function render_hall_of_fame(): void
     echo '<a class="btn-link" href="?view=hall_of_fame&reset=1">Limpiar</a>';
     echo '</form>';
 
-    $speciesCol = null;
-    foreach (['ion', 'especie', 'species', 'animal', 'nombre_especie'] as $cand) {
-        if (isset($columnsByLower[$cand])) {
-            $speciesCol = $columnsByLower[$cand];
-            break;
-        }
-    }
     $metricCol = null;
     foreach (['puntuacion', 'score', 'value_numeric', 'valor', 'marca', 'distance', 'distancia', 'range', 'distance_m'] as $cand) {
         if (isset($columnsByLower[$cand])) {
@@ -6803,8 +6965,8 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
             return;
         }
 
-        const nestedTable = details.querySelector(':scope > table');
-        if (!(nestedTable instanceof HTMLTableElement)) {
+        const nestedContent = details.querySelector(':scope > table, :scope > .subtable-panels');
+        if (!(nestedContent instanceof HTMLElement)) {
             return;
         }
 
@@ -6828,14 +6990,14 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
         const containerCell = document.createElement('td');
         containerCell.className = 'subtable-container';
         containerCell.colSpan = Math.max(1, ownerRow.cells.length - 1);
-        containerCell.appendChild(nestedTable);
+        containerCell.appendChild(nestedContent);
         subRow.appendChild(containerCell);
 
         const nextDataRowBeforeInsert = ownerRow.nextElementSibling;
         const parentTable = ownerRow.closest('table');
         const parentHeaderRow = parentTable && parentTable.tHead ? parentTable.tHead.querySelector('tr') : null;
         let repeatedHeaderRow = null;
-        if (isExpSubtable && parentHeaderRow && nextDataRowBeforeInsert instanceof HTMLTableRowElement) {
+        if (isExpSubtable && nestedContent instanceof HTMLTableElement && parentHeaderRow && nextDataRowBeforeInsert instanceof HTMLTableRowElement) {
             repeatedHeaderRow = document.createElement('tr');
             repeatedHeaderRow.className = 'repeated-exp-header';
             Array.from(parentHeaderRow.children).forEach((th) => {
@@ -6873,7 +7035,39 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
         details.dataset.wiredSubrow = '1';
     };
 
+    const syncCompetitionSubtableShift = () => {
+        document.querySelectorAll('.competition-entry').forEach((entry) => {
+            if (!(entry instanceof HTMLElement)) {
+                return;
+            }
+
+            const mainTable = entry.querySelector('.competition-entry-main');
+            const detail = entry.querySelector('.competition-entry-detail');
+            if (!(mainTable instanceof HTMLTableElement) || !(detail instanceof HTMLElement)) {
+                entry.style.setProperty('--competition-detail-indent', '0px');
+                return;
+            }
+
+            const firstBodyRow = mainTable.tBodies.length > 0 ? mainTable.tBodies[0].rows[0] : null;
+            if (!(firstBodyRow instanceof HTMLTableRowElement)) {
+                entry.style.setProperty('--competition-detail-indent', '0px');
+                return;
+            }
+
+            const secondCell = firstBodyRow.cells.length > 1 ? firstBodyRow.cells[1] : null;
+            if (!(secondCell instanceof HTMLTableCellElement)) {
+                entry.style.setProperty('--competition-detail-indent', '0px');
+                return;
+            }
+
+            const shift = Math.max(0, secondCell.getBoundingClientRect().left - entry.getBoundingClientRect().left);
+            entry.style.setProperty('--competition-detail-indent', `${shift}px`);
+        });
+    };
+
     document.querySelectorAll('.content details').forEach(wireDetailsToSubRow);
+    syncCompetitionSubtableShift();
+    window.addEventListener('resize', syncCompetitionSubtableShift);
 
     const isInteractiveTarget = (el) => {
         if (!(el instanceof Element)) {

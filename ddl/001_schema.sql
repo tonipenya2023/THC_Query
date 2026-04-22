@@ -180,6 +180,22 @@ CREATE TABLE IF NOT EXISTS gpt.user_public_stats (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS gpt.user_trophies (
+    trophy_entry_id BIGINT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    player_name TEXT NULL,
+    trophy_id BIGINT NULL,
+    trophy_name TEXT NULL,
+    competition_id BIGINT NULL,
+    competition_name TEXT NULL,
+    image_url TEXT NULL,
+    trophy_ts BIGINT NULL,
+    trophy_at TIMESTAMPTZ NULL,
+    raw_json JSONB NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS gpt.est_profiles (
     user_id BIGINT PRIMARY KEY,
     player_name TEXT NULL,
