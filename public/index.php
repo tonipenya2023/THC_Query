@@ -1380,10 +1380,25 @@ function render_dashboard(): void
     echo '<button name="action" value="refresh_best_all">Actualizar Mejores Marcas Usuarios</button>';
     echo '<button name="action" value="refresh_public_all">Actualizar Estadisticas Usuarios</button>';
     echo '<button name="action" value="refresh_trophies_all">Actualizar Trofeos Usuarios</button>';
+    echo '<button name="action" value="refresh_gallery_all">Actualizar Galerias Usuarios</button>';
+    echo '<button name="action" value="join_all_competitions">Inscribirme en Competiciones</button>';
     if ($isAdmin) {
         echo '<button name="action" value="refresh_expeditions_all_users">Actualizar expediciones de todos</button>';
         echo '<button name="action" value="scrape_kill_urls">Scraper URLs de Muertes</button>';
     }
+    echo '</form>';
+    echo '</section>';
+
+    $authUser = app_auth_username() ?? '';
+    $hasTheHunterCookie = $authUser !== '' && app_thehunter_cookie_for_user($authUser) !== null;
+    echo '<section class="card">';
+    echo '<h2>Sesion theHunter</h2>';
+    echo '<p class="muted">Usuario actual: ' . h($authUser !== '' ? $authUser : '-') . ' | Cookie guardada: ' . ($hasTheHunterCookie ? 'Si' : 'No') . '</p>';
+    echo '<form class="table-filters" method="post" action="save_thehunter_cookie.php">';
+    echo '<input type="hidden" name="csrf_token" value="' . h(app_csrf_token()) . '">';
+    echo '<textarea name="thehunter_cookie" rows="3" placeholder="Pega aqui la cabecera Cookie completa de una sesion valida de theHunter" title="Cookie completa de sesion de theHunter para inscribirse automaticamente en competiciones"></textarea>';
+    echo '<button type="submit" name="mode" value="save">Guardar sesion theHunter</button>';
+    echo '<button type="submit" name="mode" value="clear">Eliminar sesion theHunter</button>';
     echo '</form>';
     echo '</section>';
 
@@ -2758,9 +2773,9 @@ function render_expeditions(): void
 
     echo '<div class="table-head-wrap">';
     echo '<div class="totals-inline-right">';
-    echo '<span><strong>Total de Expediciones:</strong> <span class="totals-value-red">' . h((string) $totalExpedicionesVista) . '</span></span>';
-    echo '<span><strong>Total de Muertes:</strong> <span class="totals-value-red">' . h((string) $totalMuertesVista) . '</span></span>';
-    echo '<span><strong>Foto/Taxidermia:</strong> <span class="totals-value-red">' . h((string) $totalFotoVista) . 'F ' . h((string) $totalTaxVista) . 'T</span></span>';
+    echo '<span><span class="totals-label">Total de Expediciones</span><span class="totals-value-red">' . h((string) $totalExpedicionesVista) . '</span></span>';
+    echo '<span><span class="totals-label">Total de Muertes</span><span class="totals-value-red">' . h((string) $totalMuertesVista) . '</span></span>';
+    echo '<span><span class="totals-label">Foto/Taxidermia</span><span class="totals-value-red">' . h((string) $totalFotoVista) . 'F ' . h((string) $totalTaxVista) . 'T</span></span>';
     echo '</div>';
 
     echo '<table><thead><tr>';
@@ -3371,8 +3386,8 @@ function render_best(): void
     );
     echo '<div class="table-head-wrap">';
     echo '<div class="totals-inline-right">';
-    echo '<span><strong>Top\'s D:</strong> <span class="totals-value-red">' . h((string) $topDCount) . '</span></span>';
-    echo '<span><strong>Top\'s P:</strong> <span class="totals-value-red">' . h((string) $topPCount) . '</span></span>';
+    echo '<span><span class="totals-label">Top\'s D</span><span class="totals-value-red">' . h((string) $topDCount) . '</span></span>';
+    echo '<span><span class="totals-label">Top\'s P</span><span class="totals-value-red">' . h((string) $topPCount) . '</span></span>';
     echo '</div>';
     echo '<table><thead><tr>';
     foreach ($selectedCols as $key) {
@@ -4209,6 +4224,10 @@ function render_profiles(): void
     echo '</tr></thead><tbody>';
     foreach ($rows as $row) {
         $uid = (int) ($row['user_id'] ?? $row['__user_id'] ?? 0);
+        $animalCount = count($animalsByUser[$uid] ?? []);
+        $weaponCount = count($weaponsByUser[$uid] ?? []);
+        $collectCount = count($collectablesByUser[$uid] ?? []);
+        $missionCount = count($missionsByUser[$uid] ?? []);
         echo '<tr>';
         foreach ($selectedCols as $key) {
             $value = $row[$key] ?? '';
@@ -4223,9 +4242,13 @@ function render_profiles(): void
                 echo '<td>' . h((string) $value) . '</td>';
             }
         }
-        echo '<td>';
+        echo '<td></td>';
+        echo '</tr>';
+        echo '<tr class="subtable-row-js stats-subtable-row">';
+        echo '<td class="subtable-offset"></td>';
+        echo '<td class="subtable-container" colspan="' . h((string) count($selectedCols)) . '">';
         echo '<div class="subtable-panels stats-parallel">';
-        echo '<details class="stats-animal"><summary>Animal stats (' . h((string) count($animalsByUser[$uid] ?? [])) . ')</summary>';
+        echo '<details class="stats-animal"><summary>Animal stats (' . h((string) $animalCount) . ')</summary>';
         if (($animalsByUser[$uid] ?? []) === []) {
             echo '<span class="muted">Sin filas</span>';
         } else {
@@ -4248,7 +4271,7 @@ function render_profiles(): void
             echo '</tbody></table>';
         }
         echo '</details>';
-        echo '<details class="stats-weapon"><summary>Weapon stats (' . h((string) count($weaponsByUser[$uid] ?? [])) . ')</summary>';
+        echo '<details class="stats-weapon"><summary>Weapon stats (' . h((string) $weaponCount) . ')</summary>';
         if (($weaponsByUser[$uid] ?? []) === []) {
             echo '<span class="muted">Sin filas</span>';
         } else {
@@ -4271,7 +4294,7 @@ function render_profiles(): void
             echo '</tbody></table>';
         }
         echo '</details>';
-        echo '<details class="stats-collect"><summary>Coleccionables (' . h((string) count($collectablesByUser[$uid] ?? [])) . ')</summary>';
+        echo '<details class="stats-collect"><summary>Coleccionables (' . h((string) $collectCount) . ')</summary>';
         if (($collectablesByUser[$uid] ?? []) === []) {
             echo '<span class="muted">Sin filas</span>';
         } else {
@@ -4294,7 +4317,7 @@ function render_profiles(): void
             echo '</tbody></table>';
         }
         echo '</details>';
-        echo '<details class="stats-mission"><summary>Misiones diarias (' . h((string) count($missionsByUser[$uid] ?? [])) . ')</summary>';
+        echo '<details class="stats-mission"><summary>Misiones diarias (' . h((string) $missionCount) . ')</summary>';
         if (($missionsByUser[$uid] ?? []) === []) {
             echo '<span class="muted">Sin filas</span>';
         } else {
@@ -6956,6 +6979,795 @@ function render_trophies_summary(): void
     echo '</section>';
 }
 
+function gallery_type_label(mixed $value): string
+{
+    $type = is_numeric((string) $value) ? (int) $value : null;
+    return match ($type) {
+        1 => 'Tipo 1',
+        2 => 'Tipo 2',
+        default => $type === null ? '' : ('Tipo ' . $type),
+    };
+}
+
+function render_user_gallery(): void
+{
+    echo '<section class="card"><h2>Galerias Usuarios</h2>';
+
+    $columnDefs = [
+        'gallery_entry_id' => ['label' => 'IdGaleria'],
+        'user_id' => ['label' => 'IdUsuario'],
+        'player_name' => ['label' => 'Jugador'],
+        'thumbnail' => ['label' => 'Miniatura'],
+        'label' => ['label' => 'Etiqueta'],
+        'photo_type' => ['label' => 'Tipo'],
+        'species_name_es' => ['label' => 'Especie'],
+        'animal_id' => ['label' => 'IdMuerte'],
+        'score_type' => ['label' => 'Tipo Score'],
+        'score_value' => ['label' => 'Score'],
+        'photo_url' => ['label' => 'URL Imagen'],
+        'thumbnail_url' => ['label' => 'URL Miniatura'],
+        'updated_at' => ['label' => 'Actualizado'],
+    ];
+    $defaultCols = ['player_name', 'thumbnail', 'species_name_es', 'animal_id', 'label', 'photo_type', 'score_value', 'updated_at'];
+    $selectedCols = persistent_selected_columns('gallery_visible_cols', $columnDefs, 'gcol_', $defaultCols);
+    $dragOrderRaw = query_text('gcol_order');
+    if ($dragOrderRaw !== null && trim($dragOrderRaw) !== '') {
+        $ordered = array_values(array_filter(array_map('trim', explode(',', $dragOrderRaw)), static fn(string $k): bool => $k !== '' && isset($columnDefs[$k])));
+        if ($ordered !== []) {
+            $rest = array_values(array_filter($selectedCols, static fn(string $k): bool => !in_array($k, $ordered, true)));
+            $selectedCols = array_merge($ordered, $rest);
+            $_SESSION['gallery_visible_cols'] = $selectedCols;
+        }
+    }
+
+    $playerNames = query_list('gallery_player_name');
+    $speciesNames = query_list('gallery_species_name_es');
+    $photoTypes = query_list('gallery_photo_type');
+
+    $playerOptionRows = app_query_all(
+        'SELECT DISTINCT player_name
+           FROM gpt.v_user_gallery
+          WHERE COALESCE(player_name, \'\') <> \'\'
+          ORDER BY player_name ASC'
+    );
+    $playerOptions = [];
+    foreach ($playerOptionRows as $row) {
+        $name = trim((string) ($row['player_name'] ?? ''));
+        if ($name !== '') {
+            $playerOptions[] = $name;
+        }
+    }
+
+    $speciesOptionRows = app_query_all(
+        'SELECT DISTINCT species_name_es
+           FROM gpt.v_user_gallery
+          WHERE COALESCE(species_name_es, \'\') <> \'\'
+          ORDER BY species_name_es ASC'
+    );
+    $speciesOptions = [];
+    foreach ($speciesOptionRows as $row) {
+        $name = trim((string) ($row['species_name_es'] ?? ''));
+        if ($name !== '') {
+            $speciesOptions[] = $name;
+        }
+    }
+
+    $typeOptionRows = app_query_all(
+        'SELECT DISTINCT photo_type
+           FROM gpt.v_user_gallery
+          WHERE photo_type IS NOT NULL
+          ORDER BY photo_type ASC'
+    );
+    $typeOptions = [];
+    foreach ($typeOptionRows as $row) {
+        $value = (string) ($row['photo_type'] ?? '');
+        if ($value !== '') {
+            $typeOptions[] = $value;
+        }
+    }
+
+    $where = [];
+    $params = [];
+
+    foreach (['gallery_entry_id', 'user_id', 'animal_id', 'label', 'score_value'] as $idx => $col) {
+        $value = query_text('gallery_' . $col);
+        if ($value === null) {
+            continue;
+        }
+        $ph = ':gallery_filter_' . $idx;
+        $where[] = 'COALESCE(' . quote_ident($col) . '::text, \'\') ILIKE ' . $ph;
+        $params[$ph] = '%' . $value . '%';
+    }
+
+    if ($playerNames !== []) {
+        $placeholders = [];
+        foreach (array_values($playerNames) as $idx => $value) {
+            $ph = ':gallery_player_' . $idx;
+            $placeholders[] = $ph;
+            $params[$ph] = $value;
+        }
+        $where[] = 'player_name IN (' . implode(', ', $placeholders) . ')';
+    }
+
+    if ($speciesNames !== []) {
+        $placeholders = [];
+        foreach (array_values($speciesNames) as $idx => $value) {
+            $ph = ':gallery_species_' . $idx;
+            $placeholders[] = $ph;
+            $params[$ph] = $value;
+        }
+        $where[] = 'species_name_es IN (' . implode(', ', $placeholders) . ')';
+    }
+
+    if ($photoTypes !== []) {
+        $placeholders = [];
+        foreach (array_values($photoTypes) as $idx => $value) {
+            $ph = ':gallery_type_' . $idx;
+            $placeholders[] = $ph;
+            $params[$ph] = (int) $value;
+        }
+        $where[] = 'photo_type IN (' . implode(', ', $placeholders) . ')';
+    }
+
+    $page = query_page();
+    $pageSize = query_page_size(100);
+    $sortable = [
+        'gallery_entry_id' => 'gallery_entry_id',
+        'user_id' => 'user_id',
+        'player_name' => 'player_name',
+        'label' => 'label',
+        'photo_type' => 'photo_type',
+        'species_name_es' => 'species_name_es',
+        'animal_id' => 'animal_id',
+        'score_type' => 'score_type',
+        'score_value' => 'score_value',
+        'updated_at' => 'updated_at',
+    ];
+    [$sortKey, $sortDir] = query_sort('updated_at', 'desc', $sortable);
+
+    $sql = 'SELECT gallery_entry_id, user_id, player_name, label, photo_type, species_name_es, animal_id, score_type, score_value, photo_url, thumbnail_url, updated_at
+            FROM gpt.v_user_gallery';
+    $countSql = 'SELECT COUNT(*) AS c FROM gpt.v_user_gallery';
+    if ($where !== []) {
+        $whereSql = implode(' AND ', $where);
+        $sql .= ' WHERE ' . $whereSql;
+        $countSql .= ' WHERE ' . $whereSql;
+    }
+    $sql .= ' ORDER BY ' . $sortable[$sortKey] . ' ' . strtoupper($sortDir) . ', gallery_entry_id DESC';
+
+    if (is_csv_export_requested()) {
+        $rows = app_query_all($sql, $params);
+        $exportRows = [];
+        foreach ($rows as $row) {
+            $row['photo_type'] = gallery_type_label($row['photo_type'] ?? null);
+            $row['updated_at'] = format_datetime_display($row['updated_at'] ?? null);
+            $exportRows[] = $row;
+        }
+        $headers = array_map(static fn(string $k): string => $columnDefs[$k]['label'], array_values(array_filter($selectedCols, static fn(string $k): bool => $k !== 'thumbnail')));
+        $exportCols = array_values(array_filter($selectedCols, static fn(string $k): bool => $k !== 'thumbnail'));
+        csv_stream('galerias_usuarios.csv', $headers, $exportRows, $exportCols);
+    }
+
+    $totalRow = app_query_one($countSql, $params);
+    $totalRows = (int) ($totalRow['c'] ?? 0);
+    $pageCount = max(1, (int) ceil($totalRows / $pageSize));
+    $page = min($page, $pageCount);
+    $offset = ($page - 1) * $pageSize;
+
+    $rows = app_query_all(
+        $sql . ' LIMIT :_limit OFFSET :_offset',
+        $params + [
+            ':_limit' => $pageSize,
+            ':_offset' => $offset,
+        ]
+    );
+
+    echo '<p class="muted">Vista: gpt.v_user_gallery</p>';
+    echo '<form class="table-filters" method="get" action="' . h(current_path()) . '">';
+    echo '<input type="hidden" name="view" value="user_gallery">';
+    echo '<input type="hidden" name="page" value="1">';
+    echo '<input type="hidden" name="gcol_order" value="' . h(query_raw('gcol_order')) . '">';
+    echo '<input type="text" name="gallery_gallery_entry_id" placeholder="IdGaleria" value="' . h(query_raw('gallery_gallery_entry_id')) . '" title="Identificador interno de la imagen de galeria">';
+    echo '<input type="text" name="gallery_user_id" placeholder="IdUsuario" value="' . h(query_raw('gallery_user_id')) . '" title="Identificador interno del jugador">';
+    echo '<select name="gallery_player_name[]" multiple data-check-combo="1" data-check-combo-placeholder="Jugador (todos)" data-check-combo-many-label="jugadores" title="Jugadores con imagenes en galeria">';
+    echo '<option value="">Jugador (todos)</option>';
+    foreach ($playerOptions as $value) {
+        $selected = in_array($value, $playerNames, true) ? ' selected' : '';
+        echo '<option value="' . h($value) . '"' . $selected . '>' . h($value) . '</option>';
+    }
+    echo '</select>';
+    echo '<select name="gallery_species_name_es[]" multiple data-check-combo="1" data-check-combo-placeholder="Especie (todas)" data-check-combo-many-label="especies" title="Especies asociadas a la imagen">';
+    echo '<option value="">Especie (todas)</option>';
+    foreach ($speciesOptions as $value) {
+        $selected = in_array($value, $speciesNames, true) ? ' selected' : '';
+        echo '<option value="' . h($value) . '"' . $selected . '>' . h($value) . '</option>';
+    }
+    echo '</select>';
+    echo '<select name="gallery_photo_type[]" multiple data-check-combo="1" data-check-combo-placeholder="Tipo (todos)" data-check-combo-many-label="tipos" title="Tipo de elemento de galeria">';
+    echo '<option value="">Tipo (todos)</option>';
+    foreach ($typeOptions as $value) {
+        $selected = in_array($value, $photoTypes, true) ? ' selected' : '';
+        echo '<option value="' . h($value) . '"' . $selected . '>' . h(gallery_type_label($value)) . '</option>';
+    }
+    echo '</select>';
+    echo '<input type="text" name="gallery_animal_id" placeholder="IdMuerte" value="' . h(query_raw('gallery_animal_id')) . '" title="Id de la muerte asociada, cuando exista">';
+    echo '<input type="text" name="gallery_label" placeholder="Etiqueta" value="' . h(query_raw('gallery_label')) . '" title="Texto libre asociado a la imagen">';
+    echo '<input type="text" name="gallery_score_value" placeholder="Score" value="' . h(query_raw('gallery_score_value')) . '" title="Puntuacion del animal asociado">';
+    echo '<details class="filter-details visible-columns" data-col-prefix="gcol_" data-order-field="gcol_order"><summary>Columnas visibles</summary><div class="visible-row">';
+    foreach ($columnDefs as $key => $def) {
+        $checked = in_array($key, $selectedCols, true) ? ' checked' : '';
+        echo '<label class="visible-item" draggable="true" data-col-key="' . h($key) . '"><input class="col-check" type="checkbox" name="gcol_' . h($key) . '" value="1"' . $checked . '><span>' . h($def['label']) . '</span></label>';
+    }
+    echo '<button type="button" class="btn-reset-cols" data-default-cols="' . h(implode(',', $defaultCols)) . '">Restablecer</button>';
+    echo '</div></details>';
+    echo '<select name="page_size" title="Numero de filas por pagina">';
+    echo '<option value="50"' . ($pageSize === 50 ? ' selected' : '') . '>50 filas</option>';
+    echo '<option value="100"' . ($pageSize === 100 ? ' selected' : '') . '>100 filas</option>';
+    echo '<option value="200"' . ($pageSize === 200 ? ' selected' : '') . '>200 filas</option>';
+    echo '</select>';
+    echo '<button type="submit">Filtrar</button>';
+    echo '<button type="submit" name="export" value="csv">Exportar CSV</button>';
+    echo '<a class="btn-link" href="?view=user_gallery">Limpiar</a>';
+    echo '</form>';
+
+    echo '<div class="table-head-wrap"><span class="muted">Total imagenes: ' . h((string) $totalRows) . '</span></div>';
+    echo '<div style="overflow:auto"><table><thead><tr>';
+    foreach ($selectedCols as $col) {
+        $label = $columnDefs[$col]['label'] ?? $col;
+        if (isset($sortable[$col])) {
+            echo '<th>' . sort_link($col, $label, $sortKey, $sortDir) . '</th>';
+        } else {
+            echo '<th>' . h($label) . '</th>';
+        }
+    }
+    echo '<th>Abrir</th><th>Muerte</th></tr></thead><tbody>';
+
+    foreach ($rows as $row) {
+        echo '<tr>';
+        foreach ($selectedCols as $col) {
+            $value = $row[$col] ?? null;
+            if ($col === 'player_name') {
+                echo '<td>' . player_profile_link_html((string) $value, $value) . '</td>';
+                continue;
+            }
+            if ($col === 'thumbnail') {
+                $thumb = trim((string) ($row['thumbnail_url'] ?? ''));
+                $full = trim((string) ($row['photo_url'] ?? ''));
+                if ($thumb !== '') {
+                    $img = '<img class="gallery-thumb" src="' . h($thumb) . '" alt="' . h((string) ($row['species_name_es'] ?? 'Galeria')) . '">';
+                    if ($full !== '') {
+                        $img = '<a href="' . h($full) . '" target="_blank" rel="noopener noreferrer">' . $img . '</a>';
+                    }
+                    echo '<td>' . $img . '</td>';
+                } else {
+                    echo '<td class="muted">-</td>';
+                }
+                continue;
+            }
+            if ($col === 'species_name_es') {
+                $speciesName = trim((string) ($value ?? ''));
+                $iconHtml = species_single_icon_html($speciesName);
+                echo '<td>' . ($iconHtml !== '' ? $iconHtml . ' ' : '') . h($speciesName) . '</td>';
+                continue;
+            }
+            if ($col === 'animal_id') {
+                $killUrl = thehunter_kill_url((string) ($row['player_name'] ?? ''), $value);
+                if ($killUrl !== null && trim((string) $value) !== '') {
+                    echo '<td><a class="record-link" href="' . h($killUrl) . '" target="_blank" rel="noopener noreferrer">' . h((string) $value) . '</a></td>';
+                } else {
+                    echo '<td>' . h((string) $value) . '</td>';
+                }
+                continue;
+            }
+            if ($col === 'photo_type') {
+                echo '<td>' . h(gallery_type_label($value)) . '</td>';
+                continue;
+            }
+            if ($col === 'updated_at') {
+                echo '<td>' . h(format_datetime_display($value)) . '</td>';
+                continue;
+            }
+            $cellClass = is_numeric((string) $value) ? ' class="num-cell"' : '';
+            echo '<td' . $cellClass . '>' . h((string) $value) . '</td>';
+        }
+
+        $full = trim((string) ($row['photo_url'] ?? ''));
+        if ($full !== '') {
+            echo '<td><a class="record-link" href="' . h($full) . '" target="_blank" rel="noopener noreferrer">Abrir imagen</a></td>';
+        } else {
+            echo '<td class="muted">-</td>';
+        }
+
+        $killUrl = thehunter_kill_url((string) ($row['player_name'] ?? ''), $row['animal_id'] ?? null);
+        if ($killUrl !== null && trim((string) ($row['animal_id'] ?? '')) !== '') {
+            echo '<td><a class="record-link" href="' . h($killUrl) . '" target="_blank" rel="noopener noreferrer">Abrir muerte</a></td>';
+        } else {
+            echo '<td class="muted">-</td>';
+        }
+        echo '</tr>';
+    }
+
+    echo '</tbody></table></div>';
+    render_pagination($page, $pageSize, $totalRows);
+    echo '</section>';
+}
+
+function render_kill_url_scrape_status(): void
+{
+    echo '<section class="card"><h2>Estado Scraper Muertes</h2>';
+
+    $columnDefs = [
+        'run_at' => ['label' => 'Ultima descarga'],
+        'source' => ['label' => 'Origen'],
+        'url_type' => ['label' => 'Tipo URL'],
+        'player_name' => ['label' => 'Jugador'],
+        'animal_id' => ['label' => 'Animal ID'],
+        'kill_id' => ['label' => 'Kill ID'],
+        'http_code' => ['label' => 'HTTP'],
+        'ok' => ['label' => 'OK'],
+        'page_kind' => ['label' => 'Tipo pagina'],
+        'requires_login' => ['label' => 'Login'],
+        'parsed_summary' => ['label' => 'Resumen'],
+        'attempts' => ['label' => 'Intentos'],
+        'last_success_at' => ['label' => 'Ultimo OK'],
+        'url' => ['label' => 'URL'],
+        'local_file_rel' => ['label' => 'Fichero'],
+        'error' => ['label' => 'Error'],
+        'page_title' => ['label' => 'Titulo'],
+    ];
+    $defaultCols = ['run_at', 'source', 'url_type', 'player_name', 'animal_id', 'kill_id', 'http_code', 'ok', 'page_kind', 'requires_login', 'parsed_summary', 'attempts'];
+    $selectedCols = persistent_selected_columns('kill_scrape_visible_cols', $columnDefs, 'kscol_', $defaultCols);
+    $dragOrderRaw = query_text('kscol_order');
+    if ($dragOrderRaw !== null && trim($dragOrderRaw) !== '') {
+        $ordered = array_values(array_filter(array_map('trim', explode(',', $dragOrderRaw)), static fn(string $k): bool => $k !== '' && isset($columnDefs[$k])));
+        if ($ordered !== []) {
+            $rest = array_values(array_filter($selectedCols, static fn(string $k): bool => !in_array($k, $ordered, true)));
+            $selectedCols = array_merge($ordered, $rest);
+            $_SESSION['kill_scrape_visible_cols'] = $selectedCols;
+        }
+    }
+
+    $sources = query_list('ks_source');
+    $urlTypes = query_list('ks_url_type');
+    $pageKinds = query_list('ks_page_kind');
+    $okValues = query_list('ks_ok');
+
+    $sourceOptions = array_values(array_filter(array_map(static fn(array $r): string => trim((string) ($r['source'] ?? '')), app_query_all("SELECT DISTINCT source FROM gpt.v_scrape_kill_urls_latest WHERE COALESCE(source,'') <> '' ORDER BY source"))));
+    $typeOptions = array_values(array_filter(array_map(static fn(array $r): string => trim((string) ($r['url_type'] ?? '')), app_query_all("SELECT DISTINCT url_type FROM gpt.v_scrape_kill_urls_latest WHERE COALESCE(url_type,'') <> '' ORDER BY url_type"))));
+    $kindOptions = array_values(array_filter(array_map(static fn(array $r): string => trim((string) ($r['page_kind'] ?? '')), app_query_all("SELECT DISTINCT page_kind FROM gpt.v_scrape_kill_urls_latest WHERE COALESCE(page_kind,'') <> '' ORDER BY page_kind"))));
+
+    $where = [];
+    $params = [];
+    foreach (['player_name', 'animal_id', 'kill_id', 'url', 'parsed_summary', 'error'] as $idx => $col) {
+        $value = query_text('ks_' . $col);
+        if ($value === null) {
+            continue;
+        }
+        $ph = ':ks_filter_' . $idx;
+        $where[] = quote_ident($col) . '::text ILIKE ' . $ph;
+        $params[$ph] = '%' . $value . '%';
+    }
+
+    foreach ([['source', $sources], ['url_type', $urlTypes], ['page_kind', $pageKinds], ['ok', $okValues]] as [$col, $values]) {
+        if ($values === []) {
+            continue;
+        }
+        $phs = [];
+        foreach (array_values($values) as $idx => $value) {
+            $ph = ':ks_' . $col . '_' . $idx;
+            $phs[] = $ph;
+            $params[$ph] = $col === 'ok' ? ($value === '1') : $value;
+        }
+        $where[] = quote_ident((string) $col) . ' IN (' . implode(', ', $phs) . ')';
+    }
+
+    $page = query_page();
+    $pageSize = query_page_size(100);
+    $sortable = [
+        'run_at' => 'run_at',
+        'source' => 'source',
+        'url_type' => 'url_type',
+        'player_name' => 'player_name',
+        'animal_id' => 'animal_id',
+        'kill_id' => 'kill_id',
+        'http_code' => 'http_code',
+        'ok' => 'ok',
+        'page_kind' => 'page_kind',
+        'attempts' => 'attempts',
+        'last_success_at' => 'last_success_at',
+    ];
+    [$sortKey, $sortDir] = query_sort('run_at', 'desc', $sortable);
+    $sql = 'SELECT * FROM gpt.v_scrape_kill_urls_latest';
+    $countSql = 'SELECT COUNT(*) AS c FROM gpt.v_scrape_kill_urls_latest';
+    if ($where !== []) {
+        $whereSql = implode(' AND ', $where);
+        $sql .= ' WHERE ' . $whereSql;
+        $countSql .= ' WHERE ' . $whereSql;
+    }
+    $sql .= ' ORDER BY ' . $sortable[$sortKey] . ' ' . strtoupper($sortDir) . ', id DESC';
+
+    if (is_csv_export_requested()) {
+        $rows = app_query_all($sql, $params);
+        foreach ($rows as &$row) {
+            $row['run_at'] = format_datetime_display($row['run_at'] ?? null);
+            $row['last_success_at'] = format_datetime_display($row['last_success_at'] ?? null);
+            $row['ok'] = !empty($row['ok']) ? 'Si' : 'No';
+            $row['requires_login'] = !isset($row['requires_login']) ? '' : (!empty($row['requires_login']) ? 'Si' : 'No');
+        }
+        unset($row);
+        $headers = array_map(static fn(string $k): string => $columnDefs[$k]['label'], $selectedCols);
+        csv_stream('estado_scraper_muertes.csv', $headers, $rows, $selectedCols);
+    }
+
+    $summary = app_query_one(
+        "SELECT
+            COUNT(*) AS total_urls,
+            COUNT(*) FILTER (WHERE ok = TRUE) AS total_ok,
+            COUNT(*) FILTER (WHERE ok = FALSE) AS total_error,
+            COUNT(*) FILTER (WHERE requires_login = TRUE) AS total_login,
+            COUNT(*) FILTER (WHERE page_kind = 'public_home_not_signed_in') AS total_public_home
+         FROM gpt.v_scrape_kill_urls_latest"
+    );
+
+    $totalRows = (int) ((app_query_one($countSql, $params)['c'] ?? 0));
+    $pageCount = max(1, (int) ceil($totalRows / $pageSize));
+    $page = min($page, $pageCount);
+    $offset = ($page - 1) * $pageSize;
+    $rows = app_query_all($sql . ' LIMIT :_limit OFFSET :_offset', $params + [':_limit' => $pageSize, ':_offset' => $offset]);
+
+    echo '<p class="muted">Vista: gpt.v_scrape_kill_urls_latest</p>';
+    echo '<form class="table-filters" method="get" action="' . h(current_path()) . '">';
+    echo '<input type="hidden" name="view" value="kill_scrape_status">';
+    echo '<input type="hidden" name="page" value="1">';
+    echo '<input type="hidden" name="kscol_order" value="' . h(query_raw('kscol_order')) . '">';
+    echo '<select name="ks_source[]" multiple data-check-combo="1" data-check-combo-placeholder="Origen (todos)" data-check-combo-many-label="origenes" title="Origen de la URL">';
+    echo '<option value="">Origen (todos)</option>';
+    foreach ($sourceOptions as $value) {
+        $selected = in_array($value, $sources, true) ? ' selected' : '';
+        echo '<option value="' . h($value) . '"' . $selected . '>' . h($value) . '</option>';
+    }
+    echo '</select>';
+    echo '<select name="ks_url_type[]" multiple data-check-combo="1" data-check-combo-placeholder="Tipo URL (todos)" data-check-combo-many-label="tipos" title="Tipo de URL detectado">';
+    echo '<option value="">Tipo URL (todos)</option>';
+    foreach ($typeOptions as $value) {
+        $selected = in_array($value, $urlTypes, true) ? ' selected' : '';
+        echo '<option value="' . h($value) . '"' . $selected . '>' . h($value) . '</option>';
+    }
+    echo '</select>';
+    echo '<input type="text" name="ks_player_name" placeholder="Jugador" value="' . h(query_raw('ks_player_name')) . '" title="Jugador detectado desde la URL">';
+    echo '<input type="text" name="ks_animal_id" placeholder="Animal ID" value="' . h(query_raw('ks_animal_id')) . '" title="Animal id detectado">';
+    echo '<input type="text" name="ks_kill_id" placeholder="Kill ID" value="' . h(query_raw('ks_kill_id')) . '" title="Kill id detectado">';
+    echo '<select name="ks_ok[]" multiple data-check-combo="1" data-check-combo-placeholder="OK (todos)" data-check-combo-many-label="estados" title="Resultado de descarga">';
+    echo '<option value="">OK (todos)</option>';
+    echo '<option value="1"' . (in_array('1', $okValues, true) ? ' selected' : '') . '>Si</option>';
+    echo '<option value="0"' . (in_array('0', $okValues, true) ? ' selected' : '') . '>No</option>';
+    echo '</select>';
+    echo '<select name="ks_page_kind[]" multiple data-check-combo="1" data-check-combo-placeholder="Tipo pagina (todos)" data-check-combo-many-label="paginas" title="Clasificacion del HTML descargado">';
+    echo '<option value="">Tipo pagina (todos)</option>';
+    foreach ($kindOptions as $value) {
+        $selected = in_array($value, $pageKinds, true) ? ' selected' : '';
+        echo '<option value="' . h($value) . '"' . $selected . '>' . h($value) . '</option>';
+    }
+    echo '</select>';
+    echo '<input type="text" name="ks_parsed_summary" placeholder="Resumen parseo" value="' . h(query_raw('ks_parsed_summary')) . '" title="Resumen del parseo">';
+    echo '<input type="text" name="ks_error" placeholder="Error" value="' . h(query_raw('ks_error')) . '" title="Error de descarga">';
+    echo '<input type="text" name="ks_url" placeholder="URL" value="' . h(query_raw('ks_url')) . '" title="URL completa">';
+    echo '<details class="filter-details visible-columns" data-col-prefix="kscol_" data-order-field="kscol_order"><summary>Columnas visibles</summary><div class="visible-row">';
+    foreach ($columnDefs as $key => $def) {
+        $checked = in_array($key, $selectedCols, true) ? ' checked' : '';
+        echo '<label class="visible-item" draggable="true" data-col-key="' . h($key) . '"><input class="col-check" type="checkbox" name="kscol_' . h($key) . '" value="1"' . $checked . '><span>' . h($def['label']) . '</span></label>';
+    }
+    echo '<button type="button" class="btn-reset-cols" data-default-cols="' . h(implode(',', $defaultCols)) . '">Restablecer</button>';
+    echo '</div></details>';
+    echo '<select name="page_size"><option value="50"' . ($pageSize === 50 ? ' selected' : '') . '>50 filas</option><option value="100"' . ($pageSize === 100 ? ' selected' : '') . '>100 filas</option><option value="200"' . ($pageSize === 200 ? ' selected' : '') . '>200 filas</option></select>';
+    echo '<button type="submit">Filtrar</button>';
+    echo '<button type="submit" name="export" value="csv">Exportar CSV</button>';
+    echo '<a class="btn-link" href="?view=kill_scrape_status">Limpiar</a>';
+    echo '</form>';
+
+    echo '<div class="table-head-wrap">';
+    echo '<span class="muted">URLs: ' . h((string) ($summary['total_urls'] ?? 0)) . '</span> ';
+    echo '<span class="muted">OK: ' . h((string) ($summary['total_ok'] ?? 0)) . '</span> ';
+    echo '<span class="muted">Error: ' . h((string) ($summary['total_error'] ?? 0)) . '</span> ';
+    echo '<span class="muted">Requieren login: ' . h((string) ($summary['total_login'] ?? 0)) . '</span> ';
+    echo '<span class="muted">Portada publica: ' . h((string) ($summary['total_public_home'] ?? 0)) . '</span>';
+    echo '</div>';
+
+    echo '<div style="overflow:auto"><table><thead><tr>';
+    foreach ($selectedCols as $col) {
+        if (isset($sortable[$col])) {
+            echo '<th>' . sort_link($col, $columnDefs[$col]['label'], $sortKey, $sortDir) . '</th>';
+        } else {
+            echo '<th>' . h($columnDefs[$col]['label']) . '</th>';
+        }
+    }
+    echo '<th>Abrir</th></tr></thead><tbody>';
+    foreach ($rows as $row) {
+        echo '<tr>';
+        foreach ($selectedCols as $col) {
+            $value = $row[$col] ?? null;
+            if ($col === 'player_name') {
+                echo '<td>' . player_profile_link_html((string) $value, $value) . '</td>';
+                continue;
+            }
+            if ($col === 'run_at' || $col === 'last_success_at') {
+                echo '<td>' . h(format_datetime_display($value)) . '</td>';
+                continue;
+            }
+            if ($col === 'ok') {
+                echo '<td>' . (!empty($value) ? 'Si' : 'No') . '</td>';
+                continue;
+            }
+            if ($col === 'requires_login') {
+                echo '<td>' . (!isset($value) ? '-' : (!empty($value) ? 'Si' : 'No')) . '</td>';
+                continue;
+            }
+            if ($col === 'url' && trim((string) $value) !== '') {
+                echo '<td><a class="record-link" href="' . h((string) $value) . '" target="_blank" rel="noopener noreferrer">' . h((string) $value) . '</a></td>';
+                continue;
+            }
+            $cellClass = is_numeric((string) $value) ? ' class="num-cell"' : '';
+            echo '<td' . $cellClass . '>' . h((string) $value) . '</td>';
+        }
+        $url = trim((string) ($row['url'] ?? ''));
+        echo $url !== '' ? '<td><a class="record-link" href="' . h($url) . '" target="_blank" rel="noopener noreferrer">Abrir URL</a></td>' : '<td class="muted">-</td>';
+        echo '</tr>';
+    }
+    echo '</tbody></table></div>';
+    render_pagination($page, $pageSize, $totalRows);
+    echo '</section>';
+}
+
+function render_competition_signups(): void
+{
+    echo '<section class="card"><h2>Inscripciones Competiciones</h2>';
+
+    $columnDefs = [
+        'join_result_id' => ['label' => 'Id'],
+        'player_name' => ['label' => 'Jugador'],
+        'competition_id' => ['label' => 'IdCompeticion'],
+        'competition_name' => ['label' => 'Competicion'],
+        'status' => ['label' => 'Estado'],
+        'response_summary' => ['label' => 'Motivo'],
+        'request_method' => ['label' => 'Metodo'],
+        'request_param' => ['label' => 'Parametro'],
+        'response_body' => ['label' => 'Respuesta'],
+        'created_at' => ['label' => 'Fecha'],
+    ];
+    $defaultCols = ['player_name', 'competition_id', 'competition_name', 'status', 'response_summary', 'request_method', 'request_param', 'created_at'];
+    $selectedCols = persistent_selected_columns('comp_signup_visible_cols', $columnDefs, 'cjcol_', $defaultCols);
+    $dragOrderRaw = query_text('cjcol_order');
+    if ($dragOrderRaw !== null && trim($dragOrderRaw) !== '') {
+        $ordered = array_values(array_filter(array_map('trim', explode(',', $dragOrderRaw)), static fn(string $k): bool => $k !== '' && isset($columnDefs[$k])));
+        if ($ordered !== []) {
+            $rest = array_values(array_filter($selectedCols, static fn(string $k): bool => !in_array($k, $ordered, true)));
+            $selectedCols = array_merge($ordered, $rest);
+            $_SESSION['comp_signup_visible_cols'] = $selectedCols;
+        }
+    }
+
+    $playerNames = query_list('cj_player_name');
+    $statuses = query_list('cj_status');
+    $playerOptionRows = app_query_all("SELECT DISTINCT player_name FROM gpt.v_comp_join_results WHERE COALESCE(player_name,'') <> '' ORDER BY player_name");
+    $statusOptionRows = app_query_all("SELECT DISTINCT status FROM gpt.v_comp_join_results WHERE COALESCE(status,'') <> '' ORDER BY status");
+    $playerOptions = array_values(array_filter(array_map(static fn(array $r): string => trim((string) ($r['player_name'] ?? '')), $playerOptionRows)));
+    $statusOptions = array_values(array_filter(array_map(static fn(array $r): string => trim((string) ($r['status'] ?? '')), $statusOptionRows)));
+
+    $where = [];
+    $params = [];
+    foreach (['competition_id', 'competition_name', 'request_method', 'request_param'] as $idx => $col) {
+        $value = query_text('cj_' . $col);
+        if ($value === null) {
+            continue;
+        }
+        $ph = ':cj_filter_' . $idx;
+        $where[] = quote_ident($col) . '::text ILIKE ' . $ph;
+        $params[$ph] = '%' . $value . '%';
+    }
+    if ($playerNames !== []) {
+        $phs = [];
+        foreach (array_values($playerNames) as $idx => $value) {
+            $ph = ':cj_player_' . $idx;
+            $phs[] = $ph;
+            $params[$ph] = $value;
+        }
+        $where[] = 'player_name IN (' . implode(', ', $phs) . ')';
+    }
+    if ($statuses !== []) {
+        $phs = [];
+        foreach (array_values($statuses) as $idx => $value) {
+            $ph = ':cj_status_' . $idx;
+            $phs[] = $ph;
+            $params[$ph] = $value;
+        }
+        $where[] = 'status IN (' . implode(', ', $phs) . ')';
+    }
+
+    $page = query_page();
+    $pageSize = query_page_size(100);
+    $sortable = [
+        'join_result_id' => 'join_result_id',
+        'player_name' => 'player_name',
+        'competition_id' => 'competition_id',
+        'competition_name' => 'competition_name',
+        'status' => 'status',
+        'request_method' => 'request_method',
+        'request_param' => 'request_param',
+        'created_at' => 'created_at',
+    ];
+    [$sortKey, $sortDir] = query_sort('created_at', 'desc', $sortable);
+    $sql = 'SELECT join_result_id, player_name, competition_id, competition_name, status, request_method, request_param, response_body, created_at, competition_url FROM gpt.v_comp_join_results';
+    $countSql = 'SELECT COUNT(*) AS c FROM gpt.v_comp_join_results';
+    if ($where !== []) {
+        $whereSql = implode(' AND ', $where);
+        $sql .= ' WHERE ' . $whereSql;
+        $countSql .= ' WHERE ' . $whereSql;
+    }
+    $sql .= ' ORDER BY ' . $sortable[$sortKey] . ' ' . strtoupper($sortDir) . ', join_result_id DESC';
+
+    if (is_csv_export_requested()) {
+        $rows = app_query_all($sql, $params);
+        foreach ($rows as &$row) {
+            $row['response_summary'] = competition_signup_response_summary((string) ($row['status'] ?? ''), $row['response_body'] ?? null);
+            $row['created_at'] = format_datetime_display($row['created_at'] ?? null);
+        }
+        unset($row);
+        $headers = array_map(static fn(string $k): string => $columnDefs[$k]['label'], $selectedCols);
+        csv_stream('inscripciones_competiciones.csv', $headers, $rows, $selectedCols);
+    }
+
+    $totalRows = (int) ((app_query_one($countSql, $params)['c'] ?? 0));
+    $pageCount = max(1, (int) ceil($totalRows / $pageSize));
+    $page = min($page, $pageCount);
+    $offset = ($page - 1) * $pageSize;
+    $rows = app_query_all($sql . ' LIMIT :_limit OFFSET :_offset', $params + [':_limit' => $pageSize, ':_offset' => $offset]);
+
+    echo '<p class="muted">Vista: gpt.v_comp_join_results</p>';
+    echo '<form class="table-filters" method="get" action="' . h(current_path()) . '">';
+    echo '<input type="hidden" name="view" value="competition_signups">';
+    echo '<input type="hidden" name="page" value="1">';
+    echo '<input type="hidden" name="cjcol_order" value="' . h(query_raw('cjcol_order')) . '">';
+    echo '<select name="cj_player_name[]" multiple data-check-combo="1" data-check-combo-placeholder="Jugador (todos)" data-check-combo-many-label="jugadores" title="Jugador inscrito">';
+    echo '<option value="">Jugador (todos)</option>';
+    foreach ($playerOptions as $value) {
+        $selected = in_array($value, $playerNames, true) ? ' selected' : '';
+        echo '<option value="' . h($value) . '"' . $selected . '>' . h($value) . '</option>';
+    }
+    echo '</select>';
+    echo '<input type="text" name="cj_competition_id" placeholder="IdCompeticion" value="' . h(query_raw('cj_competition_id')) . '" title="Id de competicion">';
+    echo '<input type="text" name="cj_competition_name" placeholder="Competicion" value="' . h(query_raw('cj_competition_name')) . '" title="Nombre de la competicion">';
+    echo '<select name="cj_status[]" multiple data-check-combo="1" data-check-combo-placeholder="Estado (todos)" data-check-combo-many-label="estados" title="Estado del intento de inscripcion">';
+    echo '<option value="">Estado (todos)</option>';
+    foreach ($statusOptions as $value) {
+        $selected = in_array($value, $statuses, true) ? ' selected' : '';
+        echo '<option value="' . h($value) . '"' . $selected . '>' . h($value) . '</option>';
+    }
+    echo '</select>';
+    echo '<input type="text" name="cj_request_method" placeholder="Metodo" value="' . h(query_raw('cj_request_method')) . '" title="Metodo HTTP usado">';
+    echo '<input type="text" name="cj_request_param" placeholder="Parametro" value="' . h(query_raw('cj_request_param')) . '" title="Nombre del parametro usado">';
+    echo '<details class="filter-details visible-columns" data-col-prefix="cjcol_" data-order-field="cjcol_order"><summary>Columnas visibles</summary><div class="visible-row">';
+    foreach ($columnDefs as $key => $def) {
+        $checked = in_array($key, $selectedCols, true) ? ' checked' : '';
+        echo '<label class="visible-item" draggable="true" data-col-key="' . h($key) . '"><input class="col-check" type="checkbox" name="cjcol_' . h($key) . '" value="1"' . $checked . '><span>' . h($def['label']) . '</span></label>';
+    }
+    echo '<button type="button" class="btn-reset-cols" data-default-cols="' . h(implode(',', $defaultCols)) . '">Restablecer</button>';
+    echo '</div></details>';
+    echo '<select name="page_size"><option value="50"' . ($pageSize === 50 ? ' selected' : '') . '>50 filas</option><option value="100"' . ($pageSize === 100 ? ' selected' : '') . '>100 filas</option><option value="200"' . ($pageSize === 200 ? ' selected' : '') . '>200 filas</option></select>';
+    echo '<button type="submit">Filtrar</button>';
+    echo '<button type="submit" name="export" value="csv">Exportar CSV</button>';
+    echo '<a class="btn-link" href="?view=competition_signups">Limpiar</a>';
+    echo '</form>';
+
+    echo '<div class="table-head-wrap"><span class="muted">Total intentos: ' . h((string) $totalRows) . '</span></div>';
+    echo '<div style="overflow:auto"><table><thead><tr>';
+    foreach ($selectedCols as $col) {
+        echo '<th>' . sort_link($col, $columnDefs[$col]['label'], $sortKey, $sortDir) . '</th>';
+    }
+    echo '<th>Abrir</th></tr></thead><tbody>';
+    foreach ($rows as $row) {
+        echo '<tr>';
+        foreach ($selectedCols as $col) {
+            $value = $row[$col] ?? null;
+            if ($col === 'player_name') {
+                echo '<td>' . player_profile_link_html((string) $value, $value) . '</td>';
+                continue;
+            }
+            if ($col === 'status') {
+                echo '<td>' . competition_signup_status_badge((string) $value) . '</td>';
+                continue;
+            }
+            if ($col === 'response_summary') {
+                echo '<td>' . h(competition_signup_response_summary((string) ($row['status'] ?? ''), $row['response_body'] ?? null)) . '</td>';
+                continue;
+            }
+            if ($col === 'created_at') {
+                echo '<td>' . h(format_datetime_display($value)) . '</td>';
+                continue;
+            }
+            if ($col === 'response_body') {
+                $raw = trim((string) $value);
+                if ($raw === '') {
+                    echo '<td class="muted">-</td>';
+                } else {
+                    echo '<td><details><summary>Ver respuesta</summary><pre class="raw-response-block">' . h($raw) . '</pre></details></td>';
+                }
+                continue;
+            }
+            $cellClass = is_numeric((string) $value) ? ' class="num-cell"' : '';
+            echo '<td' . $cellClass . '>' . h((string) $value) . '</td>';
+        }
+        $url = trim((string) ($row['competition_url'] ?? ''));
+        echo $url !== '' ? '<td><a class="record-link" href="' . h($url) . '" target="_blank" rel="noopener noreferrer">Abrir competicion</a></td>' : '<td class="muted">-</td>';
+        echo '</tr>';
+    }
+    echo '</tbody></table></div>';
+    render_pagination($page, $pageSize, $totalRows);
+    echo '</section>';
+}
+
+function competition_signup_status_badge(string $status): string
+{
+    $status = trim($status);
+    $class = 'signup-status-badge signup-status-failed';
+    $label = $status !== '' ? $status : 'failed';
+
+    if ($status === 'joined') {
+        $class = 'signup-status-badge signup-status-joined';
+    } elseif ($status === 'already_joined') {
+        $class = 'signup-status-badge signup-status-already';
+    } elseif ($status === 'auth_error') {
+        $class = 'signup-status-badge signup-status-auth';
+    } elseif ($status === 'ineligible') {
+        $class = 'signup-status-badge signup-status-ineligible';
+    } elseif ($status === 'skipped') {
+        $class = 'signup-status-badge signup-status-skipped';
+    }
+
+    return '<span class="' . h($class) . '">' . h($label) . '</span>';
+}
+
+function competition_signup_response_summary(string $status, mixed $responseBody): string
+{
+    $status = trim($status);
+    $raw = trim((string) $responseBody);
+    $rawLower = strtolower($raw);
+
+    if ($status === 'joined') {
+        return 'Inscripcion correcta';
+    }
+    if ($status === 'already_joined') {
+        return 'La competicion ya estaba inscrita';
+    }
+    if ($status === 'auth_error') {
+        return 'Sesion no valida o acceso denegado';
+    }
+    if ($status === 'ineligible') {
+        return $raw !== '' ? $raw : 'El jugador no cumple el tramo de muertes de la competicion';
+    }
+    if ($status === 'skipped') {
+        return 'Saltada por intento previo';
+    }
+    if ($rawLower === 'false') {
+        return 'La API rechazo la inscripcion para esa competicion';
+    }
+    if ($rawLower === 'true') {
+        return 'Inscripcion correcta';
+    }
+    if ($raw === '') {
+        return 'Sin detalle de respuesta';
+    }
+
+    $json = json_decode($raw, true);
+    if (is_array($json)) {
+        $message = trim((string) ($json['message'] ?? $json['errorMessage'] ?? $json['code'] ?? ''));
+        if ($message !== '') {
+            return $message;
+        }
+    }
+
+    return $raw;
+}
+
 
 if (is_csv_export_requested()) {
     switch ($view) {
@@ -6988,6 +7800,15 @@ if (is_csv_export_requested()) {
             break;
         case 'trophies_summary':
             render_trophies_summary();
+            break;
+        case 'user_gallery':
+            render_user_gallery();
+            break;
+        case 'kill_scrape_status':
+            render_kill_url_scrape_status();
+            break;
+        case 'competition_signups':
+            render_competition_signups();
             break;
         case 'cheat_risk':
             render_cheat_risk();
@@ -7041,28 +7862,31 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
             <?= menu_link('species_ppft', 'Especies PPFT', $view) ?>
             <?= menu_link('hall_of_fame', 'Salones Fama', $view) ?>
             <?= menu_link('trophies_summary', 'Resumen Trofeos', $view) ?>
+            <?= menu_link('user_gallery', 'Galerias Usuarios', $view) ?>
+            <?= menu_link('kill_scrape_status', 'Estado Scraper', $view) ?>
+            <?= menu_link('competition_signups', 'Inscripciones Comp.', $view) ?>
             <?= menu_link('cheat_risk', 'Anti-trampas', $view) ?>
             <?php if (app_is_admin_user()): ?>
                 <?= menu_link('logs', 'Logs', $view) ?>
             <?php endif; ?>
             <?= menu_link('advanced', 'Consulta Avanzada', $view) ?>
         </nav>
-        <div class="theme-switch">
-            <div class="theme-title">Tema</div>
+        <details class="theme-switch sidebar-collapsible">
+            <summary class="theme-title">Tema</summary>
             <div class="theme-row">
                 <?= theme_link('sober', 'Sobrio', $view, $theme) ?>
-                <?= theme_link('gaming', 'Gaming', $view, $theme) ?>
+                <?= theme_link('aurora', 'Aurora', $view, $theme) ?>
                 <?= theme_link('arctic', 'Artico', $view, $theme) ?>
-                <?= theme_link('graphite', 'Grafito', $view, $theme) ?>
-                <?= theme_link('midnight', 'Midnight', $view, $theme) ?>
-                <?= theme_link('ember', 'Ember', $view, $theme) ?>
+                <?= theme_link('studio', 'Studio', $view, $theme) ?>
+                <?= theme_link('lagoon', 'Lagoon', $view, $theme) ?>
+                <?= theme_link('sandstone', 'Sandstone', $view, $theme) ?>
                 <?= theme_link('skyline', 'Skyline', $view, $theme) ?>
                 <?= theme_link('terminal', 'Terminal', $view, $theme) ?>
-                <?= theme_link('missions', 'Misiones', $view, $theme) ?>
+                <?= theme_link('noir', 'Noir', $view, $theme) ?>
             </div>
-        </div>
-        <div class="font-switch">
-            <div class="theme-title">Fuente</div>
+        </details>
+        <details class="font-switch sidebar-collapsible">
+            <summary class="theme-title">Fuente</summary>
             <div class="font-row">
                 <?= font_link('system', 'UI', 'Aa Bb 123', $view, $font, 'font-chip-system') ?>
                 <?= font_link('modern', 'Moderna', 'Aa Bb 123', $view, $font, 'font-chip-modern') ?>
@@ -7070,7 +7894,7 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
                 <?= font_link('serif', 'Serif', 'Aa Bb 123', $view, $font, 'font-chip-serif') ?>
                 <?= font_link('mono', 'Mono', 'Aa Bb 123', $view, $font, 'font-chip-mono') ?>
             </div>
-        </div>
+        </details>
         <div class="sidebar-note">
             <p>Export XML disponible en <a href="download.php?file=best_all.xml">best_all.xml</a>.</p>
         </div>
@@ -7110,6 +7934,15 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
                 break;
             case 'trophies_summary':
                 render_trophies_summary();
+                break;
+            case 'user_gallery':
+                render_user_gallery();
+                break;
+            case 'kill_scrape_status':
+                render_kill_url_scrape_status();
+                break;
+            case 'competition_signups':
+                render_competition_signups();
                 break;
             case 'logs':
                 render_logs();

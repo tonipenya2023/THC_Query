@@ -52,6 +52,16 @@ if ($action === 'refresh_my_expeditions') {
     $commandOverride = [$php, app_root() . '\\src\\run_import_user.php', (string) $userId, '40'];
 }
 
+if ($action === 'join_all_competitions') {
+    $authUser = app_auth_username() ?? '';
+    if ($authUser === '') {
+        header('Location: index.php?flash=' . urlencode('No se encontro el usuario autenticado actual'));
+        exit;
+    }
+    $php = 'C:\\xampp\\php\\php.exe';
+    $commandOverride = [$php, app_root() . '\\src\\run_join_all_competitions.php', '--player=' . $authUser, '--skip-attempted'];
+}
+
 $taskId = TaskManager::create($action, (string) $actions[$action]['label'], $commandOverride);
 TaskManager::runAsync($taskId);
 

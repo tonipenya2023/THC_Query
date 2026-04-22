@@ -405,6 +405,11 @@ function app_password_store_file(): string
     return app_root() . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'panel_passwords.json';
 }
 
+function app_thehunter_cookie_store_file(): string
+{
+    return app_root() . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'thehunter_cookies.json';
+}
+
 function app_password_store_load(): array
 {
     $file = app_password_store_file();
@@ -447,6 +452,105 @@ function app_password_store_save(array $map): void
     }
 
     file_put_contents($file, json_encode($map, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+}
+
+function app_thehunter_cookie_store_load(): array
+{
+    $file = app_thehunter_cookie_store_file();
+    if (!is_file($file)) {
+        return [];
+    }
+
+    $raw = @file_get_contents($file);
+    if (!is_string($raw) || trim($raw) === '') {
+        return [];
+    }
+
+    $data = json_decode($raw, true);
+    if (!is_array($data)) {
+        return [];
+    }
+
+    $out = [];
+    foreach ($data as $user => $cookie) {
+        if (!is_string($user) || !is_string($cookie)) {
+            continue;
+        }
+        $u = trim($user);
+        $c = trim($cookie);
+        if ($u === '' || $c === '') {
+            continue;
+        }
+        $out[mb_strtolower($u, 'UTF-8')] = $c;
+    }
+
+    return $out;
+}
+
+function app_thehunter_cookie_store_save(array $map): void
+{
+    $file = app_thehunter_cookie_store_file();
+    $dir = dirname($file);
+    if (!is_dir($dir)) {
+        mkdir($dir, 0777, true);
+    }
+
+    file_put_contents($file, json_encode($map, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+}
+
+function app_set_thehunter_cookie(string $username, string $cookie): void
+{
+    $username = trim($username);
+    $cookie = trim($cookie);
+    if ($username === '') {
+        throw new InvalidArgumentException('Usuario vacio');
+    }
+    if ($cookie === '') {
+        throw new InvalidArgumentException('Cookie vacia');
+    }
+
+    $map = app_thehunter_cookie_store_load();
+    $map[mb_strtolower($username, 'UTF-8')] = $cookie;
+    app_thehunter_cookie_store_save($map);
+}
+
+function app_clear_thehunter_cookie(string $username): void
+{
+    $username = trim($username);
+    if ($username === '') {
+        return;
+    }
+
+    $map = app_thehunter_cookie_store_load();
+    unset($map[mb_strtolower($username, 'UTF-8')]);
+    app_thehunter_cookie_store_save($map);
+}
+
+function app_thehunter_cookie_for_user(string $username): ?string
+{
+    $username = trim($username);
+    if ($username === '') {
+        return null;
+    }
+
+    $specificEnvName = 'THC_THEHUNTER_COOKIE_' . strtoupper(trim((string) preg_replace('/[^A-Z0-9]+/i', '_', $username), '_'));
+    $specificEnv = getenv($specificEnvName);
+    if (is_string($specificEnv) && trim($specificEnv) !== '') {
+        return trim($specificEnv);
+    }
+
+    $map = app_thehunter_cookie_store_load();
+    $key = mb_strtolower($username, 'UTF-8');
+    if (isset($map[$key]) && is_string($map[$key]) && trim($map[$key]) !== '') {
+        return trim($map[$key]);
+    }
+
+    $genericEnv = getenv('THC_THEHUNTER_COOKIE');
+    if (is_string($genericEnv) && trim($genericEnv) !== '') {
+        return trim($genericEnv);
+    }
+
+    return null;
 }
 
 function app_password_hash_for_user(string $username): ?string
@@ -584,7 +688,7 @@ function app_theme(): string
         return $theme;
     }
 
-    $allowed = ['sober', 'gaming', 'arctic', 'graphite', 'midnight', 'ember', 'skyline', 'terminal', 'missions'];
+    $allowed = ['sober', 'aurora', 'arctic', 'studio', 'lagoon', 'sandstone', 'skyline', 'terminal', 'noir'];
     $fromGet = $_GET['theme'] ?? null;
     if (is_string($fromGet) && in_array($fromGet, $allowed, true)) {
         $theme = $fromGet;

@@ -34,6 +34,14 @@ final class TaskCatalog
                 'label' => 'Actualizar Trofeos Usuarios',
                 'command' => [$php, $src . 'run_import_users_trophies.php'],
             ],
+            'refresh_gallery_all' => [
+                'label' => 'Actualizar Galerias Usuarios',
+                'command' => [$php, $src . 'run_import_users_gallery.php'],
+            ],
+            'join_all_competitions' => [
+                'label' => 'Inscribirme en Competiciones',
+                'command' => [$php, $src . 'run_join_all_competitions.php'],
+            ],
             'refresh_expeditions_all_users' => [
                 'label' => 'Actualizar Expediciones de todos los users',
                 'command' => [$php, $src . 'run_import_users.php', '--page-size=40'],
@@ -44,7 +52,7 @@ final class TaskCatalog
             ],
             'scrape_kill_urls' => [
                 'label' => 'Scraper URLs de Muertes',
-                'command' => [$php, $src . 'run_scrape_kill_urls.php', '--from=all', '--sleep-ms=200'],
+                'command' => [$php, $src . 'run_scrape_kill_urls.php', '--from=all', '--pending-only', '--sleep-ms=100', '--limit=5000'],
             ],
             'refresh_my_expeditions' => [
                 'label' => 'Actualizar mis Expediciones',
@@ -64,6 +72,8 @@ final class TaskCatalog
             'refresh_best_all',
             'refresh_public_all',
             'refresh_trophies_all',
+            'refresh_gallery_all',
+            'join_all_competitions',
             'export_best_xml',
             'refresh_my_expeditions',
         ];

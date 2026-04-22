@@ -103,6 +103,35 @@ FROM gpt.tab_usuarios u
 LEFT JOIN trophy_counts tc ON tc.user_id = u.user_id;
 
 
+DROP VIEW IF EXISTS gpt.v_user_gallery;
+
+CREATE VIEW gpt.v_user_gallery AS
+SELECT
+    g.gallery_entry_id,
+    g.user_id,
+    g.player_name,
+    g.label,
+    g.photo_url,
+    g.thumbnail_url,
+    g.photo_type,
+    g.animal_id,
+    g.species_id,
+    COALESCE(sp.especie_es, sp.especie, g.species_name) AS species_name_es,
+    g.species_name,
+    g.score_type,
+    g.score_value,
+    g.created_at,
+    g.updated_at,
+    to_jsonb(g) AS gallery_row,
+    to_jsonb(sp) AS species_row,
+    to_jsonb(u) AS users_row,
+    to_jsonb(ups) AS user_public_row
+FROM gpt.user_gallery g
+LEFT JOIN gpt.tab_especies sp ON sp.id_especie = g.species_id
+LEFT JOIN gpt.tab_usuarios u ON u.user_id = g.user_id
+LEFT JOIN gpt.user_public_stats ups ON ups.user_id = g.user_id;
+
+
 CREATE OR REPLACE VIEW gpt.v_best_records AS
 SELECT
     b.user_id,
@@ -509,4 +538,61 @@ SELECT
     '>= 90' AS signal_threshold,
     CASE WHEN p.signal_value >= 95 THEN 15 ELSE 8 END AS signal_weight
 FROM perfect_integrity p;
+
+CREATE OR REPLACE VIEW gpt.v_comp_join_results AS
+SELECT
+    r.join_result_id,
+    r.player_name,
+    r.competition_id,
+    r.competition_name,
+    r.status,
+    r.request_method,
+    r.request_param,
+    r.response_body,
+    r.created_at,
+    CASE
+        WHEN r.competition_id IS NULL THEN NULL
+        ELSE 'https://www.thehunter.com/#competitions/details/' || r.competition_id::text
+    END AS competition_url
+FROM gpt.comp_join_results r;
+
+
+CREATE OR REPLACE VIEW gpt.v_scrape_kill_urls_latest AS
+SELECT DISTINCT ON (s.url)
+    s.id,
+    s.run_at,
+    s.source,
+    s.ref,
+    s.url,
+    s.http_code,
+    s.ok,
+    s.file_name,
+    s.error,
+    s.url_type,
+    s.player_slug,
+    s.player_name,
+    s.animal_id,
+    s.kill_id,
+    s.page_title,
+    s.page_kind,
+    s.requires_login,
+    s.parsed_ok,
+    s.parsed_summary,
+    CASE
+        WHEN s.file_name IS NULL OR s.file_name = '' THEN NULL
+        ELSE 'out/kill_url_scrape/pages/' || s.file_name
+    END AS local_file_rel,
+    (
+        SELECT MAX(x.run_at)
+        FROM gpt.scrape_kill_urls x
+        WHERE x.url = s.url
+          AND x.ok = TRUE
+    ) AS last_success_at,
+    (
+        SELECT COUNT(*)
+        FROM gpt.scrape_kill_urls x
+        WHERE x.url = s.url
+    ) AS attempts
+FROM gpt.scrape_kill_urls s
+ORDER BY s.url, s.run_at DESC, s.id DESC;
 

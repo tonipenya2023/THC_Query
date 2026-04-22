@@ -196,6 +196,24 @@ CREATE TABLE IF NOT EXISTS gpt.user_trophies (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS gpt.user_gallery (
+    gallery_entry_id BIGINT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    player_name TEXT NULL,
+    label TEXT NULL,
+    photo_url TEXT NULL,
+    thumbnail_url TEXT NULL,
+    photo_type INTEGER NULL,
+    animal_id BIGINT NULL,
+    species_id INTEGER NULL,
+    species_name TEXT NULL,
+    score_type INTEGER NULL,
+    score_value NUMERIC(18,5) NULL,
+    raw_json JSONB NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS gpt.est_profiles (
     user_id BIGINT PRIMARY KEY,
     player_name TEXT NULL,
@@ -336,6 +354,41 @@ CREATE TABLE IF NOT EXISTS gpt.comp_payloads (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS gpt.comp_join_results (
+    join_result_id BIGSERIAL PRIMARY KEY,
+    player_name TEXT NOT NULL,
+    competition_id BIGINT NULL,
+    competition_name TEXT NULL,
+    status TEXT NULL,
+    request_method TEXT NULL,
+    request_param TEXT NULL,
+    response_body TEXT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS gpt.scrape_kill_urls (
+    id BIGSERIAL PRIMARY KEY,
+    run_at TIMESTAMPTZ NOT NULL,
+    source TEXT NOT NULL,
+    ref TEXT NULL,
+    url TEXT NOT NULL,
+    http_code INTEGER NULL,
+    ok BOOLEAN NOT NULL,
+    file_name TEXT NULL,
+    error TEXT NULL,
+    url_type TEXT NULL,
+    player_slug TEXT NULL,
+    player_name TEXT NULL,
+    animal_id BIGINT NULL,
+    kill_id BIGINT NULL,
+    page_title TEXT NULL,
+    page_kind TEXT NULL,
+    requires_login BOOLEAN NULL,
+    parsed_ok BOOLEAN NULL,
+    parsed_summary TEXT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE INDEX IF NOT EXISTS idx_exp_expeditions_user_id ON gpt.exp_expeditions(user_id);
 CREATE INDEX IF NOT EXISTS idx_exp_kills_expedition_id ON gpt.exp_kills(expedition_id);
 CREATE INDEX IF NOT EXISTS idx_exp_hits_expedition_id ON gpt.exp_hits(expedition_id);
@@ -344,6 +397,11 @@ CREATE INDEX IF NOT EXISTS idx_best_personal_records_player_name ON gpt.best_per
 CREATE INDEX IF NOT EXISTS idx_user_public_stats_global_rank ON gpt.user_public_stats(global_rank);
 CREATE INDEX IF NOT EXISTS idx_est_profiles_global_rank ON gpt.est_profiles(global_rank);
 CREATE INDEX IF NOT EXISTS idx_comp_competitions_type_id ON gpt.comp_competitions(competition_type_id);
+CREATE INDEX IF NOT EXISTS idx_comp_join_results_player_created ON gpt.comp_join_results(player_name, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_comp_join_results_competition ON gpt.comp_join_results(competition_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_scrape_kill_urls_run_at ON gpt.scrape_kill_urls(run_at DESC);
+CREATE INDEX IF NOT EXISTS idx_scrape_kill_urls_url ON gpt.scrape_kill_urls(url);
+CREATE INDEX IF NOT EXISTS idx_scrape_kill_urls_ok_run ON gpt.scrape_kill_urls(ok, run_at DESC);
 
 ALTER TABLE gpt.exp_expeditions
     ALTER COLUMN x TYPE NUMERIC(18,6) USING x::NUMERIC,
@@ -508,6 +566,18 @@ ALTER TABLE gpt.comp_type_rewards
 ALTER TABLE gpt.comp_payloads
     ADD COLUMN IF NOT EXISTS payload_json JSONB NULL,
     ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+
+ALTER TABLE gpt.scrape_kill_urls
+    ADD COLUMN IF NOT EXISTS url_type TEXT NULL,
+    ADD COLUMN IF NOT EXISTS player_slug TEXT NULL,
+    ADD COLUMN IF NOT EXISTS player_name TEXT NULL,
+    ADD COLUMN IF NOT EXISTS animal_id BIGINT NULL,
+    ADD COLUMN IF NOT EXISTS kill_id BIGINT NULL,
+    ADD COLUMN IF NOT EXISTS page_title TEXT NULL,
+    ADD COLUMN IF NOT EXISTS page_kind TEXT NULL,
+    ADD COLUMN IF NOT EXISTS requires_login BOOLEAN NULL,
+    ADD COLUMN IF NOT EXISTS parsed_ok BOOLEAN NULL,
+    ADD COLUMN IF NOT EXISTS parsed_summary TEXT NULL;
 
 CREATE TABLE IF NOT EXISTS gpt.clas_rankings_history (
     snapshot_at TIMESTAMPTZ NOT NULL,

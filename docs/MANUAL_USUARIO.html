@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Manual de Usuario THC Query</title>
+<style>body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#111;margin:28px;line-height:1.45} h1,h2,h3{color:#0f2f24} h1{font-size:24pt;border-bottom:2px solid #0f2f24;padding-bottom:6px} h2{font-size:18pt;margin-top:24px} h3{font-size:14pt;margin-top:18px} p,li{margin:0 0 8px 0} ul{margin-top:6px;margin-bottom:12px} img{max-width:100%;border:1px solid #cbd5e1;border-radius:6px;margin:10px 0 18px 0} code{background:#f3f4f6;padding:1px 4px;border-radius:4px} .caption{font-size:10pt;color:#475569;margin-top:-10px;margin-bottom:12px}</style></head><body>
+<h1>Manual de Usuario THC Query</h1>
+<p></p>
+<h2>1. Objetivo del manual</h2>
+<p></p>
+<p>Este manual explica el uso diario de <code>THC Query</code> desde el punto de vista de un usuario del panel.</p>
+<p></p>
+<p>Su objetivo es ayudarte a:</p>
+<p></p>
+<ul>
+<li>entrar en la aplicacion</li>
+<li>localizar la consulta adecuada</li>
+<li>filtrar informacion de forma rapida</li>
+<li>ordenar y personalizar tablas</li>
+<li>abrir detalles y subtablas</li>
+<li>exportar resultados</li>
+<li>entender que opciones dependen de permisos</li>
+</ul>
+<p></p>
+<p><code>THC Query</code> centraliza informacion de <code>theHunter Classic</code> para consulta, revision y seguimiento.</p>
+<p></p>
+<h2>2. Acceso al panel</h2>
+<p></p>
+<h3>2.1 Inicio de sesion</h3>
+<p></p>
+<p>Para acceder al panel:</p>
+<p></p>
+<p>1. abre la URL del panel en tu navegador</p>
+<p>2. introduce tu usuario</p>
+<p>3. introduce tu contrasena</p>
+<p>4. confirma el acceso</p>
+<p></p>
+<p>Si la autenticacion es correcta, se abrira la pantalla principal con el menu lateral izquierdo.</p>
+<p></p>
+<h3>2.2 Cambio de contrasena</h3>
+<p></p>
+<p>En la barra lateral existe el bloque <code>Cambiar contrasena</code>.</p>
+<p></p>
+<p>Pasos:</p>
+<p></p>
+<p>1. despliega el bloque</p>
+<p>2. escribe la contrasena actual</p>
+<p>3. escribe la nueva contrasena</p>
+<p>4. confirma la nueva contrasena</p>
+<p>5. pulsa <code>Guardar contrasena</code></p>
+<p></p>
+<h2>3. Estructura general de la aplicacion</h2>
+<p></p>
+<p>La pantalla se organiza en las siguientes zonas:</p>
+<p></p>
+<p>1. barra lateral izquierda</p>
+<p>2. cabecera o titulo de la consulta activa</p>
+<p>3. zona de filtros</p>
+<p>4. botones de accion</p>
+<p>5. tabla principal</p>
+<p>6. subtablas o paneles de detalle</p>
+<p>7. paginacion</p>
+<p></p>
+<h3>3.1 Barra lateral</h3>
+<p></p>
+<p>La barra lateral contiene:</p>
+<p></p>
+<ul>
+<li>logo de la aplicacion</li>
+<li>usuario conectado</li>
+<li>boton `Salir`</li>
+<li>bloque de cambio de contrasena</li>
+<li>accesos a las consultas</li>
+<li>selector de tema visual</li>
+<li>selector de fuente</li>
+</ul>
+<p></p>
+<h3>3.2 Zona central</h3>
+<p></p>
+<p>La zona central muestra la consulta que estas usando en ese momento.</p>
+<p></p>
+<p>Normalmente incluye:</p>
+<p></p>
+<ul>
+<li>titulo</li>
+<li>filtros</li>
+<li>bloque de columnas visibles</li>
+<li>botones como `Filtrar`, `Limpiar` y `Exportar CSV`</li>
+<li>tabla principal</li>
+<li>detalles desplegables</li>
+</ul>
+<p></p>
+<h2>4. Permisos y visibilidad</h2>
+<p></p>
+<p>No todos los usuarios ven lo mismo.</p>
+<p></p>
+<p>Segun el perfil del usuario:</p>
+<p></p>
+<ul>
+<li>algunas opciones del panel pueden no aparecer</li>
+<li>algunos botones de procesos pueden ocultarse</li>
+<li>ciertas acciones pueden ser solo de lectura</li>
+<li>la consulta `Logs` puede estar reservada a administradores</li>
+</ul>
+<p></p>
+<p>Si no ves una opcion, lo normal es que se deba a permisos y no a un error de la pantalla.</p>
+<p></p>
+<h2>5. Elementos comunes en todas las consultas</h2>
+<p></p>
+<h2>5.1 Filtros</h2>
+<p></p>
+<p>Los filtros se usan para reducir el volumen de informacion antes de consultar.</p>
+<p></p>
+<p>Los tipos mas habituales son:</p>
+<p></p>
+<ul>
+<li>texto libre</li>
+<li>numeros</li>
+<li>fechas</li>
+<li>listas desplegables</li>
+<li>combos multiseleccion con checkbox</li>
+</ul>
+<p></p>
+<p>Uso recomendado:</p>
+<p></p>
+<p>1. selecciona primero uno o dos filtros principales</p>
+<p>2. pulsa <code>Filtrar</code></p>
+<p>3. revisa el resultado</p>
+<p>4. afina con filtros adicionales si hace falta</p>
+<p>5. usa <code>Limpiar</code> para volver al estado inicial</p>
+<p></p>
+<h2>5.2 Combos con checkbox</h2>
+<p></p>
+<p>Muchos filtros de jugadores, usuarios, especies, reservas, tipos o estados usan combo con checkbox.</p>
+<p></p>
+<p>Funcionamiento:</p>
+<p></p>
+<p>1. pulsa sobre el campo</p>
+<p>2. marca una o varias opciones</p>
+<p>3. usa <code>Todos</code> para seleccionar todo</p>
+<p>4. usa <code>Limpiar</code> para vaciar la seleccion</p>
+<p>5. pulsa fuera del combo para cerrarlo</p>
+<p>6. aplica el filtro con <code>Filtrar</code></p>
+<p></p>
+<p>Este tipo de filtro permite trabajar mejor cuando necesitas comparar varios valores a la vez.</p>
+<p></p>
+<h2>5.3 Tooltips en filtros</h2>
+<p></p>
+<p>Al pasar el raton por encima de muchos filtros y controles aparece un tooltip con una descripcion breve.</p>
+<p></p>
+<p>Sirve para aclarar:</p>
+<p></p>
+<ul>
+<li>que significa el campo</li>
+<li>que valor espera</li>
+<li>si se trata de un identificador, una fecha o un valor numerico</li>
+</ul>
+<p></p>
+<h2>5.4 Columnas visibles</h2>
+<p></p>
+<p>La mayoria de consultas tienen uno o varios bloques <code>Columnas visibles</code>.</p>
+<p></p>
+<p>Desde esos bloques puedes:</p>
+<p></p>
+<ul>
+<li>mostrar columnas</li>
+<li>ocultar columnas</li>
+<li>cambiar el orden</li>
+<li>recuperar la configuracion por defecto</li>
+</ul>
+<p></p>
+<p>Uso:</p>
+<p></p>
+<p>1. despliega el bloque de columnas</p>
+<p>2. marca o desmarca las columnas necesarias</p>
+<p>3. reordena si procede</p>
+<p>4. pulsa <code>Restablecer</code> si quieres volver al diseño original</p>
+<p></p>
+<h2>5.5 Ordenacion</h2>
+<p></p>
+<p>Las cabeceras de las tablas son ordenables.</p>
+<p></p>
+<p>Funcionamiento:</p>
+<p></p>
+<p>1. pulsa una cabecera para ordenar por esa columna</p>
+<p>2. vuelve a pulsar para invertir el orden</p>
+<p></p>
+<p>Las flechas en cabecera indican que la columna admite ordenacion.</p>
+<p></p>
+<h2>5.6 Subtablas</h2>
+<p></p>
+<p>Muchas consultas permiten desplegar detalle dentro de una fila.</p>
+<p></p>
+<p>Ese detalle puede aparecer como:</p>
+<p></p>
+<ul>
+<li>subtabla debajo de la fila principal</li>
+<li>bloque lateral alineado con la fila</li>
+<li>detalle tecnico adicional</li>
+</ul>
+<p></p>
+<p>Normalmente las subtablas tambien permiten:</p>
+<p></p>
+<ul>
+<li>ordenar columnas</li>
+<li>ocultar o mostrar campos</li>
+<li>aplicar filtros propios cuando la pantalla lo soporta</li>
+</ul>
+<p></p>
+<h2>5.7 Paginacion</h2>
+<p></p>
+<p>Cuando una consulta devuelve muchos registros, los resultados se dividen en paginas.</p>
+<p></p>
+<p>Puedes:</p>
+<p></p>
+<ul>
+<li>cambiar el numero de filas por pagina</li>
+<li>moverte entre paginas</li>
+<li>ir a una pagina concreta</li>
+</ul>
+<p></p>
+<h2>5.8 Exportacion CSV</h2>
+<p></p>
+<p>La mayoria de las consultas permiten exportar el resultado visible a CSV.</p>
+<p></p>
+<p>Pasos:</p>
+<p></p>
+<p>1. aplica los filtros</p>
+<p>2. revisa las columnas visibles</p>
+<p>3. pulsa <code>Exportar CSV</code></p>
+<p></p>
+<p>Lo exportado respeta el contexto visible de la consulta en ese momento.</p>
+<p></p>
+<h2>5.9 Enlaces en jugadores y usuarios</h2>
+<p></p>
+<p>En muchas tablas, los campos <code>Jugador</code> o <code>Usuario</code> son enlaces.</p>
+<p></p>
+<p>Al pulsarlos, se abre el perfil del jugador correspondiente.</p>
+<p></p>
+<p>En algunas consultas tambien hay enlaces hacia:</p>
+<p></p>
+<ul>
+<li>ficha de una muerte</li>
+<li>perfil del jugador</li>
+<li>detalle relacionado con el registro</li>
+</ul>
+<p></p>
+<h2>6. Panel</h2>
+<p></p>
+<p><code>Panel</code> es la pantalla principal de control.</p>
+<p></p>
+<p>Sirve para:</p>
+<p></p>
+<ul>
+<li>ver contadores globales</li>
+<li>lanzar procesos manuales</li>
+<li>revisar tareas programadas</li>
+<li>consultar ejecuciones recientes</li>
+</ul>
+<p></p>
+<h3>6.1 Tarjetas resumen</h3>
+<p></p>
+<p>En la parte superior se muestran tarjetas con contadores generales de la aplicacion.</p>
+<p></p>
+<p>Ejemplos:</p>
+<p></p>
+<ul>
+<li>expediciones</li>
+<li>mejores marcas</li>
+<li>perfiles</li>
+<li>competiciones</li>
+<li>tablas de clasificacion</li>
+</ul>
+<p></p>
+<h3>6.2 Bloque Procesos</h3>
+<p></p>
+<p>Este bloque permite lanzar procesos manualmente segun permisos.</p>
+<p></p>
+<p>Entre ellos puede haber:</p>
+<p></p>
+<ul>
+<li>actualizar competiciones</li>
+<li>actualizar mis expediciones</li>
+<li>actualizar expediciones de todos</li>
+<li>actualizar mejores marcas</li>
+<li>actualizar estadisticas</li>
+<li>actualizar trofeos</li>
+<li>scraper de URLs de muertes</li>
+</ul>
+<p></p>
+<p>Si un boton no aparece, el usuario no tiene permiso para ese proceso.</p>
+<p></p>
+<h3>6.3 Bloque Tareas programadas</h3>
+<p></p>
+<p>Muestra la configuracion y el estado de las tareas automáticas.</p>
+<p></p>
+<p>Campos habituales:</p>
+<p></p>
+<ul>
+<li>nombre de la tarea</li>
+<li>activa</li>
+<li>cada cuantos minutos se ejecuta</li>
+<li>ultima ejecucion</li>
+<li>estado</li>
+<li>ejecutar</li>
+<li>guardar</li>
+</ul>
+<p></p>
+<p>En usuarios sin permisos de administracion, ciertos controles pueden no aparecer.</p>
+<p></p>
+<h3>6.4 Bloque Tareas recientes</h3>
+<p></p>
+<p>Permite ver las ultimas ejecuciones registradas, su estado y el acceso al log correspondiente.</p>
+<p></p>
+<h2>7. Expediciones</h2>
+<p></p>
+<p>La consulta <code>Expediciones</code> es una de las mas completas del panel.</p>
+<p></p>
+<p>Sirve para trabajar con:</p>
+<p></p>
+<ul>
+<li>expediciones</li>
+<li>muertes</li>
+<li>disparos</li>
+</ul>
+<p></p>
+<h3>7.1 Filtros principales</h3>
+<p></p>
+<p>Los filtros mas comunes son:</p>
+<p></p>
+<ul>
+<li>ID de expedicion</li>
+<li>ID de usuario</li>
+<li>jugador</li>
+<li>reserva</li>
+<li>rango de fechas</li>
+<li>especie</li>
+<li>kill ID</li>
+<li>disparo ID</li>
+<li>marca</li>
+<li>foto o taxidermia</li>
+<li>puntuacion</li>
+<li>distancia</li>
+<li>peso</li>
+<li>integridad</li>
+<li>harvest</li>
+<li>arma</li>
+<li>municion</li>
+<li>organo</li>
+<li>duracion</li>
+</ul>
+<p></p>
+<h3>7.2 Lectura de la pantalla</h3>
+<p></p>
+<p>En la zona superior aparecen contadores como:</p>
+<p></p>
+<ul>
+<li>total de expediciones</li>
+<li>total de muertes</li>
+<li>total de foto y taxidermia</li>
+</ul>
+<p></p>
+<p>Debajo se muestra la tabla principal con las expediciones.</p>
+<p></p>
+<h3>7.3 Tabla principal</h3>
+<p></p>
+<p>Segun las columnas visibles, se pueden consultar campos como:</p>
+<p></p>
+<ul>
+<li>ID de expedicion</li>
+<li>inicio</li>
+<li>fin</li>
+<li>jugador</li>
+<li>reserva</li>
+<li>muertes</li>
+</ul>
+<p></p>
+<h3>7.4 Ver muertes de una expedicion</h3>
+<p></p>
+<p>Cada fila puede desplegar el detalle de muertes asociadas.</p>
+<p></p>
+<p>Campos habituales del detalle:</p>
+<p></p>
+<ul>
+<li>ID de muerte</li>
+<li>jugador</li>
+<li>especie</li>
+<li>icono de especie</li>
+<li>genero</li>
+<li>peso</li>
+<li>etico</li>
+<li>distancia</li>
+<li>puntuacion</li>
+<li>harvest</li>
+<li>integridad</li>
+<li>numero de disparos</li>
+</ul>
+<p></p>
+<h3>7.5 Ver disparos de una muerte</h3>
+<p></p>
+<p>En el detalle de muertes se muestra la informacion de disparos integrada o desplegable segun la configuracion de la pantalla.</p>
+<p></p>
+<p>Campos habituales:</p>
+<p></p>
+<ul>
+<li>numero de disparo</li>
+<li>distancia</li>
+<li>arma</li>
+<li>municion</li>
+<li>organo</li>
+</ul>
+<p></p>
+<h3>7.6 Uso recomendado</h3>
+<p></p>
+<p>Flujo habitual:</p>
+<p></p>
+<p>1. filtra por jugador o reserva</p>
+<p>2. limita por fechas</p>
+<p>3. filtra por especie si buscas una caza concreta</p>
+<p>4. abre la expedicion</p>
+<p>5. revisa las muertes</p>
+<p>6. abre los disparos solo cuando necesites detalle tecnico</p>
+<p></p>
+<h2>8. Mejores Marcas</h2>
+<p></p>
+<p><code>Mejores Marcas</code> permite revisar los records personales por especie.</p>
+<p></p>
+<h3>8.1 Filtros habituales</h3>
+<p></p>
+<ul>
+<li>rank</li>
+<li>jugador</li>
+<li>hunter score</li>
+<li>especie</li>
+<li>mejor puntuacion</li>
+<li>best distance</li>
+</ul>
+<p></p>
+<h3>8.2 Totales superiores</h3>
+<p></p>
+<p>En la parte superior aparecen los contadores:</p>
+<p></p>
+<ul>
+<li>`Top's D`</li>
+<li>`Top's P`</li>
+</ul>
+<p></p>
+<p>Estos valores resumen los tops de distancia y puntuacion para el contexto filtrado.</p>
+<p></p>
+<h3>8.3 Tabla principal</h3>
+<p></p>
+<p>La tabla muestra normalmente:</p>
+<p></p>
+<ul>
+<li>rank</li>
+<li>jugador</li>
+<li>hunter score</li>
+<li>especie</li>
+<li>mejor puntuacion</li>
+<li>best distance</li>
+</ul>
+<p></p>
+<h3>8.4 Enlaces y acciones</h3>
+<p></p>
+<p>Segun la fila y los datos disponibles:</p>
+<p></p>
+<ul>
+<li>el jugador abre el perfil</li>
+<li>algunos valores pueden abrir la ficha de la muerte</li>
+</ul>
+<p></p>
+<h3>8.5 Acceso a comparativa</h3>
+<p></p>
+<p>Dentro de esta consulta existe el boton <code>Comparativa Mejores Marcas</code>.</p>
+<p></p>
+<p>Ese boton abre la vista comparativa sin necesidad de ir a otra opcion del menu lateral.</p>
+<p></p>
+<h2>9. Comparativa Mejores Marcas</h2>
+<p></p>
+<p>Esta vista compara los records de varios jugadores por especie.</p>
+<p></p>
+<h3>9.1 Que muestra</h3>
+<p></p>
+<ul>
+<li>especie</li>
+<li>icono de especie</li>
+<li>valores por jugador</li>
+<li>marcas de distancia o puntuacion</li>
+<li>resumen de tops por jugador</li>
+</ul>
+<p></p>
+<h3>9.2 Para que sirve</h3>
+<p></p>
+<p>Es una pantalla orientada a comparar rapidamente:</p>
+<p></p>
+<ul>
+<li>quien tiene mejor puntuacion</li>
+<li>quien tiene mejor distancia</li>
+<li>en que especies destaca cada jugador</li>
+</ul>
+<p></p>
+<h3>9.3 Uso recomendado</h3>
+<p></p>
+<p>1. entra desde <code>Mejores Marcas</code></p>
+<p>2. selecciona o revisa los jugadores comparados</p>
+<p>3. ordena por la columna que te interese</p>
+<p>4. pulsa un valor si quieres abrir la ficha de muerte asociada</p>
+<p></p>
+<h2>10. Estadisticas</h2>
+<p></p>
+<p><code>Estadisticas</code> muestra informacion publica agregada por jugador.</p>
+<p></p>
+<h3>10.1 Filtros habituales</h3>
+<p></p>
+<ul>
+<li>rank</li>
+<li>jugador</li>
+<li>hunter score</li>
+<li>duracion</li>
+<li>distancia</li>
+<li>campos especificos de especies</li>
+<li>campos especificos de armas</li>
+<li>campos de coleccionables</li>
+<li>campos de misiones</li>
+</ul>
+<p></p>
+<h3>10.2 Tabla principal</h3>
+<p></p>
+<p>La tabla principal resume al jugador.</p>
+<p></p>
+<p>Campos habituales:</p>
+<p></p>
+<ul>
+<li>rank</li>
+<li>jugador</li>
+<li>hunter score</li>
+<li>duracion</li>
+<li>distancia recorrida</li>
+<li>acceso a detalle</li>
+</ul>
+<p></p>
+<h3>10.3 Subtablas de detalle</h3>
+<p></p>
+<p>Cada jugador puede desplegar subtablas como:</p>
+<p></p>
+<ul>
+<li>`Animal stats`</li>
+<li>`Weapon stats`</li>
+<li>`Coleccionables`</li>
+<li>`Misiones diarias`</li>
+</ul>
+<p></p>
+<h3>10.4 Uso recomendado</h3>
+<p></p>
+<p>Utiliza esta pantalla cuando quieras:</p>
+<p></p>
+<ul>
+<li>ver actividad global de un jugador</li>
+<li>detectar sus especies mas cazadas</li>
+<li>revisar el uso de armas y municiones</li>
+<li>consultar progreso en coleccionables o misiones</li>
+</ul>
+<p></p>
+<h2>11. Competiciones</h2>
+<p></p>
+<p><code>Competiciones</code> permite revisar competiciones activas e historicas.</p>
+<p></p>
+<h3>11.1 Filtros habituales</h3>
+<p></p>
+<ul>
+<li>ID</li>
+<li>nombre tipo</li>
+<li>entrants</li>
+<li>tipo</li>
+<li>fechas</li>
+<li>especie</li>
+<li>reward type</li>
+<li>reward define</li>
+<li>puesto premio</li>
+<li>intentos</li>
+<li>tipo de puntuacion</li>
+</ul>
+<p></p>
+<h3>11.2 Estructura de la consulta</h3>
+<p></p>
+<p>Cada fila puede mostrar:</p>
+<p></p>
+<ul>
+<li>registro principal de la competicion</li>
+<li>detalle de tipo</li>
+<li>especies asociadas</li>
+<li>rewards o premios</li>
+</ul>
+<p></p>
+<h3>11.3 Descripciones</h3>
+<p></p>
+<p>Cuando existe traduccion disponible, la columna <code>Descripcion ES</code> muestra el texto traducido.</p>
+<p></p>
+<h3>11.4 Uso recomendado</h3>
+<p></p>
+<p>1. filtra por fechas o tipo</p>
+<p>2. revisa la competicion principal</p>
+<p>3. despliega el detalle</p>
+<p>4. consulta especies y premios</p>
+<p></p>
+<h2>12. Tablas Clasificacion</h2>
+<p></p>
+<p><code>Tablas Clasificacion</code> muestra la clasificacion actual por especie y por tipo.</p>
+<p></p>
+<h3>12.1 Filtros habituales</h3>
+<p></p>
+<ul>
+<li>tipo de clasificacion</li>
+<li>especie</li>
+<li>rank</li>
+<li>jugador</li>
+<li>ID de usuario</li>
+<li>puntuacion</li>
+<li>distancia</li>
+</ul>
+<p></p>
+<h3>12.2 Uso principal</h3>
+<p></p>
+<p>Sirve para revisar:</p>
+<p></p>
+<ul>
+<li>posicion actual de un jugador</li>
+<li>puntuacion o distancia registrada</li>
+<li>especie y tabla de referencia</li>
+</ul>
+<p></p>
+<h3>12.3 Historico</h3>
+<p></p>
+<p>Desde esta pantalla se accede al historico mediante un boton interno.</p>
+<p></p>
+<h2>13. Tablas Clasificacion Historico</h2>
+<p></p>
+<p>Esta vista permite comparar snapshots historicos de clasificacion.</p>
+<p></p>
+<h3>13.1 Filtros habituales</h3>
+<p></p>
+<ul>
+<li>snapshot actual</li>
+<li>snapshot de comparacion</li>
+<li>tipo</li>
+<li>especie</li>
+<li>jugador</li>
+<li>rank</li>
+<li>solo cambios</li>
+</ul>
+<p></p>
+<h3>13.2 Informacion mostrada</h3>
+<p></p>
+<ul>
+<li>rank actual</li>
+<li>rank previo</li>
+<li>delta de rank</li>
+<li>delta de puntuacion</li>
+<li>delta de distancia</li>
+</ul>
+<p></p>
+<h3>13.3 Uso recomendado</h3>
+<p></p>
+<p>Utiliza esta consulta para detectar:</p>
+<p></p>
+<ul>
+<li>subidas y bajadas en el ranking</li>
+<li>mejoras o perdidas de puntuacion</li>
+<li>cambios entre dos capturas historicas</li>
+</ul>
+<p></p>
+<h2>14. Especies PPFT</h2>
+<p></p>
+<p><code>Especies PPFT</code> es una consulta auxiliar sobre especies y datos agregados.</p>
+<p></p>
+<p>Puede incluir, segun configuracion:</p>
+<p></p>
+<ul>
+<li>fotos</li>
+<li>taxidermias</li>
+<li>contadores auxiliares</li>
+<li>campos tecnicos o derivados</li>
+</ul>
+<p></p>
+<p>Es especialmente util para revision interna y control de volumen.</p>
+<p></p>
+<h2>15. Salones Fama</h2>
+<p></p>
+<p><code>Salones Fama</code> permite revisar los registros del salon de fama.</p>
+<p></p>
+<h3>Funciones habituales</h3>
+<p></p>
+<ul>
+<li>filtrar por especie</li>
+<li>ordenar columnas</li>
+<li>ajustar columnas visibles</li>
+<li>revisar registros destacados</li>
+</ul>
+<p></p>
+<h3>Uso recomendado</h3>
+<p></p>
+<p>1. filtra por especie</p>
+<p>2. ordena por puntuacion, fecha o campo relevante</p>
+<p>3. deja visibles solo los campos necesarios</p>
+<p></p>
+<h2>16. Resumen Trofeos</h2>
+<p></p>
+<p><code>Resumen Trofeos</code> agrupa trofeos por usuario.</p>
+<p></p>
+<h3>16.1 Resumen principal</h3>
+<p></p>
+<p>Por cada usuario se muestran los contadores de:</p>
+<p></p>
+<ul>
+<li>`gold`</li>
+<li>`silver`</li>
+<li>`bronze`</li>
+</ul>
+<p></p>
+<p>Los eventos que no encajan en esos grupos no se contabilizan en esos totales.</p>
+<p></p>
+<h3>16.2 Detalle de trofeos</h3>
+<p></p>
+<p>Al pulsar sobre una cantidad, se despliega la subtabla con el detalle del grupo seleccionado.</p>
+<p></p>
+<p>La subtabla puede tener:</p>
+<p></p>
+<ul>
+<li>filtros propios</li>
+<li>columnas visibles propias</li>
+<li>ordenacion propia</li>
+</ul>
+<p></p>
+<h3>16.3 Uso recomendado</h3>
+<p></p>
+<p>Esta consulta es util para:</p>
+<p></p>
+<ul>
+<li>comparar medallas por usuario</li>
+<li>abrir el detalle de un grupo concreto</li>
+<li>revisar los trofeos que componen cada total</li>
+</ul>
+<p></p>
+<h2>17. Anti-trampas</h2>
+<p></p>
+<p><code>Anti-trampas</code> es una consulta de apoyo para revision.</p>
+<p></p>
+<h3>17.1 Informacion principal</h3>
+<p></p>
+<ul>
+<li>score o nivel de riesgo</li>
+<li>senales detectadas</li>
+<li>expediciones vinculadas</li>
+</ul>
+<p></p>
+<h3>17.2 Interpretacion</h3>
+<p></p>
+<p>Debe usarse como ayuda de revision.</p>
+<p></p>
+<p>No sustituye una comprobacion manual del contexto completo del jugador.</p>
+<p></p>
+<h3>17.3 Uso recomendado</h3>
+<p></p>
+<p>1. localiza el jugador o la senal</p>
+<p>2. revisa la puntuacion o severidad</p>
+<p>3. abre las expediciones asociadas</p>
+<p>4. contrasta la informacion antes de sacar conclusiones</p>
+<p></p>
+<h2>18. Logs</h2>
+<p></p>
+<p>La consulta <code>Logs</code> permite revisar archivos de log cuando el usuario tiene permisos suficientes.</p>
+<p></p>
+<p>Funciones habituales:</p>
+<p></p>
+<ul>
+<li>seleccionar un archivo</li>
+<li>leer su contenido</li>
+<li>localizar errores o advertencias</li>
+</ul>
+<p></p>
+<p>Esta pantalla suele estar reservada a administracion.</p>
+<p></p>
+<h2>19. Consulta Avanzada</h2>
+<p></p>
+<p><code>Consulta Avanzada</code> permite explorar tablas de forma generica.</p>
+<p></p>
+<h3>Funciones habituales</h3>
+<p></p>
+<ul>
+<li>seleccionar tabla</li>
+<li>filtrar por columnas</li>
+<li>ordenar</li>
+<li>exportar</li>
+<li>guardar o recuperar configuraciones, si la pantalla lo permite</li>
+</ul>
+<p></p>
+<h3>Uso recomendado</h3>
+<p></p>
+<p>Se recomienda para usuarios que necesiten una consulta mas tecnica o flexible que las pantallas predefinidas.</p>
+<p></p>
+<h2>20. Temas y fuentes</h2>
+<p></p>
+<p>Desde la barra lateral puedes cambiar:</p>
+<p></p>
+<ul>
+<li>el tema visual</li>
+<li>la fuente de la interfaz</li>
+</ul>
+<p></p>
+<p>El cambio afecta a la visualizacion general del panel y se conserva para siguientes usos del navegador.</p>
+<p></p>
+<h2>21. Buenas practicas de uso</h2>
+<p></p>
+<p>Recomendaciones:</p>
+<p></p>
+<p>1. empieza por filtros amplios y luego ajusta</p>
+<p>2. evita abrir subtablas masivas si no necesitas detalle</p>
+<p>3. usa columnas visibles para reducir ruido</p>
+<p>4. exporta a CSV cuando necesites trabajar fuera del panel</p>
+<p>5. si una consulta tarda, reduce primero el volumen con filtros</p>
+<p>6. revisa permisos antes de asumir que falta una opcion</p>
+<p></p>
+<h2>22. Problemas habituales</h2>
+<p></p>
+<h3>No veo una opcion del panel</h3>
+<p></p>
+<p>Posibles causas:</p>
+<p></p>
+<ul>
+<li>falta de permisos</li>
+<li>opcion solo disponible para administradores</li>
+<li>pantalla integrada dentro de otra consulta</li>
+</ul>
+<p></p>
+<h3>Un proceso no aparece o no se puede guardar</h3>
+<p></p>
+<p>Posibles causas:</p>
+<p></p>
+<ul>
+<li>el usuario no tiene permiso</li>
+<li>la configuracion solo puede modificarla admin</li>
+</ul>
+<p></p>
+<h3>Una tabla muestra demasiadas columnas</h3>
+<p></p>
+<p>Usa <code>Columnas visibles</code> para ocultar las columnas que no necesitas.</p>
+<p></p>
+<h3>Un combo tiene demasiadas opciones</h3>
+<p></p>
+<p>Usa el combo con checkbox y combina seleccion multiple con filtros adicionales.</p>
+<p></p>
+<h3>No encuentro un detalle asociado</h3>
+<p></p>
+<p>Revisa si la fila tiene despliegue o subtabla y si el dato depende del contexto filtrado.</p>
+<p></p>
+<h2>23. Capturas de pantalla</h2>
+<p></p>
+<h3>Panel principal</h3>
+<p><img src='file:///C:/Users/Usuario/Documents/THC/THC_Query/docs/capturas/01-panel.png' alt='Panel principal'></p>
+<div class='caption'>Panel principal</div>
+<p></p>
+<h3>Consulta de expediciones</h3>
+<p><img src='file:///C:/Users/Usuario/Documents/THC/THC_Query/docs/capturas/02-expediciones.png' alt='Consulta de expediciones'></p>
+<div class='caption'>Consulta de expediciones</div>
+<p></p>
+<h3>Consulta de mejores marcas</h3>
+<p><img src='file:///C:/Users/Usuario/Documents/THC/THC_Query/docs/capturas/03-mejores-marcas.png' alt='Consulta de mejores marcas'></p>
+<div class='caption'>Consulta de mejores marcas</div>
+<p></p>
+<h3>Consulta de estadisticas</h3>
+<p><img src='file:///C:/Users/Usuario/Documents/THC/THC_Query/docs/capturas/04-estadisticas.png' alt='Consulta de estadisticas'></p>
+<div class='caption'>Consulta de estadisticas</div>
+<p></p>
+<h3>Consulta de competiciones</h3>
+<p><img src='file:///C:/Users/Usuario/Documents/THC/THC_Query/docs/capturas/05-competiciones.png' alt='Consulta de competiciones'></p>
+<div class='caption'>Consulta de competiciones</div>
+<p></p>
+<h3>Consulta de tablas de clasificacion</h3>
+<p><img src='file:///C:/Users/Usuario/Documents/THC/THC_Query/docs/capturas/06-tablas-clasificacion.png' alt='Consulta de tablas de clasificacion'></p>
+<div class='caption'>Consulta de tablas de clasificacion</div>
+<p></p>
+<h3>Consulta de especies PPFT</h3>
+<p><img src='file:///C:/Users/Usuario/Documents/THC/THC_Query/docs/capturas/07-especies-ppft.png' alt='Consulta de especies PPFT'></p>
+<div class='caption'>Consulta de especies PPFT</div>
+<p></p>
+<h3>Consulta de salones de fama</h3>
+<p><img src='file:///C:/Users/Usuario/Documents/THC/THC_Query/docs/capturas/08-salones-fama.png' alt='Consulta de salones de fama'></p>
+<div class='caption'>Consulta de salones de fama</div>
+<p></p>
+<h3>Consulta de resumen de trofeos</h3>
+<p><img src='file:///C:/Users/Usuario/Documents/THC/THC_Query/docs/capturas/09-resumen-trofeos.png' alt='Consulta de resumen de trofeos'></p>
+<div class='caption'>Consulta de resumen de trofeos</div>
+<p></p>
+<h3>Consulta de anti-trampas</h3>
+<p><img src='file:///C:/Users/Usuario/Documents/THC/THC_Query/docs/capturas/10-anti-trampas.png' alt='Consulta de anti-trampas'></p>
+<div class='caption'>Consulta de anti-trampas</div>
+<p></p>
+<h3>Consulta de logs</h3>
+<p><img src='file:///C:/Users/Usuario/Documents/THC/THC_Query/docs/capturas/11-logs.png' alt='Consulta de logs'></p>
+<div class='caption'>Consulta de logs</div>
+<p></p>
+<h3>Consulta avanzada</h3>
+<p><img src='file:///C:/Users/Usuario/Documents/THC/THC_Query/docs/capturas/12-consulta-avanzada.png' alt='Consulta avanzada'></p>
+<div class='caption'>Consulta avanzada</div>
+<p></p>
+</body></html>

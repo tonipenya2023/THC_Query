@@ -5,9 +5,11 @@ Panel web y conjunto de importadores para consultar, consolidar y explotar infor
 Documentacion principal:
 - resumen del proyecto en este `README`
 - manual tecnico completo en [docs/MANUAL_TECNICO.md](C:\Users\Usuario\Documents\THC\THC_Query\docs\MANUAL_TECNICO.md)
+- manual de usuario en [docs/MANUAL_USUARIO.md](C:\Users\Usuario\Documents\THC\THC_Query\docs\MANUAL_USUARIO.md)
 
 El proyecto combina:
 - importacion de expediciones, mejores marcas, clasificaciones, competiciones, estadisticas publicas y trofeos
+- importacion de galerias de usuarios
 - vistas SQL modulares sobre el esquema `gpt`
 - panel web con filtros avanzados, subtablas, exportacion y tareas programadas
 - utilidades de soporte como traduccion de descripciones y scraping de URLs de muertes
@@ -72,15 +74,24 @@ El panel ofrece actualmente estas consultas:
     - conteo de trofeos `gold`, `silver` y `bronze`
     - despliegue de detalle por usuario y medalla
 
-12. `Anti-trampas`
+12. `Galerias Usuarios`
+    - consulta de imagenes de la galeria publica por usuario
+    - miniaturas, enlaces a imagen original y acceso a la muerte asociada
+
+13. `Inscripciones Competiciones`
+    - historico de intentos de inscripcion en competiciones
+    - filtro por jugador, competicion, estado, metodo y parametro usado
+    - acceso directo a la competicion
+
+14. `Anti-trampas`
     - score de riesgo derivado de expediciones
     - subtablas de senales y expediciones asociadas
 
-13. `Logs`
+15. `Logs`
     - solo visible para admin
     - consulta de archivos de log
 
-14. `Consulta Avanzada`
+16. `Consulta Avanzada`
     - exploracion generica de tablas del esquema con filtro simple por columna
 
 ## Patron de interfaz
@@ -100,14 +111,14 @@ La UI del proyecto sigue estas reglas generales:
 
 Temas disponibles:
 - `sober`
-- `gaming`
+- `aurora`
 - `arctic`
-- `graphite`
-- `midnight`
-- `ember`
+- `studio`
+- `lagoon`
+- `sandstone`
 - `skyline`
 - `terminal`
-- `missions`
+- `noir`
 
 Fuentes disponibles:
 - `system`
@@ -158,7 +169,15 @@ Segun [src/TaskCatalog.php](C:\Users\Usuario\Documents\THC\THC_Query\src\TaskCat
 - `refresh_best_all`
 - `refresh_public_all`
 - `refresh_trophies_all`
+- `refresh_gallery_all`
+- `join_all_competitions`
 - `export_best_xml`
+- `refresh_my_expeditions`
+
+No admin no puede ejecutar:
+- `refresh_expeditions_all_users`
+- `scrape_kill_urls`
+- cualquier accion no incluida en la lista anterior
 - `refresh_my_expeditions`
 
 No admin no puede ejecutar:
@@ -210,6 +229,37 @@ Si `THC_PANEL_DEFAULT_PASS` no esta definido, el valor por defecto es `thcgpt`.
 
 - `THC_API_USER_AGENT`
 - `THC_API_TIMEOUT`
+
+### Sesion theHunter para inscripcion en competiciones
+
+El proceso `Inscribirme en Competiciones` usa el endpoint real `https://api.thehunter.com/v1/Competition/join`, que requiere sesion autenticada de theHunter.
+
+Variables soportadas:
+- `THC_THEHUNTER_COOKIE`
+- `THC_THEHUNTER_COOKIE_<USUARIO>`
+
+Ejemplo:
+- `THC_THEHUNTER_COOKIE_NEFASTIX13`
+
+El valor debe ser la cabecera `Cookie` completa de una sesion valida de theHunter, por ejemplo:
+
+```text
+session=...; other_cookie=...
+```
+
+Validacion aplicada en el panel:
+- no acepta texto sin `=`
+- no acepta cookies separadas por `,`
+- cada parte debe tener formato `nombre=valor`
+- si hay varias, deben ir separadas por `;`
+
+Comportamiento:
+- el boton del panel lanza el proceso para el usuario autenticado actual
+- primero intenta usar la cookie especifica del usuario
+- si no existe, usa `THC_THEHUNTER_COOKIE`
+- despues intenta registrar al usuario en todas las competiciones activas
+- el detalle queda en el log de la tarea
+- por defecto, el boton del panel salta las competiciones ya intentadas previamente
 
 ### Leaderboards
 
@@ -296,11 +346,48 @@ php src\run_import_users_trophies.php --user-id=12345
 php src\run_import_users_trophies.php --page-size=24
 ```
 
+### Galerias de usuario
+
+```powershell
+php src\run_import_users_gallery.php
+php src\run_import_users_gallery.php --player=TheBubb
+php src\run_import_users_gallery.php --user-id=12345
+php src\run_import_users_gallery.php --page-size=24
+php src\run_import_user_gallery.php 12345 24
+```
+
 ### Competiciones
 
 ```powershell
 php src\run_import_competitions.php
+php src\run_join_all_competitions.php --player=TheBubb
+php src\run_join_all_competitions.php --player=TheBubb --skip-attempted
 ```
+
+Antes de intentar la inscripcion, `run_join_all_competitions.php` valida si el jugador cumple el tramo de muertes de la especie de la competicion usando `gpt.est_animal_stats`.
+
+- `Starter`: `0-50` muertes
+- `Intermediate`: `51-500` muertes
+- `Elite`: mas de `500` muertes
+
+Si no cumple el tramo, no se llama a la API de alta y el resultado queda guardado en `gpt.comp_join_results` con estado `ineligible` y el motivo exacto.
+
+### Scraper de URLs de muertes
+
+```powershell
+php src\run_scrape_kill_urls.php --from=all --pending-only --limit=5000 --sleep-ms=100
+php src\run_scrape_kill_urls.php --from=clas --pending-only
+php src\run_scrape_kill_urls.php --from=exp --all --limit=1000
+```
+
+Notas:
+
+- El modo por defecto es `--pending-only`, para no repetir URLs ya descargadas correctamente.
+- Ese modo incremental tambien vuelve a procesar las URLs antiguas que aun no tengan metadatos parseados.
+- La tarea del panel usa ese modo incremental y un limite de `5000` por ejecucion.
+- El script guarda trazas en `gpt.scrape_kill_urls` y las paginas descargadas en `out/kill_url_scrape/pages`.
+- La consulta del panel `Estado Scraper` usa `gpt.v_scrape_kill_urls_latest` y muestra el ultimo estado por URL con resumen de parseo.
+- Limitacion tecnica actual: las URLs con hash de theHunter como `#animal/...` o `#profile/.../score/...` devuelven en descarga directa la portada publica/base del sitio. El parser detecta y registra ese caso como `public_home_not_signed_in`.
 
 ### Traduccion de descripciones de competicion
 
@@ -366,6 +453,8 @@ Acciones catalogadas actualmente:
 - `refresh_best_all`
 - `refresh_public_all`
 - `refresh_trophies_all`
+- `refresh_gallery_all`
+- `join_all_competitions`
 - `refresh_expeditions_all_users`
 - `export_best_xml`
 - `scrape_kill_urls`
@@ -381,6 +470,9 @@ Notas importantes:
 - el guardado de tareas programadas es solo para admin
 - la ejecucion asyncrona usa `cmd /c start` y esta orientada a Windows
 - el path a PHP CLI esta fijado en varios puntos a `C:\xampp\php\php.exe`
+- `join_all_competitions` ya puede ejecutarse tambien como tarea programada
+- cuando se programa, usa el usuario autenticado actual y lanza:
+  - `php src/run_join_all_competitions.php --player=<usuario> --skip-attempted`
 
 ## Estructura del proyecto
 
@@ -433,6 +525,7 @@ THC_Query/
 - `gpt.best_personal_records`
 - `gpt.user_public_stats`
 - `gpt.user_trophies`
+- `gpt.user_gallery`
 - `gpt.est_profiles`
 - `gpt.est_animal_stats`
 - `gpt.est_weapon_stats`
@@ -466,6 +559,7 @@ Logs habituales:
 - `logs\best_import_errors.log`
 - `logs\user_public_stats_errors.log`
 - `logs\import_users_trophies_errors.log`
+- `logs\import_users_gallery_errors.log`
 - `logs\scrape_kill_urls.log`
 - `logs\tasks\*.log`
 
@@ -514,3 +608,8 @@ Aunque el proyecto funciona, seria sano abordar estas mejoras cuando toque:
 2. Separar mejor renderizado web, logica de consultas y logica de UI.
 3. Consolidar menu y vistas relacionadas para evitar duplicidad conceptual.
 4. Agregar un fichero de ejemplo de variables de entorno o script de arranque.
+
+- Manual de usuario editable Word: `docs/MANUAL_USUARIO.docx`
+- Manual de usuario PDF: `docs/MANUAL_USUARIO.pdf`
+- Manual de usuario revisado Word: `docs/MANUAL_USUARIO_v2.docx`
+- Manual de usuario revisado PDF: `docs/MANUAL_USUARIO_v2.pdf`

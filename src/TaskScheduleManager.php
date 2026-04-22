@@ -141,6 +141,15 @@ final class TaskScheduleManager
                 $commandOverride = [$php, app_root() . '\\src\\run_import_user.php', (string) $uid, '40'];
             }
 
+            if ($action === 'join_all_competitions') {
+                $user = is_string($authUser) ? trim($authUser) : '';
+                if ($user === '') {
+                    continue;
+                }
+                $php = 'C:\\xampp\\php\\php.exe';
+                $commandOverride = [$php, app_root() . '\\src\\run_join_all_competitions.php', '--player=' . $user, '--skip-attempted'];
+            }
+
             $taskId = TaskManager::create($action, (string) $catalog[$action]['label'], $commandOverride);
             TaskManager::runAsync($taskId);
         }
@@ -226,7 +235,7 @@ final class TaskScheduleManager
         $catalog = TaskCatalog::all();
         $out = [];
         foreach (array_keys($catalog) as $action) {
-            if (str_starts_with((string) $action, 'refresh_')) {
+            if (str_starts_with((string) $action, 'refresh_') || $action === 'join_all_competitions') {
                 $out[] = (string) $action;
             }
         }
