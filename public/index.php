@@ -99,6 +99,32 @@ function thehunter_kill_url(?string $playerName, mixed $killId): ?string
     return 'https://www.thehunter.com/#profile/' . rawurlencode(strtolower($playerName)) . '/score/' . rawurlencode($killId);
 }
 
+function thehunter_profile_url(?string $playerName): ?string
+{
+    $playerName = trim((string) $playerName);
+    if ($playerName === '') {
+        return null;
+    }
+
+    return 'https://www.thehunter.com/#profile/' . rawurlencode(strtolower($playerName));
+}
+
+function player_profile_link_html(?string $playerName, mixed $label = null, string $class = 'record-link record-link-player'): string
+{
+    $playerName = trim((string) $playerName);
+    $labelText = trim((string) ($label ?? $playerName));
+    if ($labelText === '') {
+        return '';
+    }
+
+    $url = thehunter_profile_url($playerName);
+    if ($url === null) {
+        return h($labelText);
+    }
+
+    return '<a class="' . h($class) . '" href="' . h($url) . '" target="_blank" rel="noopener noreferrer">' . h($labelText) . '</a>';
+}
+
 function default_player_filter(array $playerNames, string $paramKey = 'player_name'): array
 {
     if ($playerNames !== []) {
@@ -480,12 +506,12 @@ function sort_link(string $columnKey, string $label, string $currentKey, string 
     $query['dir'] = $currentKey === $columnKey && $currentDir === 'asc' ? 'desc' : 'asc';
     $query['page'] = 1;
 
-    $indicator = '';
+    $classes = ['th-sort'];
     if ($currentKey === $columnKey) {
-        $indicator = $currentDir === 'asc' ? ' ^' : ' v';
+        $classes[] = $currentDir === 'asc' ? 'is-asc' : 'is-desc';
     }
 
-    return '<a class="th-sort" href="?' . h(http_build_query($query)) . '">' . h($label . $indicator) . '</a>';
+    return '<a class="' . h(implode(' ', $classes)) . '" href="?' . h(http_build_query($query)) . '">' . h($label) . '</a>';
 }
 
 function sort_link_param(string $sortParam, string $dirParam, string $columnKey, string $label, string $currentKey, string $currentDir): string
@@ -496,12 +522,12 @@ function sort_link_param(string $sortParam, string $dirParam, string $columnKey,
     $query[$dirParam] = $currentKey === $columnKey && $currentDir === 'asc' ? 'desc' : 'asc';
     $query['page'] = 1;
 
-    $indicator = '';
+    $classes = ['th-sort'];
     if ($currentKey === $columnKey) {
-        $indicator = $currentDir === 'asc' ? ' ^' : ' v';
+        $classes[] = $currentDir === 'asc' ? 'is-asc' : 'is-desc';
     }
 
-    return '<a class="th-sort" href="?' . h(http_build_query($query)) . '">' . h($label . $indicator) . '</a>';
+    return '<a class="' . h(implode(' ', $classes)) . '" href="?' . h(http_build_query($query)) . '">' . h($label) . '</a>';
 }
 
 function pagination_link(int $targetPage): string
@@ -2931,6 +2957,10 @@ function render_expeditions(): void
                     $expUrl = 'https://www.thehunter.com/#profile/' . $expPlayerSlug . '/expedition/' . rawurlencode($expeditionIdValue);
                     $cellText = '<a class="record-link record-link-exp" href="' . h($expUrl) . '" target="_blank" rel="noopener noreferrer">' . $cellText . '</a>';
                 }
+            } elseif ($key === 'e_player_name') {
+                $cellText = player_profile_link_html($expPlayerRaw, $row['e_player_name'] ?? '');
+            } elseif ($key === 'e_user_id') {
+                $cellText = player_profile_link_html($expPlayerRaw, $row['e_user_id'] ?? '');
             }
             echo '<td data-col-key="' . h($key) . '"' . $mainCellStyle . '>' . $cellText . '</td>';
         }
@@ -3072,6 +3102,10 @@ function render_expeditions(): void
                                     $killText = '<a class="record-link record-link-kill" href="' . h($killUrl) . '" target="_blank" rel="noopener noreferrer">' . $killText . '</a>';
                                 }
                             }
+                        } elseif ($colKey === 'player_name') {
+                            $killText = player_profile_link_html($krow['player_name'] ?? ($row['e_player_name'] ?? ''), $krow['player_name'] ?? '');
+                        } elseif ($colKey === 'user_id') {
+                            $killText = player_profile_link_html($krow['player_name'] ?? ($row['e_player_name'] ?? ''), $krow['user_id'] ?? '');
                         }
                         echo '<td data-col-key="k_' . h($colKey) . '"' . $killTdStyle . '>' . $killText . '</td>';
                     }
@@ -3093,7 +3127,13 @@ function render_expeditions(): void
                             $value = number_format(((float) $value) / 1000, 3, '.', '');
                         }
                         $hitTdStyle = isset($hitNumericCols[$hcolKey]) ? ' style="text-align:right"' : '';
-                        echo '<td data-col-key="h_' . h($hcolKey) . '"' . $hitTdStyle . '>' . h($value === null ? '' : (string) $value) . '</td>';
+                        if ($hcolKey === 'player_name') {
+                            echo '<td data-col-key="h_' . h($hcolKey) . '"' . $hitTdStyle . '>' . player_profile_link_html($hrow['player_name'] ?? ($krow['player_name'] ?? ($row['e_player_name'] ?? '')), $value) . '</td>';
+                        } elseif ($hcolKey === 'user_id') {
+                            echo '<td data-col-key="h_' . h($hcolKey) . '"' . $hitTdStyle . '>' . player_profile_link_html($hrow['player_name'] ?? ($krow['player_name'] ?? ($row['e_player_name'] ?? '')), $value) . '</td>';
+                        } else {
+                            echo '<td data-col-key="h_' . h($hcolKey) . '"' . $hitTdStyle . '>' . h($value === null ? '' : (string) $value) . '</td>';
+                        }
                     }
                     echo '</tr>';
                 }
@@ -3319,6 +3359,7 @@ function render_best(): void
     echo '<button type="submit">Filtrar</button>';
     echo '<button type="submit" name="export_csv" value="1">Exportar CSV</button>';
     echo '<a class="btn-link" href="?view=best&reset=1">Limpiar</a>';
+    echo '<a class="btn-link" href="?view=best_xml&theme=' . urlencode(app_theme()) . '&font=' . urlencode(app_font()) . '">Comparativa Mejores Marcas</a>';
     echo '</form>';
 
     $rows = app_query_all(
@@ -3384,6 +3425,9 @@ function render_best(): void
             }
             if ($key === 'best_distance_m' && $cell !== '' && $bestDistanceKillUrl !== null) {
                 $cell = '<a class="record-link record-link-kill" href="' . h($bestDistanceKillUrl) . '" target="_blank" rel="noopener noreferrer">' . $cell . '</a>';
+            }
+            if ($key === 'player_name') {
+                $cell = player_profile_link_html($bestPlayerName, $row['player_name'] ?? '');
             }
             echo '<td>' . $cell . '</td>';
         }
@@ -4171,7 +4215,13 @@ function render_profiles(): void
             if ($key === 'distance' && $value !== null && $value !== '' && is_numeric((string) $value)) {
                 $value = number_format((float) $value, 3, '.', '');
             }
-            echo '<td>' . h((string) $value) . '</td>';
+            if ($key === 'player_name') {
+                echo '<td>' . player_profile_link_html($row['player_name'] ?? '', $value) . '</td>';
+            } elseif ($key === 'user_id') {
+                echo '<td class="num-cell">' . player_profile_link_html($row['player_name'] ?? '', $value) . '</td>';
+            } else {
+                echo '<td>' . h((string) $value) . '</td>';
+            }
         }
         echo '<td>';
         echo '<div class="subtable-panels stats-parallel">';
@@ -5042,6 +5092,7 @@ function render_classifications(): void
     echo '<button type="submit">Filtrar</button>';
     echo '<button type="submit" name="export_csv" value="1">Exportar CSV</button>';
     echo '<a class="btn-link" href="?view=classifications&reset=1">Limpiar</a>';
+    echo '<a class="btn-link" href="?view=classifications_history&theme=' . urlencode(app_theme()) . '&font=' . urlencode(app_font()) . '">Tablas Clasificacion Hist.</a>';
     echo '</form>';
 
     $rows = app_query_all(
@@ -5081,6 +5132,10 @@ function render_classifications(): void
                 echo '<td>' . h((string) $speciesLabel) . '</td>';
             } elseif ($col === 'rank_pos') {
                 echo '<td class="num-cell">' . $rankLabel . '</td>';
+            } elseif ($col === 'player_name') {
+                echo '<td>' . player_profile_link_html($row['player_name'] ?? '', $row['player_name'] ?? '') . '</td>';
+            } elseif ($col === 'user_id') {
+                echo '<td class="num-cell">' . player_profile_link_html($row['player_name'] ?? '', $row['user_id'] ?? '') . '</td>';
             } else {
                 echo '<td>' . h((string) ($row[$col] ?? '')) . '</td>';
             }
@@ -5391,6 +5446,10 @@ function render_classifications_history(): void
                 echo '<td class="' . h($scoreCellClass) . '">' . ($markChanged && ((string) ($row['leaderboard_type'] ?? '') === 'score') ? '<span class="mark-changed-badge">CAMBIO</span> ' : '') . h((string) ($row['display_score'] ?? '')) . '</td>';
             } elseif ($col === 'display_distance') {
                 echo '<td class="' . h($distanceCellClass) . '">' . ($markChanged && ((string) ($row['leaderboard_type'] ?? '') === 'range') ? '<span class="mark-changed-badge">CAMBIO</span> ' : '') . h((string) ($row['display_distance'] ?? '')) . '</td>';
+            } elseif ($col === 'player_name') {
+                echo '<td>' . player_profile_link_html($row['player_name'] ?? '', $row['player_name'] ?? '') . '</td>';
+            } elseif ($col === 'user_id') {
+                echo '<td class="num-cell">' . player_profile_link_html($row['player_name'] ?? '', $row['user_id'] ?? '') . '</td>';
             } elseif (in_array($col, ['species_id', 'prev_rank', 'user_id'], true)) {
                 echo '<td class="num-cell">' . h((string) ($row[$col] ?? '')) . '</td>';
             } else {
@@ -5656,6 +5715,10 @@ function render_cheat_risk(): void
         foreach ($selectedCols as $col) {
             if ($col === 'risk_level') {
                 echo '<td><span class="risk-pill risk-' . h($level) . '">' . h($level) . '</span></td>';
+            } elseif ($col === 'player_name') {
+                echo '<td>' . player_profile_link_html($row['player_name'] ?? '', $row['player_name'] ?? '') . '</td>';
+            } elseif ($col === 'user_id') {
+                echo '<td class="num-cell">' . player_profile_link_html($row['player_name'] ?? '', $row['user_id'] ?? '') . '</td>';
             } elseif (in_array($col, ['risk_score', 'user_id', 'total_kills', 'signal_count', 'kills_outside_window', 'max_hit_distance_m', 'max_kills_per_hour', 'min_gap_sec', 'integrity_ratio_pct'], true)) {
                 echo '<td class="num-cell">' . h((string) ($row[$col] ?? '')) . '</td>';
             } else {
@@ -6134,7 +6197,7 @@ function render_best_xml_preview(): void
             $topP = (int) ($counts['top_p'] ?? 0);
             $topD = (int) ($counts['top_d'] ?? 0);
             echo '<tr>'
-                . '<td>' . h($playerName) . '</td>'
+                . '<td>' . player_profile_link_html((string) $playerName, (string) $playerName) . '</td>'
                 . '<td class="num-cell">' . h((string) $topP) . '</td>'
                 . '<td class="num-cell">' . h((string) $topD) . '</td>'
                 . '<td class="num-cell">' . h((string) ($topP + $topD)) . '</td>'
@@ -6442,6 +6505,20 @@ function render_hall_of_fame(): void
             break;
         }
     }
+    $playerCol = null;
+    foreach (['player_name', 'jugador', 'usuario', 'user_name', 'player'] as $cand) {
+        if (isset($columnsByLower[$cand])) {
+            $playerCol = $columnsByLower[$cand];
+            break;
+        }
+    }
+    $userIdCol = null;
+    foreach (['user_id', 'idusuario', 'usuario_id'] as $cand) {
+        if (isset($columnsByLower[$cand])) {
+            $userIdCol = $columnsByLower[$cand];
+            break;
+        }
+    }
     $parseNum = static function ($v): ?float {
         if (!is_scalar($v) && $v !== null) {
             return null;
@@ -6506,8 +6583,14 @@ function render_hall_of_fame(): void
         foreach ($selectedCols as $c) {
             $v = $row[$c] ?? '';
             $cell = h(is_scalar($v) || $v === null ? (string) $v : json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+            $rowPlayerName = $playerCol !== null ? trim((string) ($row[$playerCol] ?? '')) : '';
             if ($isTop && $c === ($speciesCol ?? '')) {
                 $cell = '<span class="top-rank-badge">TOP</span> ' . $cell;
+            }
+            if ($playerCol !== null && $c === $playerCol) {
+                $cell = player_profile_link_html($rowPlayerName, $v);
+            } elseif ($userIdCol !== null && $c === $userIdCol) {
+                $cell = player_profile_link_html($rowPlayerName, $v);
             }
             echo '<td>' . $cell . '</td>';
             if ($seasonCol !== null && $c === $seasonCol) {
@@ -6814,7 +6897,13 @@ function render_trophies_summary(): void
                 }
                 continue;
             }
-            echo '<td>' . h($cell === null ? '' : (string) $cell) . '</td>';
+            if ($col === 'player_name') {
+                echo '<td>' . player_profile_link_html($row['player_name'] ?? '', $cell) . '</td>';
+            } elseif ($col === 'user_id') {
+                echo '<td class="num-cell">' . player_profile_link_html($row['player_name'] ?? '', $cell) . '</td>';
+            } else {
+                echo '<td>' . h($cell === null ? '' : (string) $cell) . '</td>';
+            }
         }
         echo '</tr>';
         echo '<tr class="trophy-summary-detail-row" data-user-id="' . h((string) $userId) . '" style="display:none;">';
@@ -6946,11 +7035,9 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
             <?= menu_link('dashboard', 'Panel', $view) ?>
             <?= menu_link('expeditions', 'Expediciones', $view) ?>
             <?= menu_link('best', 'Mejores Marcas', $view) ?>
-            <?= menu_link('best_xml', 'Comparativa Mejores Marcas', $view) ?>
             <?= menu_link('profiles', 'Estadisticas', $view) ?>
             <?= menu_link('competitions', 'Competiciones', $view) ?>
             <?= menu_link('classifications', 'Tablas Clasificacion', $view) ?>
-            <?= menu_link('classifications_history', 'Tablas Clasificacion Hist.', $view) ?>
             <?= menu_link('species_ppft', 'Especies PPFT', $view) ?>
             <?= menu_link('hall_of_fame', 'Salones Fama', $view) ?>
             <?= menu_link('trophies_summary', 'Resumen Trofeos', $view) ?>
@@ -8050,6 +8137,34 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
         });
     };
 
+    const positionComboMenu = (details, menu) => {
+        if (!(details instanceof HTMLElement) || !(menu instanceof HTMLElement)) {
+            return;
+        }
+
+        details.classList.remove('combo-open-left', 'combo-open-right');
+        menu.style.left = '';
+        menu.style.right = '';
+
+        const viewportWidth = document.documentElement.clientWidth || window.innerWidth || 0;
+        const detailsRect = details.getBoundingClientRect();
+        const preferredWidth = Math.ceil(menu.scrollWidth || menu.offsetWidth || 0);
+        const menuWidth = Math.max(preferredWidth, 240);
+        const spaceRight = viewportWidth - detailsRect.left;
+        const spaceLeft = detailsRect.right;
+
+        if (spaceRight >= menuWidth || spaceRight >= spaceLeft) {
+            details.classList.add('combo-open-right');
+            menu.style.left = '0';
+            menu.style.right = 'auto';
+            return;
+        }
+
+        details.classList.add('combo-open-left');
+        menu.style.left = 'auto';
+        menu.style.right = '0';
+    };
+
     const closeOtherCombos = (current) => {
         document.querySelectorAll('.filter-check-combo[open], .filter-single-combo[open]').forEach((other) => {
             if (other !== current) {
@@ -8178,6 +8293,7 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
                 return;
             }
             closeOtherCombos(details);
+            positionComboMenu(details, menu);
         });
 
         document.addEventListener('click', (event) => {
@@ -8292,6 +8408,7 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
                 return;
             }
             closeOtherCombos(details);
+            positionComboMenu(details, menu);
         });
 
         document.addEventListener('click', (event) => {
@@ -8316,6 +8433,15 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
     });
     document.querySelectorAll('select[data-single-combo="1"]').forEach((select) => {
         wireSingleCombo(select);
+    });
+
+    window.addEventListener('resize', () => {
+        document.querySelectorAll('.filter-check-combo[open], .filter-single-combo[open]').forEach((details) => {
+            const menu = details.querySelector(':scope > .filter-check-combo-menu, :scope > .filter-single-combo-menu');
+            if (menu instanceof HTMLElement) {
+                positionComboMenu(details, menu);
+            }
+        });
     });
 })();
 

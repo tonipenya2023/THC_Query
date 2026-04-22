@@ -65,6 +65,15 @@ function task_logs_dir(): string
     return $dir;
 }
 
+function sessions_dir(): string
+{
+    $dir = logs_dir() . DIRECTORY_SEPARATOR . 'sessions';
+    if (!is_dir($dir)) {
+        mkdir($dir, 0777, true);
+    }
+    return $dir;
+}
+
 function tasks_dir(): string
 {
     $dir = app_root() . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'tasks';
@@ -72,6 +81,42 @@ function tasks_dir(): string
         mkdir($dir, 0777, true);
     }
     return $dir;
+}
+
+function app_migrate_runtime_artifacts(): void
+{
+    $root = app_root();
+    $legacyVarDir = $root . DIRECTORY_SEPARATOR . 'var';
+    if (!is_dir($legacyVarDir)) {
+        return;
+    }
+
+    $moves = [
+        [$legacyVarDir . DIRECTORY_SEPARATOR . '*.log', logs_dir()],
+        [$legacyVarDir . DIRECTORY_SEPARATOR . 'tasks' . DIRECTORY_SEPARATOR . '*.log', task_logs_dir()],
+        [$legacyVarDir . DIRECTORY_SEPARATOR . 'sess_*', sessions_dir()],
+    ];
+
+    foreach ($moves as [$pattern, $targetDir]) {
+        $matches = glob($pattern) ?: [];
+        foreach ($matches as $source) {
+            if (!is_file($source)) {
+                continue;
+            }
+
+            $target = $targetDir . DIRECTORY_SEPARATOR . basename($source);
+            if (realpath($source) === realpath($target)) {
+                continue;
+            }
+
+            if (!is_file($target)) {
+                @rename($source, $target);
+                continue;
+            }
+
+            @unlink($source);
+        }
+    }
 }
 
 function h(?string $value): string
@@ -284,6 +329,8 @@ function app_start_session(): void
         return;
     }
 
+    app_migrate_runtime_artifacts();
+    session_save_path(sessions_dir());
     session_start([
         'cookie_httponly' => true,
         'cookie_samesite' => 'Lax',
