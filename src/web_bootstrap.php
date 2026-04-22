@@ -537,7 +537,7 @@ function app_theme(): string
         return $theme;
     }
 
-    $allowed = ['sober', 'gaming', 'coral', 'arctic', 'graphite', 'blossom', 'midnight', 'ember', 'forest', 'skyline'];
+    $allowed = ['sober', 'gaming', 'arctic', 'graphite', 'midnight', 'ember', 'skyline', 'terminal', 'missions'];
     $fromGet = $_GET['theme'] ?? null;
     if (is_string($fromGet) && in_array($fromGet, $allowed, true)) {
         $theme = $fromGet;
@@ -558,5 +558,35 @@ function app_theme(): string
 
     $theme = 'sober';
     return $theme;
+}
+
+function app_font(): string
+{
+    static $font = null;
+    if ($font !== null) {
+        return $font;
+    }
+
+    $allowed = ['system', 'modern', 'classic', 'serif', 'mono'];
+    $fromGet = $_GET['font'] ?? null;
+    if (is_string($fromGet) && in_array($fromGet, $allowed, true)) {
+        $font = $fromGet;
+        setcookie('thc_font', $font, [
+            'expires' => time() + 31536000,
+            'path' => '/',
+            'samesite' => 'Lax',
+            'httponly' => false,
+        ]);
+        return $font;
+    }
+
+    $fromCookie = $_COOKIE['thc_font'] ?? null;
+    if (is_string($fromCookie) && in_array($fromCookie, $allowed, true)) {
+        $font = $fromCookie;
+        return $font;
+    }
+
+    $font = 'system';
+    return $font;
 }
 

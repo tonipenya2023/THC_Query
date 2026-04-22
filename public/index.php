@@ -13,18 +13,28 @@ app_start_session();
 $view = $_GET['view'] ?? 'dashboard';
 $flash = $_GET['flash'] ?? null;
 $theme = app_theme();
+$font = app_font();
 TaskScheduleManager::runDueTasks(app_is_admin_user(), app_auth_username());
 
 function menu_link(string $key, string $label, string $current): string
 {
     $class = $key === $current ? 'nav-link active' : 'nav-link';
-    return '<a class="' . $class . '" href="?view=' . urlencode($key) . '&theme=' . urlencode(app_theme()) . '">' . h($label) . '</a>';
+    return '<a class="' . $class . '" draggable="true" data-nav-key="' . h($key) . '" href="?view=' . urlencode($key) . '&theme=' . urlencode(app_theme()) . '&font=' . urlencode(app_font()) . '">' . h($label) . '</a>';
 }
 
 function theme_link(string $themeName, string $label, string $currentView, string $activeTheme): string
 {
     $class = $themeName === $activeTheme ? 'theme-chip active' : 'theme-chip';
-    return '<a class="' . $class . '" href="?view=' . urlencode($currentView) . '&theme=' . urlencode($themeName) . '">' . h($label) . '</a>';
+    return '<a class="' . $class . '" href="?view=' . urlencode($currentView) . '&theme=' . urlencode($themeName) . '&font=' . urlencode(app_font()) . '">' . h($label) . '</a>';
+}
+
+function font_link(string $fontName, string $label, string $sample, string $currentView, string $activeFont, string $fontClass): string
+{
+    $class = 'font-chip ' . $fontClass . ($fontName === $activeFont ? ' active' : '');
+    return '<a class="' . h($class) . '" href="?view=' . urlencode($currentView) . '&theme=' . urlencode(app_theme()) . '&font=' . urlencode($fontName) . '">'
+        . '<span class="font-chip-name">' . h($label) . '</span>'
+        . '<span class="font-chip-sample">' . h($sample) . '</span>'
+        . '</a>';
 }
 
 function query_text(string $key): ?string
@@ -779,6 +789,35 @@ function player_name_suggestions(): array
     return $values;
 }
 
+function competition_type_name_suggestions(): array
+{
+    static $values = null;
+    if ($values !== null) {
+        return $values;
+    }
+
+    try {
+        $rows = app_query_all(
+            "SELECT DISTINCT type_name
+             FROM gpt.comp_types
+             WHERE type_name IS NOT NULL AND type_name <> ''
+             ORDER BY type_name"
+        );
+    } catch (Throwable) {
+        $values = [];
+        return $values;
+    }
+
+    $values = [];
+    foreach ($rows as $row) {
+        $name = trim((string) ($row['type_name'] ?? ''));
+        if ($name !== '') {
+            $values[] = $name;
+        }
+    }
+    return $values;
+}
+
 function redirect_to(array $params): void
 {
     header('Location: ?' . http_build_query($params));
@@ -1199,7 +1238,7 @@ function render_advanced(): void
     echo '<section class="card"><h2>Consulta Avanzada</h2>';
     echo '<form class="preset-actions" method="post">';
     echo '<input type="hidden" name="csrf_token" value="' . h(app_csrf_token()) . '">';
-    echo '<select name="preset_name_select">';
+    echo '<select name="preset_name_select" data-single-combo="1" data-single-combo-placeholder="Preset">';
     echo '<option value="">Selecciona preset</option>';
     foreach (array_keys($presets) as $presetName) {
         echo '<option value="' . h($presetName) . '">' . h($presetName) . '</option>';
@@ -1214,19 +1253,19 @@ function render_advanced(): void
     echo '<input type="hidden" name="page" value="1">';
     echo '<input type="hidden" name="theme" value="' . h(app_theme()) . '">';
 
-    echo '<select name="table" onchange="this.form.submit()">';
+    echo '<select name="table" onchange="this.form.submit()" data-single-combo="1" data-single-combo-placeholder="Tabla">';
     foreach ($tables as $table) {
         echo '<option value="' . h($table) . '"' . ($table === $selectedTable ? ' selected' : '') . '>' . h($table) . '</option>';
     }
     echo '</select>';
 
-    echo '<select name="column">';
+    echo '<select name="column" data-single-combo="1" data-single-combo-placeholder="Columna">';
     foreach ($columnNames as $col) {
         echo '<option value="' . h($col) . '"' . ($col === $selectedColumn ? ' selected' : '') . '>' . h($col) . '</option>';
     }
     echo '</select>';
 
-    echo '<select name="op">';
+    echo '<select name="op" data-single-combo="1" data-single-combo-placeholder="Operador">';
     echo '<option value="contains"' . ($operator === 'contains' ? ' selected' : '') . '>contiene</option>';
     echo '<option value="eq"' . ($operator === 'eq' ? ' selected' : '') . '>igual</option>';
     echo '<option value="starts"' . ($operator === 'starts' ? ' selected' : '') . '>empieza por</option>';
@@ -2142,14 +2181,14 @@ function render_expeditions(): void
     echo '<input type="hidden" name="h_dir" value="' . h($hitSortDir) . '">';
     echo '<input type="text" name="expedition_id" data-col-target="e_expedition_id" placeholder="ID" value="' . h(query_raw('expedition_id')) . '">';
     echo '<input type="text" name="user_id" data-col-target="e_user_id" placeholder="IdUsuario" value="' . h(query_raw('user_id')) . '">';
-    echo '<select name="player_name[]" data-col-target="e_player_name">';
+    echo '<select name="player_name[]" multiple data-check-combo="1" data-check-combo-placeholder="Jugador (todos)" data-check-combo-many-label="jugadores" data-col-target="e_player_name">';
     echo '<option value="">Jugador (todos)</option>';
     foreach (player_name_suggestions() as $name) {
         $selected = in_array($name, $playerNames, true) ? ' selected' : '';
         echo '<option value="' . h($name) . '"' . $selected . '>' . h($name) . '</option>';
     }
     echo '</select>';
-    echo '<select name="reserve_name[]" data-col-target="e_reserve_name">';
+    echo '<select name="reserve_name[]" multiple data-check-combo="1" data-check-combo-placeholder="Reserva (todas)" data-check-combo-many-label="reservas" data-col-target="e_reserve_name">';
     echo '<option value="">Reserva (todas)</option>';
     foreach (reserve_name_suggestions() as $name) {
         $selected = in_array($name, $reserveNames, true) ? ' selected' : '';
@@ -2168,7 +2207,7 @@ function render_expeditions(): void
     }
     echo '</select>';
     echo '<input type="text" name="kill_gender" data-col-target="k_gender" placeholder="Kill gender" value="' . h(query_raw('kill_gender')) . '">';
-    echo '<select name="kill_ethical" data-col-target="k_ethical"><option value="">Kill etico</option><option value="1"' . (query_raw('kill_ethical') === '1' ? ' selected' : '') . '>Si</option><option value="0"' . (query_raw('kill_ethical') === '0' ? ' selected' : '') . '>No</option></select>';
+    echo '<select name="kill_ethical" data-single-combo="1" data-single-combo-placeholder="Kill etico" data-col-target="k_ethical"><option value="">Kill etico</option><option value="1"' . (query_raw('kill_ethical') === '1' ? ' selected' : '') . '>Si</option><option value="0"' . (query_raw('kill_ethical') === '0' ? ' selected' : '') . '>No</option></select>';
     echo '<input type="text" name="kill_score_min" data-col-target="k_score" placeholder="Kill Puntuacion" value="' . h(query_raw('kill_score_min')) . '">';
     echo '<input type="text" name="kill_score_max" data-col-target="k_score" placeholder="Kill Puntuacion" value="' . h(query_raw('kill_score_max')) . '">';
     echo '<input type="text" name="kill_distance_min" data-col-target="k_hit_min_distance" placeholder="Kill distancia min (m)" value="' . h(query_raw('kill_distance_min')) . '">';
@@ -2179,8 +2218,8 @@ function render_expeditions(): void
     echo '<input type="text" name="kill_integrity_max" data-col-target="k_trophy_integrity" placeholder="Kill integridad max (%)" value="' . h(query_raw('kill_integrity_max')) . '">';
     echo '<input type="text" name="kill_harvest_min" data-col-target="k_harvest_value" placeholder="Kill harvest min" value="' . h(query_raw('kill_harvest_min')) . '">';
     echo '<input type="text" name="kill_harvest_max" data-col-target="k_harvest_value" placeholder="Kill harvest max" value="' . h(query_raw('kill_harvest_max')) . '">';
-    echo '<select name="mark_filter"><option value="">Marca (todas)</option><option value="any"' . ($markFilter === 'any' ? ' selected' : '') . '>MM (MMP o MMD)</option><option value="mmp"' . ($markFilter === 'mmp' ? ' selected' : '') . '>Solo MMP</option><option value="mmd"' . ($markFilter === 'mmd' ? ' selected' : '') . '>Solo MMD</option></select>';
-    echo '<select name="photo_tax_filter"><option value="">Todas</option><option value="ft"' . ($photoTaxFilter === 'ft' ? ' selected' : '') . '>Foto o Tax</option><option value="f"' . ($photoTaxFilter === 'f' ? ' selected' : '') . '>Foto</option><option value="t"' . ($photoTaxFilter === 't' ? ' selected' : '') . '>Tax</option></select>';
+    echo '<select name="mark_filter" data-single-combo="1" data-single-combo-placeholder="Marca (todas)"><option value="">Marca (todas)</option><option value="any"' . ($markFilter === 'any' ? ' selected' : '') . '>MM (MMP o MMD)</option><option value="mmp"' . ($markFilter === 'mmp' ? ' selected' : '') . '>Solo MMP</option><option value="mmd"' . ($markFilter === 'mmd' ? ' selected' : '') . '>Solo MMD</option></select>';
+    echo '<select name="photo_tax_filter" data-single-combo="1" data-single-combo-placeholder="Foto/Tax"><option value="">Todas</option><option value="ft"' . ($photoTaxFilter === 'ft' ? ' selected' : '') . '>Foto o Tax</option><option value="f"' . ($photoTaxFilter === 'f' ? ' selected' : '') . '>Foto</option><option value="t"' . ($photoTaxFilter === 't' ? ' selected' : '') . '>Tax</option></select>';
     echo '<input type="text" name="hit_weapon_id" data-col-target="h_weapon_id" placeholder="Disparo weapon_id" value="' . h(query_raw('hit_weapon_id')) . '">';
     echo '<input type="text" name="hit_ammo_id" data-col-target="h_ammo_id" placeholder="Disparo ammo_id" value="' . h(query_raw('hit_ammo_id')) . '">';
     echo '<input type="text" name="hit_organ" data-col-target="h_organ" placeholder="Disparo organo" value="' . h(query_raw('hit_organ')) . '">';
@@ -3247,7 +3286,7 @@ function render_best(): void
     echo '<input type="hidden" name="page" value="1">';
     echo '<input type="hidden" name="bcol_order" value="' . h(query_raw('bcol_order')) . '">';
     echo '<input type="text" name="global_rank" placeholder="Rank" value="' . h(query_raw('global_rank')) . '">';
-    echo '<select name="player_name[]">';
+    echo '<select name="player_name[]" multiple data-check-combo="1" data-check-combo-placeholder="Jugador (todos)" data-check-combo-many-label="jugadores">';
     echo '<option value="">Jugador (todos)</option>';
     foreach (player_name_suggestions() as $name) {
         $selected = in_array($name, $playerNames, true) ? ' selected' : '';
@@ -3995,7 +4034,7 @@ function render_profiles(): void
     echo '<input type="hidden" name="pm_sort" value="' . h($missionSortKey) . '">';
     echo '<input type="hidden" name="pm_dir" value="' . h($missionSortDir) . '">';
     echo '<input type="text" name="global_rank" placeholder="Rank" value="' . h(query_raw('global_rank')) . '">';
-    echo '<select name="player_name[]">';
+    echo '<select name="player_name[]" multiple data-check-combo="1" data-check-combo-placeholder="Jugador (todos)" data-check-combo-many-label="jugadores">';
     echo '<option value="">Jugador (todos)</option>';
     foreach (player_name_suggestions() as $name) {
         $selected = in_array($name, $playerNames, true) ? ' selected' : '';
@@ -4425,7 +4464,7 @@ function render_competitions(): void
     [$rewardSortKey, $rewardSortDir] = query_sort_param('cr_sort', 'cr_dir', 'prize_position', 'asc', $rewardSortDefs);
 
     $competitionId = query_int('competition_id');
-    $typeName = query_text('type_name');
+    $typeNames = query_list('type_name');
     $entrants = query_int('entrants');
     $finished = query_text('finished');
     if ($finished === null && !is_reset_requested()) {
@@ -4458,9 +4497,14 @@ function render_competitions(): void
         $where[] = 'c.competition_id = :competition_id';
         $params[':competition_id'] = $competitionId;
     }
-    if ($typeName !== null) {
-        $where[] = 't.type_name ILIKE :type_name';
-        $params[':type_name'] = '%' . $typeName . '%';
+    if ($typeNames !== []) {
+        $parts = [];
+        foreach ($typeNames as $idx => $typeName) {
+            $ph = ':type_name_' . $idx;
+            $parts[] = 't.type_name = ' . $ph;
+            $params[$ph] = $typeName;
+        }
+        $where[] = '(' . implode(' OR ', $parts) . ')';
     }
     if ($entrants !== null) {
         $where[] = 'c.entrants = :entrants';
@@ -4577,13 +4621,19 @@ function render_competitions(): void
     echo '<input type="hidden" name="cr_sort" value="' . h($rewardSortKey) . '">';
     echo '<input type="hidden" name="cr_dir" value="' . h($rewardSortDir) . '">';
     echo '<input type="text" name="competition_id" placeholder="ID" value="' . h(query_raw('competition_id')) . '">';
-    echo '<input type="text" name="type_name" placeholder="Nombre tipo" value="' . h(query_raw('type_name')) . '">';
+    echo '<select name="type_name[]" multiple data-check-combo="1" data-check-combo-placeholder="Tipo (todos)" data-check-combo-many-label="tipos">';
+    echo '<option value="">Tipo (todos)</option>';
+    foreach (competition_type_name_suggestions() as $name) {
+        $selected = in_array($name, $typeNames, true) ? ' selected' : '';
+        echo '<option value="' . h($name) . '"' . $selected . '>' . h($name) . '</option>';
+    }
+    echo '</select>';
     echo '<input type="text" name="entrants" placeholder="Entrants" value="' . h(query_raw('entrants')) . '">';
     $finishedUi = query_raw('finished');
     if ($finishedUi === '' && $finished === 'false') {
         $finishedUi = 'false';
     }
-    echo '<select name="finished"><option value="">Finalizada</option><option value="true"' . ($finishedUi === 'true' ? ' selected' : '') . '>Si</option><option value="false"' . ($finishedUi === 'false' ? ' selected' : '') . '>No</option></select>';
+    echo '<select name="finished" data-single-combo="1" data-single-combo-placeholder="Finalizada"><option value="">Finalizada</option><option value="true"' . ($finishedUi === 'true' ? ' selected' : '') . '>Si</option><option value="false"' . ($finishedUi === 'false' ? ' selected' : '') . '>No</option></select>';
     echo '<input type="datetime-local" name="start_at" title="Inicio desde" value="' . h(raw_to_datetime_local_value(query_raw('start_at'))) . '">';
     echo '<input type="datetime-local" name="end_at" title="Fin hasta" value="' . h(raw_to_datetime_local_value(query_raw('end_at'))) . '">';
     echo '<select name="species_name_es[]" multiple data-check-combo="1" data-check-combo-placeholder="Especie ES (todas)">';
@@ -4837,6 +4887,32 @@ function render_classifications(): void
     $scoreValue = query_text('value_numeric');
     $distanceValue = query_text('distance_m');
 
+    $columnDefs = [
+        'leaderboard_type' => ['label' => 'Tipo'],
+        'species_id' => ['label' => 'IdEspecie'],
+        'species_name_es' => ['label' => 'Especie'],
+        'rank_pos' => ['label' => 'Rank'],
+        'user_id' => ['label' => 'IdUsuario'],
+        'player_name' => ['label' => 'Jugador'],
+        'display_score' => ['label' => 'Puntuacion'],
+        'display_distance' => ['label' => 'Distancia'],
+        'snapshot_at' => ['label' => 'Snapshot'],
+    ];
+    $defaultCols = array_keys($columnDefs);
+    $selectedCols = persistent_selected_columns('clas_cols', $columnDefs, 'clcol_', $defaultCols);
+    $dragOrderRaw = query_text('clcol_order');
+    if ($dragOrderRaw !== null) {
+        $ordered = array_values(array_filter(array_map('trim', explode(',', $dragOrderRaw)), static fn (string $k): bool => $k !== '' && in_array($k, $selectedCols, true)));
+        foreach ($selectedCols as $k) {
+            if (!in_array($k, $ordered, true)) {
+                $ordered[] = $k;
+            }
+        }
+        if ($ordered !== []) {
+            $selectedCols = $ordered;
+        }
+    }
+
     $where = [];
     $params = [];
 
@@ -4908,9 +4984,9 @@ function render_classifications(): void
         $rows = app_query_all($sql, $params);
         csv_stream(
             'clasificaciones_latest.csv',
-            ['Tipo', 'IdEspecie', 'Especie', 'Rank', 'IdUsuario', 'Jugador', 'Puntuacion', 'Distancia', 'Snapshot'],
+            array_map(static fn (string $k): string => $columnDefs[$k]['label'], $selectedCols),
             $rows,
-            ['leaderboard_type', 'species_id', 'species_name_es', 'rank_pos', 'user_id', 'player_name', 'display_score', 'display_distance', 'snapshot_at']
+            $selectedCols
         );
     }
 
@@ -4926,7 +5002,8 @@ function render_classifications(): void
     echo '<form class="table-filters" method="get" action="' . h(current_path()) . '">';
     echo '<input type="hidden" name="view" value="classifications">';
     echo '<input type="hidden" name="page" value="1">';
-    echo '<select name="leaderboard_type" onchange="this.form.submit()">';
+    echo '<input type="hidden" name="clcol_order" value="' . h(query_raw('clcol_order')) . '">';
+    echo '<select name="leaderboard_type" onchange="this.form.submit()" data-single-combo="1" data-single-combo-placeholder="Tipo (todos)">';
     echo '<option value="">Tipo (todos)</option>';
     echo '<option value="score"' . (query_raw('leaderboard_type') === 'score' ? ' selected' : '') . '>Puntuaci&oacute;n</option>';
     echo '<option value="range"' . (query_raw('leaderboard_type') === 'range' ? ' selected' : '') . '>Distancia</option>';
@@ -4939,7 +5016,7 @@ function render_classifications(): void
     }
     echo '</select>';
     echo '<input type="text" name="rank_pos" placeholder="Rank" value="' . h(query_raw('rank_pos')) . '">';
-    echo '<select name="player_name[]">';
+    echo '<select name="player_name[]" multiple data-check-combo="1" data-check-combo-placeholder="Jugador (todos)" data-check-combo-many-label="jugadores">';
     echo '<option value="">Jugador (todos)</option>';
     foreach (player_name_suggestions() as $name) {
         $selected = in_array($name, $playerNames, true) ? ' selected' : '';
@@ -4949,6 +5026,13 @@ function render_classifications(): void
     echo '<input type="text" name="user_id" placeholder="IdUsuario" value="' . h(query_raw('user_id')) . '">';
     echo '<input type="text" name="value_numeric" placeholder="Puntuacion" value="' . h(query_raw('value_numeric')) . '">';
     echo '<input type="text" name="distance_m" placeholder="Distancia" value="' . h(query_raw('distance_m')) . '">';
+    echo '<details class="filter-details visible-columns" data-col-prefix="clcol_" data-order-field="clcol_order"><summary>Columnas visibles</summary><div class="visible-row">';
+    foreach ($columnDefs as $key => $def) {
+        $checked = in_array($key, $selectedCols, true) ? ' checked' : '';
+        echo '<label class="visible-item" draggable="true" data-col-key="' . h($key) . '"><input class="col-check" type="checkbox" name="clcol_' . h($key) . '" value="1"' . $checked . '><span>' . h($def['label']) . '</span></label>';
+    }
+    echo '<button type="button" class="btn-reset-cols" data-default-cols="' . h(implode(',', $defaultCols)) . '">Restablecer</button>';
+    echo '</div></details>';
     echo '<select name="page_size">';
     echo '<option value="50"' . ($pageSize === 50 ? ' selected' : '') . '>50 filas</option>';
     echo '<option value="100"' . ($pageSize === 100 ? ' selected' : '') . '>100 filas</option>';
@@ -4968,32 +5052,40 @@ function render_classifications(): void
         ]
     );
     echo '<table><thead><tr>';
-    echo '<th>' . sort_link('leaderboard_type', 'Tipo', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('species_id', 'IdEspecie', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('species_name', 'Especie', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('rank_pos', 'Rank', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('user_id', 'IdUsuario', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('player_name', 'Jugador', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('value_numeric', 'Puntuacion', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('distance_m', 'Distancia', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('snapshot_at', 'Snapshot', $sortKey, $sortDir) . '</th>';
+    foreach ($selectedCols as $col) {
+        if ($col === 'species_name_es') {
+            echo '<th>' . sort_link('species_name', $columnDefs[$col]['label'], $sortKey, $sortDir) . '</th>';
+            continue;
+        }
+        if ($col === 'display_score') {
+            echo '<th>' . sort_link('value_numeric', $columnDefs[$col]['label'], $sortKey, $sortDir) . '</th>';
+            continue;
+        }
+        if ($col === 'display_distance') {
+            echo '<th>' . sort_link('distance_m', $columnDefs[$col]['label'], $sortKey, $sortDir) . '</th>';
+            continue;
+        }
+        echo '<th>' . sort_link($col, $columnDefs[$col]['label'], $sortKey, $sortDir) . '</th>';
+    }
     echo '</tr></thead><tbody>';
     foreach ($rows as $row) {
         $speciesLabel = $row['species_name_es'] ?? $row['species_name'] ?? '';
         $isTop1 = ((int) ($row['rank_pos'] ?? 0) === 1);
         $rowClass = $isTop1 ? ' class="top-rank-row"' : '';
         $rankLabel = $isTop1 ? '<span class="top-rank-badge">TOP 1</span> 1' : h((string) $row['rank_pos']);
-        echo '<tr' . $rowClass . '>'
-            . '<td>' . h(((string) $row['leaderboard_type']) === 'score' ? 'Puntuacion' : (((string) $row['leaderboard_type']) === 'range' ? 'Distancia' : (string) $row['leaderboard_type']) ) . '</td>'
-            . '<td>' . h((string) $row['species_id']) . '</td>'
-            . '<td>' . h((string) $speciesLabel) . '</td>'
-            . '<td class="num-cell">' . $rankLabel . '</td>'
-            . '<td>' . h((string) $row['user_id']) . '</td>'
-            . '<td>' . h((string) $row['player_name']) . '</td>'
-            . '<td>' . h((string) $row['display_score']) . '</td>'
-            . '<td>' . h((string) $row['display_distance']) . '</td>'
-            . '<td>' . h((string) $row['snapshot_at']) . '</td>'
-            . '</tr>';
+        echo '<tr' . $rowClass . '>';
+        foreach ($selectedCols as $col) {
+            if ($col === 'leaderboard_type') {
+                echo '<td>' . h(((string) $row['leaderboard_type']) === 'score' ? 'Puntuacion' : (((string) $row['leaderboard_type']) === 'range' ? 'Distancia' : (string) $row['leaderboard_type'])) . '</td>';
+            } elseif ($col === 'species_name_es') {
+                echo '<td>' . h((string) $speciesLabel) . '</td>';
+            } elseif ($col === 'rank_pos') {
+                echo '<td class="num-cell">' . $rankLabel . '</td>';
+            } else {
+                echo '<td>' . h((string) ($row[$col] ?? '')) . '</td>';
+            }
+        }
+        echo '</tr>';
     }
     echo '</tbody></table>';
     render_pagination($page, $pageSize, $totalRows);
@@ -5042,6 +5134,37 @@ function render_classifications_history(): void
     $rankPos = query_int('rank_pos');
     $userId = query_int('user_id');
     $onlyChanged = query_raw('only_changed') === '1';
+
+    $columnDefs = [
+        'snapshot_at' => ['label' => 'Snapshot'],
+        'compare_snapshot_at' => ['label' => 'Comparado con'],
+        'leaderboard_type' => ['label' => 'Tipo'],
+        'species_id' => ['label' => 'IdEspecie'],
+        'species_name_es' => ['label' => 'Especie'],
+        'rank_pos' => ['label' => 'Rank'],
+        'prev_rank' => ['label' => 'Rank Prev'],
+        'rank_delta' => ['label' => 'Delta Rank'],
+        'score_delta' => ['label' => 'Delta Puntuacion'],
+        'distance_delta' => ['label' => 'Delta Distancia'],
+        'user_id' => ['label' => 'IdUsuario'],
+        'player_name' => ['label' => 'Jugador'],
+        'display_score' => ['label' => 'Puntuacion'],
+        'display_distance' => ['label' => 'Distancia'],
+    ];
+    $defaultCols = array_keys($columnDefs);
+    $selectedCols = persistent_selected_columns('clas_hist_cols', $columnDefs, 'chcol_', $defaultCols);
+    $dragOrderRaw = query_text('chcol_order');
+    if ($dragOrderRaw !== null) {
+        $ordered = array_values(array_filter(array_map('trim', explode(',', $dragOrderRaw)), static fn (string $k): bool => $k !== '' && in_array($k, $selectedCols, true)));
+        foreach ($selectedCols as $k) {
+            if (!in_array($k, $ordered, true)) {
+                $ordered[] = $k;
+            }
+        }
+        if ($ordered !== []) {
+            $selectedCols = $ordered;
+        }
+    }
 
     $where = ['c.snapshot_at = :snapshot_at'];
     $params = [':snapshot_at' => $currentSnapshot];
@@ -5152,9 +5275,9 @@ function render_classifications_history(): void
         $rows = app_query_all($sql, $params);
         csv_stream(
             'Tablas_Clasificacion_Historico.csv',
-            ['Snapshot', 'Comparado Con', 'Tipo', 'IdEspecie', 'Especie', 'Rank', 'Rank Prev', 'Delta Rank', 'Delta Puntuacion', 'Delta Distancia', 'IdUsuario', 'Jugador', 'Puntuacion', 'Distancia'],
+            array_map(static fn (string $k): string => $columnDefs[$k]['label'], $selectedCols),
             $rows,
-            ['snapshot_at', 'compare_snapshot_at', 'leaderboard_type', 'species_id', 'species_name_es', 'rank_pos', 'prev_rank', 'rank_delta', 'score_delta', 'distance_delta', 'user_id', 'player_name', 'display_score', 'display_distance']
+            $selectedCols
         );
     }
 
@@ -5168,17 +5291,18 @@ function render_classifications_history(): void
     echo '<form class="table-filters" method="get" action="' . h(current_path()) . '">';
     echo '<input type="hidden" name="view" value="classifications_history">';
     echo '<input type="hidden" name="page" value="1">';
-    echo '<select name="snapshot_at">';
+    echo '<input type="hidden" name="chcol_order" value="' . h(query_raw('chcol_order')) . '">';
+    echo '<select name="snapshot_at" data-single-combo="1" data-single-combo-placeholder="Snapshot actual">';
     foreach ($snapshots as $snapshot) {
         echo '<option value="' . h($snapshot) . '"' . ($snapshot === $currentSnapshot ? ' selected' : '') . '>' . h($snapshot) . '</option>';
     }
     echo '</select>';
-    echo '<select name="compare_snapshot_at"><option value="">Comparar con...</option>';
+    echo '<select name="compare_snapshot_at" data-single-combo="1" data-single-combo-placeholder="Comparar con"><option value="">Comparar con...</option>';
     foreach ($snapshots as $snapshot) {
         echo '<option value="' . h($snapshot) . '"' . ($snapshot === $compareSnapshot ? ' selected' : '') . '>' . h($snapshot) . '</option>';
     }
     echo '</select>';
-    echo '<select name="leaderboard_type"><option value="">Tipo (todos)</option><option value="score"' . (query_raw('leaderboard_type') === 'score' ? ' selected' : '') . '>Puntuaci&oacute;n</option><option value="range"' . (query_raw('leaderboard_type') === 'range' ? ' selected' : '') . '>Distancia</option></select>';
+    echo '<select name="leaderboard_type" data-single-combo="1" data-single-combo-placeholder="Tipo (todos)"><option value="">Tipo (todos)</option><option value="score"' . (query_raw('leaderboard_type') === 'score' ? ' selected' : '') . '>Puntuaci&oacute;n</option><option value="range"' . (query_raw('leaderboard_type') === 'range' ? ' selected' : '') . '>Distancia</option></select>';
     echo '<input type="text" name="rank_pos" placeholder="Rank actual" value="' . h(query_raw('rank_pos')) . '">';
     echo '<select name="species_name[]" multiple data-check-combo="1" data-check-combo-placeholder="Especie (todas)"><option value="">Especie (todas)</option>';
     foreach (species_es_name_suggestions() as $name) {
@@ -5186,7 +5310,7 @@ function render_classifications_history(): void
         echo '<option value="' . h($name) . '"' . $selected . '>' . h($name) . '</option>';
     }
     echo '</select>';
-    echo '<select name="player_name[]"><option value="">Jugador (todos)</option>';
+    echo '<select name="player_name[]" multiple data-check-combo="1" data-check-combo-placeholder="Jugador (todos)" data-check-combo-many-label="jugadores"><option value="">Jugador (todos)</option>';
     foreach (player_name_suggestions() as $name) {
         $selected = in_array($name, $playerNames, true) ? ' selected' : '';
         echo '<option value="' . h($name) . '"' . $selected . '>' . h($name) . '</option>';
@@ -5194,6 +5318,13 @@ function render_classifications_history(): void
     echo '</select>';
     echo '<input type="text" name="user_id" placeholder="IdUsuario" value="' . h(query_raw('user_id')) . '">';
     echo '<label class="inline-check"><input type="checkbox" name="only_changed" value="1"' . ($onlyChanged ? ' checked' : '') . '> Solo cambios</label>';
+    echo '<details class="filter-details visible-columns" data-col-prefix="chcol_" data-order-field="chcol_order"><summary>Columnas visibles</summary><div class="visible-row">';
+    foreach ($columnDefs as $key => $def) {
+        $checked = in_array($key, $selectedCols, true) ? ' checked' : '';
+        echo '<label class="visible-item" draggable="true" data-col-key="' . h($key) . '"><input class="col-check" type="checkbox" name="chcol_' . h($key) . '" value="1"' . $checked . '><span>' . h($def['label']) . '</span></label>';
+    }
+    echo '<button type="button" class="btn-reset-cols" data-default-cols="' . h(implode(',', $defaultCols)) . '">Restablecer</button>';
+    echo '</div></details>';
     echo '<select name="page_size"><option value="50"' . ($pageSize === 50 ? ' selected' : '') . '>50 filas</option><option value="100"' . ($pageSize === 100 ? ' selected' : '') . '>100 filas</option><option value="200"' . ($pageSize === 200 ? ' selected' : '') . '>200 filas</option><option value="500"' . ($pageSize === 500 ? ' selected' : '') . '>500 filas</option></select>';
     echo '<button type="submit">Filtrar</button>';
     echo '<button type="submit" name="export_csv" value="1">Exportar CSV</button>';
@@ -5203,20 +5334,13 @@ function render_classifications_history(): void
     $rows = app_query_all($sql . ' LIMIT :_limit OFFSET :_offset', $params + [':_limit' => $pageSize, ':_offset' => $offset]);
 
     echo '<table><thead><tr>';
-    echo '<th>' . sort_link('snapshot_at', 'Snapshot', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('compare_snapshot_at', 'Comparado con', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('leaderboard_type', 'Tipo', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('species_id', 'IdEspecie', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('species_name', 'Especie', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('rank_pos', 'Rank', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('prev_rank', 'Rank Prev', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('rank_delta', 'Delta Rank', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('score_delta', 'Delta Puntuacion', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('distance_delta', 'Delta Distancia', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('user_id', 'IdUsuario', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('player_name', 'Jugador', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('display_score', 'Puntuacion', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('display_distance', 'Distancia', $sortKey, $sortDir) . '</th>';
+    foreach ($selectedCols as $col) {
+        if ($col === 'species_name_es') {
+            echo '<th>' . sort_link('species_name', $columnDefs[$col]['label'], $sortKey, $sortDir) . '</th>';
+            continue;
+        }
+        echo '<th>' . sort_link($col, $columnDefs[$col]['label'], $sortKey, $sortDir) . '</th>';
+    }
     echo '</tr></thead><tbody>';
     foreach ($rows as $row) {
         $speciesLabel = $row['species_name_es'] ?? $row['species_name'] ?? '';
@@ -5249,22 +5373,31 @@ function render_classifications_history(): void
         $rankDelta = $row['rank_delta'] ?? null;
         $scoreDelta = $row['score_delta'] ?? null;
         $distanceDelta = $row['distance_delta'] ?? null;
-        echo '<tr' . $rowClass . '>'
-            . '<td>' . h((string) $row['snapshot_at']) . '</td>'
-            . '<td>' . h((string) $row['compare_snapshot_at']) . '</td>'
-            . '<td>' . h(((string) $row['leaderboard_type']) === 'score' ? 'Puntuacion' : (((string) $row['leaderboard_type']) === 'range' ? 'Distancia' : (string) $row['leaderboard_type']) ) . '</td>'
-            . '<td class="num-cell">' . h((string) $row['species_id']) . '</td>'
-            . '<td>' . h((string) $speciesLabel) . '</td>'
-            . '<td class="num-cell">' . $rankLabel . '</td>'
-            . '<td class="num-cell">' . h((string) ($row['prev_rank'] ?? '')) . '</td>'
-            . '<td class="' . h($deltaClass($rankDelta)) . '">' . h((string) ($rankDelta ?? '')) . '</td>'
-            . '<td class="' . h($deltaClass($scoreDelta)) . '">' . h((string) ($scoreDelta ?? '')) . '</td>'
-            . '<td class="' . h($deltaClass($distanceDelta)) . '">' . h((string) ($distanceDelta ?? '')) . '</td>'
-            . '<td class="num-cell">' . h((string) ($row['user_id'] ?? '')) . '</td>'
-            . '<td>' . h((string) $row['player_name']) . '</td>'
-            . '<td class="' . h($scoreCellClass) . '">' . ($markChanged && ((string) ($row['leaderboard_type'] ?? '') === 'score') ? '<span class="mark-changed-badge">CAMBIO</span> ' : '') . h((string) ($row['display_score'] ?? '')) . '</td>'
-            . '<td class="' . h($distanceCellClass) . '">' . ($markChanged && ((string) ($row['leaderboard_type'] ?? '') === 'range') ? '<span class="mark-changed-badge">CAMBIO</span> ' : '') . h((string) ($row['display_distance'] ?? '')) . '</td>'
-            . '</tr>';
+        echo '<tr' . $rowClass . '>';
+        foreach ($selectedCols as $col) {
+            if ($col === 'leaderboard_type') {
+                echo '<td>' . h(((string) $row['leaderboard_type']) === 'score' ? 'Puntuacion' : (((string) $row['leaderboard_type']) === 'range' ? 'Distancia' : (string) $row['leaderboard_type'])) . '</td>';
+            } elseif ($col === 'species_name_es') {
+                echo '<td>' . h((string) $speciesLabel) . '</td>';
+            } elseif ($col === 'rank_pos') {
+                echo '<td class="num-cell">' . $rankLabel . '</td>';
+            } elseif ($col === 'score_delta') {
+                echo '<td class="' . h($deltaClass($scoreDelta)) . '">' . h((string) ($scoreDelta ?? '')) . '</td>';
+            } elseif ($col === 'distance_delta') {
+                echo '<td class="' . h($deltaClass($distanceDelta)) . '">' . h((string) ($distanceDelta ?? '')) . '</td>';
+            } elseif ($col === 'rank_delta') {
+                echo '<td class="' . h($deltaClass($rankDelta)) . '">' . h((string) ($rankDelta ?? '')) . '</td>';
+            } elseif ($col === 'display_score') {
+                echo '<td class="' . h($scoreCellClass) . '">' . ($markChanged && ((string) ($row['leaderboard_type'] ?? '') === 'score') ? '<span class="mark-changed-badge">CAMBIO</span> ' : '') . h((string) ($row['display_score'] ?? '')) . '</td>';
+            } elseif ($col === 'display_distance') {
+                echo '<td class="' . h($distanceCellClass) . '">' . ($markChanged && ((string) ($row['leaderboard_type'] ?? '') === 'range') ? '<span class="mark-changed-badge">CAMBIO</span> ' : '') . h((string) ($row['display_distance'] ?? '')) . '</td>';
+            } elseif (in_array($col, ['species_id', 'prev_rank', 'user_id'], true)) {
+                echo '<td class="num-cell">' . h((string) ($row[$col] ?? '')) . '</td>';
+            } else {
+                echo '<td>' . h((string) ($row[$col] ?? '')) . '</td>';
+            }
+        }
+        echo '</tr>';
     }
     echo '</tbody></table>';
     render_pagination($page, $pageSize, $totalRows);
@@ -5282,6 +5415,77 @@ function render_cheat_risk(): void
     $minKills = query_int('min_kills');
     $signalsOnly = query_raw('signals_only') === '1';
     $detailUserId = query_int('detail_user_id');
+
+    $columnDefs = [
+        'risk_score' => ['label' => 'Riesgo'],
+        'risk_level' => ['label' => 'Nivel'],
+        'player_name' => ['label' => 'Jugador'],
+        'user_id' => ['label' => 'IdUsuario'],
+        'total_kills' => ['label' => 'Kills'],
+        'signal_count' => ['label' => 'Senales'],
+        'kills_outside_window' => ['label' => 'Muertes fuera ventana'],
+        'max_hit_distance_m' => ['label' => 'Dist max (m)'],
+        'max_kills_per_hour' => ['label' => 'Kills/h max'],
+        'min_gap_sec' => ['label' => 'Gap min (s)'],
+        'integrity_ratio_pct' => ['label' => 'Integridad %'],
+    ];
+    $defaultCols = array_keys($columnDefs);
+    $selectedCols = persistent_selected_columns('cheat_risk_cols', $columnDefs, 'crcol_', $defaultCols);
+    $dragOrderRaw = query_text('crcol_order');
+    if ($dragOrderRaw !== null) {
+        $ordered = array_values(array_filter(array_map('trim', explode(',', $dragOrderRaw)), static fn (string $k): bool => $k !== '' && in_array($k, $selectedCols, true)));
+        foreach ($selectedCols as $k) {
+            if (!in_array($k, $ordered, true)) {
+                $ordered[] = $k;
+            }
+        }
+        if ($ordered !== []) {
+            $selectedCols = $ordered;
+        }
+    }
+
+    $signalColumnDefs = [
+        'signal_label' => ['label' => 'Senales'],
+        'signal_value' => ['label' => 'Valor'],
+        'signal_threshold' => ['label' => 'Umbral'],
+        'signal_weight' => ['label' => 'Peso'],
+    ];
+    $signalDefaultCols = array_keys($signalColumnDefs);
+    $selectedSignalCols = persistent_selected_columns('cheat_signal_cols', $signalColumnDefs, 'crscol_', $signalDefaultCols);
+    $signalDragOrderRaw = query_text('crscol_order');
+    if ($signalDragOrderRaw !== null) {
+        $ordered = array_values(array_filter(array_map('trim', explode(',', $signalDragOrderRaw)), static fn (string $k): bool => $k !== '' && in_array($k, $selectedSignalCols, true)));
+        foreach ($selectedSignalCols as $k) {
+            if (!in_array($k, $ordered, true)) {
+                $ordered[] = $k;
+            }
+        }
+        if ($ordered !== []) {
+            $selectedSignalCols = $ordered;
+        }
+    }
+
+    $signalExpColumnDefs = [
+        'signal_label' => ['label' => 'Senales'],
+        'expedition_id' => ['label' => 'Expedicion'],
+        'signal_value' => ['label' => 'Valor'],
+        'signal_threshold' => ['label' => 'Umbral'],
+        'signal_weight' => ['label' => 'Peso'],
+    ];
+    $signalExpDefaultCols = array_keys($signalExpColumnDefs);
+    $selectedSignalExpCols = persistent_selected_columns('cheat_signal_exp_cols', $signalExpColumnDefs, 'crecol_', $signalExpDefaultCols);
+    $signalExpDragOrderRaw = query_text('crecol_order');
+    if ($signalExpDragOrderRaw !== null) {
+        $ordered = array_values(array_filter(array_map('trim', explode(',', $signalExpDragOrderRaw)), static fn (string $k): bool => $k !== '' && in_array($k, $selectedSignalExpCols, true)));
+        foreach ($selectedSignalExpCols as $k) {
+            if (!in_array($k, $ordered, true)) {
+                $ordered[] = $k;
+            }
+        }
+        if ($ordered !== []) {
+            $selectedSignalExpCols = $ordered;
+        }
+    }
 
     $where = [];
     $params = [];
@@ -5386,15 +5590,18 @@ function render_cheat_risk(): void
     echo '<form class="table-filters" method="get" action="' . h(current_path()) . '">';
     echo '<input type="hidden" name="view" value="cheat_risk">';
     echo '<input type="hidden" name="page" value="1">';
+    echo '<input type="hidden" name="crcol_order" value="' . h(query_raw('crcol_order')) . '">';
+    echo '<input type="hidden" name="crscol_order" value="' . h(query_raw('crscol_order')) . '">';
+    echo '<input type="hidden" name="crecol_order" value="' . h(query_raw('crecol_order')) . '">';
     echo '<input type="text" name="user_id" placeholder="IdUsuario" value="' . h(query_raw('user_id')) . '">';
-    echo '<select name="player_name[]">';
+    echo '<select name="player_name[]" multiple data-check-combo="1" data-check-combo-placeholder="Jugador (todos)" data-check-combo-many-label="jugadores">';
     echo '<option value="">Jugador (todos)</option>';
     foreach (player_name_suggestions() as $name) {
         $selected = in_array($name, $playerNames, true) ? ' selected' : '';
         echo '<option value="' . h($name) . '"' . $selected . '>' . h($name) . '</option>';
     }
     echo '</select>';
-    echo '<select name="risk_level"><option value="">Nivel (todos)</option>';
+    echo '<select name="risk_level" data-single-combo="1" data-single-combo-placeholder="Nivel (todos)"><option value="">Nivel (todos)</option>';
     echo '<option value="alto"' . ($riskLevel === 'alto' ? ' selected' : '') . '>Alto</option>';
     echo '<option value="medio"' . ($riskLevel === 'medio' ? ' selected' : '') . '>Medio</option>';
     echo '<option value="bajo"' . ($riskLevel === 'bajo' ? ' selected' : '') . '>Bajo</option>';
@@ -5402,6 +5609,27 @@ function render_cheat_risk(): void
     echo '<input type="text" name="min_score" placeholder="Riesgo min" value="' . h(query_raw('min_score')) . '">';
     echo '<input type="text" name="min_kills" placeholder="Kills min" value="' . h(query_raw('min_kills')) . '">';
     echo '<label class="inline-check"><input type="checkbox" name="signals_only" value="1"' . ($signalsOnly ? ' checked' : '') . '>Solo con senales</label>';
+    echo '<details class="filter-details visible-columns" data-col-prefix="crcol_" data-order-field="crcol_order"><summary>Columnas Riesgo</summary><div class="visible-row">';
+    foreach ($columnDefs as $key => $def) {
+        $checked = in_array($key, $selectedCols, true) ? ' checked' : '';
+        echo '<label class="visible-item" draggable="true" data-col-key="' . h($key) . '"><input class="col-check" type="checkbox" name="crcol_' . h($key) . '" value="1"' . $checked . '><span>' . h($def['label']) . '</span></label>';
+    }
+    echo '<button type="button" class="btn-reset-cols" data-default-cols="' . h(implode(',', $defaultCols)) . '">Restablecer</button>';
+    echo '</div></details>';
+    echo '<details class="filter-details visible-columns" data-col-prefix="crscol_" data-order-field="crscol_order"><summary>Columnas Senales</summary><div class="visible-row">';
+    foreach ($signalColumnDefs as $key => $def) {
+        $checked = in_array($key, $selectedSignalCols, true) ? ' checked' : '';
+        echo '<label class="visible-item" draggable="true" data-col-key="' . h($key) . '"><input class="col-check" type="checkbox" name="crscol_' . h($key) . '" value="1"' . $checked . '><span>' . h($def['label']) . '</span></label>';
+    }
+    echo '<button type="button" class="btn-reset-cols" data-default-cols="' . h(implode(',', $signalDefaultCols)) . '">Restablecer</button>';
+    echo '</div></details>';
+    echo '<details class="filter-details visible-columns" data-col-prefix="crecol_" data-order-field="crecol_order"><summary>Columnas Expediciones Senales</summary><div class="visible-row">';
+    foreach ($signalExpColumnDefs as $key => $def) {
+        $checked = in_array($key, $selectedSignalExpCols, true) ? ' checked' : '';
+        echo '<label class="visible-item" draggable="true" data-col-key="' . h($key) . '"><input class="col-check" type="checkbox" name="crecol_' . h($key) . '" value="1"' . $checked . '><span>' . h($def['label']) . '</span></label>';
+    }
+    echo '<button type="button" class="btn-reset-cols" data-default-cols="' . h(implode(',', $signalExpDefaultCols)) . '">Restablecer</button>';
+    echo '</div></details>';
     echo '<select name="page_size">';
     echo '<option value="50"' . ($pageSize === 50 ? ' selected' : '') . '>50 filas</option>';
     echo '<option value="100"' . ($pageSize === 100 ? ' selected' : '') . '>100 filas</option>';
@@ -5414,15 +5642,9 @@ function render_cheat_risk(): void
     echo '</form>';
 
     echo '<table><thead><tr>';
-    echo '<th>' . sort_link('risk_score', 'Riesgo', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('risk_level', 'Nivel', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('player_name', 'Jugador', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('user_id', 'IdUsuario', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('total_kills', 'Kills', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('signal_count', 'Senales', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('max_hit_distance_m', 'Dist max (m)', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('max_kills_per_hour', 'Kills/h max', $sortKey, $sortDir) . '</th>';
-    echo '<th>' . sort_link('min_gap_sec', 'Gap min (s)', $sortKey, $sortDir) . '</th>';
+    foreach ($selectedCols as $col) {
+        echo '<th>' . sort_link($col, $columnDefs[$col]['label'], $sortKey, $sortDir) . '</th>';
+    }
     echo '<th>Detalle</th>';
     echo '</tr></thead><tbody>';
     foreach ($rows as $row) {
@@ -5431,15 +5653,15 @@ function render_cheat_risk(): void
         $query['detail_user_id'] = $row['user_id'];
         $query['view'] = 'cheat_risk';
         echo '<tr>';
-        echo '<td class="num-cell">' . h((string) $row['risk_score']) . '</td>';
-        echo '<td><span class="risk-pill risk-' . h($level) . '">' . h($level) . '</span></td>';
-        echo '<td>' . h((string) $row['player_name']) . '</td>';
-        echo '<td class="num-cell">' . h((string) $row['user_id']) . '</td>';
-        echo '<td class="num-cell">' . h((string) $row['total_kills']) . '</td>';
-        echo '<td class="num-cell">' . h((string) $row['signal_count']) . '</td>';
-        echo '<td class="num-cell">' . h((string) $row['max_hit_distance_m']) . '</td>';
-        echo '<td class="num-cell">' . h((string) $row['max_kills_per_hour']) . '</td>';
-        echo '<td class="num-cell">' . h((string) $row['min_gap_sec']) . '</td>';
+        foreach ($selectedCols as $col) {
+            if ($col === 'risk_level') {
+                echo '<td><span class="risk-pill risk-' . h($level) . '">' . h($level) . '</span></td>';
+            } elseif (in_array($col, ['risk_score', 'user_id', 'total_kills', 'signal_count', 'kills_outside_window', 'max_hit_distance_m', 'max_kills_per_hour', 'min_gap_sec', 'integrity_ratio_pct'], true)) {
+                echo '<td class="num-cell">' . h((string) ($row[$col] ?? '')) . '</td>';
+            } else {
+                echo '<td>' . h((string) ($row[$col] ?? '')) . '</td>';
+            }
+        }
         unset($query['export'], $query['export_csv']);
         echo '<td><a class="btn-link" href="?' . h(http_build_query($query)) . '">Ver senales</a></td>';
         echo '</tr>';
@@ -5452,13 +5674,17 @@ function render_cheat_risk(): void
         if ($detailRows === []) {
             echo '<p class="muted">Sin senales</p>';
         } else {
-            echo '<table><thead><tr><th>Senales</th><th>Valor</th><th>Umbral</th><th>Peso</th></tr></thead><tbody>';
+            echo '<table><thead><tr>';
+            foreach ($selectedSignalCols as $col) {
+                echo '<th>' . h($signalColumnDefs[$col]['label']) . '</th>';
+            }
+            echo '</tr></thead><tbody>';
             foreach ($detailRows as $drow) {
                 echo '<tr>';
-                echo '<td>' . h((string) $drow['signal_label']) . '</td>';
-                echo '<td class="num-cell">' . h((string) $drow['signal_value']) . '</td>';
-                echo '<td>' . h((string) $drow['signal_threshold']) . '</td>';
-                echo '<td class="num-cell">' . h((string) $drow['signal_weight']) . '</td>';
+                foreach ($selectedSignalCols as $col) {
+                    $cellClass = in_array($col, ['signal_value', 'signal_weight'], true) ? ' class="num-cell"' : '';
+                    echo '<td' . $cellClass . '>' . h((string) ($drow[$col] ?? '')) . '</td>';
+                }
                 echo '</tr>';
             }
             echo '</tbody></table>';
@@ -5467,14 +5693,17 @@ function render_cheat_risk(): void
         if ($detailExpRows === []) {
             echo '<p class="muted">No hay expediciones marcadas para este jugador.</p>';
         } else {
-            echo '<table><thead><tr><th>Senales</th><th>Expedicion</th><th>Valor</th><th>Umbral</th><th>Peso</th></tr></thead><tbody>';
+            echo '<table><thead><tr>';
+            foreach ($selectedSignalExpCols as $col) {
+                echo '<th>' . h($signalExpColumnDefs[$col]['label']) . '</th>';
+            }
+            echo '</tr></thead><tbody>';
             foreach ($detailExpRows as $drow) {
                 echo '<tr>';
-                echo '<td>' . h((string) $drow['signal_label']) . '</td>';
-                echo '<td class="num-cell">' . h((string) $drow['expedition_id']) . '</td>';
-                echo '<td class="num-cell">' . h((string) $drow['signal_value']) . '</td>';
-                echo '<td>' . h((string) $drow['signal_threshold']) . '</td>';
-                echo '<td class="num-cell">' . h((string) $drow['signal_weight']) . '</td>';
+                foreach ($selectedSignalExpCols as $col) {
+                    $cellClass = in_array($col, ['expedition_id', 'signal_value', 'signal_weight'], true) ? ' class="num-cell"' : '';
+                    echo '<td' . $cellClass . '>' . h((string) ($drow[$col] ?? '')) . '</td>';
+                }
                 echo '</tr>';
             }
             echo '</tbody></table>';
@@ -5744,6 +5973,73 @@ function render_best_xml_preview(): void
     if ($distanceSheetNode !== null) {
         $accumulateTopCounts($distanceSheetNode, "distance", $topByPlayer);
     }
+
+    $killUrlByMetricPlayerSpecies = [
+        'score' => [],
+        'distance' => [],
+    ];
+    $xmlPlayerNames = [];
+    for ($i = $playerStartCol; $i <= $maxCol; $i++) {
+        $playerName = trim((string) ($headerRow[$i] ?? ''));
+        if ($playerName !== '') {
+            $xmlPlayerNames[$playerName] = true;
+        }
+    }
+    $xmlSpeciesNames = [];
+    foreach ($dataRows as $rowData) {
+        $speciesName = trim((string) ($rowData[$speciesCol] ?? ''));
+        if ($speciesName !== '') {
+            $xmlSpeciesNames[$speciesName] = true;
+        }
+    }
+    if ($xmlPlayerNames !== [] && $xmlSpeciesNames !== []) {
+        $playerPlaceholders = [];
+        $speciesPlaceholders = [];
+        $urlParams = [];
+        $paramIdx = 0;
+        foreach (array_keys($xmlPlayerNames) as $playerName) {
+            $ph = ':xml_player_' . $paramIdx++;
+            $playerPlaceholders[] = $ph;
+            $urlParams[$ph] = $playerName;
+        }
+        $paramIdx = 0;
+        foreach (array_keys($xmlSpeciesNames) as $speciesName) {
+            $ph = ':xml_species_' . $paramIdx++;
+            $speciesPlaceholders[] = $ph;
+            $urlParams[$ph] = $speciesName;
+        }
+        try {
+            $bestUrlRows = app_query_all(
+                'SELECT player_name, species_name_es, best_score_animal_id, best_distance_animal_id
+                   FROM gpt.best_personal_records
+                  WHERE player_name IN (' . implode(', ', $playerPlaceholders) . ')
+                    AND species_name_es IN (' . implode(', ', $speciesPlaceholders) . ')',
+                $urlParams
+            );
+            foreach ($bestUrlRows as $bestUrlRow) {
+                $playerName = trim((string) ($bestUrlRow['player_name'] ?? ''));
+                $speciesName = trim((string) ($bestUrlRow['species_name_es'] ?? ''));
+                if ($playerName === '' || $speciesName === '') {
+                    continue;
+                }
+                $mapKey = $playerName . '|' . $speciesName;
+                $scoreUrl = thehunter_kill_url($playerName, $bestUrlRow['best_score_animal_id'] ?? null);
+                $distanceUrl = thehunter_kill_url($playerName, $bestUrlRow['best_distance_animal_id'] ?? null);
+                if ($scoreUrl !== null) {
+                    $killUrlByMetricPlayerSpecies['score'][$mapKey] = $scoreUrl;
+                }
+                if ($distanceUrl !== null) {
+                    $killUrlByMetricPlayerSpecies['distance'][$mapKey] = $distanceUrl;
+                }
+            }
+        } catch (Throwable) {
+            $killUrlByMetricPlayerSpecies = [
+                'score' => [],
+                'distance' => [],
+            ];
+        }
+    }
+
     ob_start();
     echo '<div style="overflow:auto"><table class="best-xml-main" data-top-badge="' . h($topBadge) . '"><thead><tr>';
     for ($i = 1; $i <= $maxCol; $i++) {
@@ -5793,12 +6089,24 @@ function render_best_xml_preview(): void
                 $playerName = trim((string) ($headerRow[$i] ?? ''));
                 $cls = $topBadge === 'TOP D' ? 'best-species-distance' : 'best-species-score';
                 $numRaw = $toFloat($v);
-                echo '<td class="best-xml-player ' . $cls . '" data-player-name="' . h($playerName) . '" data-raw="' . h($v) . '" data-num="' . h($numRaw !== null ? (string) $numRaw : '') . '"><span class="best-species-badge">' . h($topBadge) . '</span> ' . h($v) . '</td>';
+                $killUrlKey = $playerName . '|' . $species;
+                $killUrl = $killUrlByMetricPlayerSpecies[$metricType][$killUrlKey] ?? null;
+                $cellHtml = '<span class="best-species-badge">' . h($topBadge) . '</span> ' . h($v);
+                if (is_string($killUrl) && $killUrl !== '') {
+                    $cellHtml = '<a class="record-link record-link-kill" href="' . h($killUrl) . '" target="_blank" rel="noopener noreferrer">' . $cellHtml . '</a>';
+                }
+                echo '<td class="best-xml-player ' . $cls . '" data-player-name="' . h($playerName) . '" data-raw="' . h($v) . '" data-num="' . h($numRaw !== null ? (string) $numRaw : '') . '">' . $cellHtml . '</td>';
                 continue;
             }
             $playerName = trim((string) ($headerRow[$i] ?? ''));
             $numRaw = $toFloat($v);
-            echo '<td class="best-xml-player" data-player-name="' . h($playerName) . '" data-raw="' . h($v) . '" data-num="' . h($numRaw !== null ? (string) $numRaw : '') . '">' . h($v) . '</td>';
+            $killUrlKey = $playerName . '|' . $species;
+            $killUrl = $killUrlByMetricPlayerSpecies[$metricType][$killUrlKey] ?? null;
+            $cellHtml = h($v);
+            if ($v !== '' && is_string($killUrl) && $killUrl !== '') {
+                $cellHtml = '<a class="record-link record-link-kill" href="' . h($killUrl) . '" target="_blank" rel="noopener noreferrer">' . $cellHtml . '</a>';
+            }
+            echo '<td class="best-xml-player" data-player-name="' . h($playerName) . '" data-raw="' . h($v) . '" data-num="' . h($numRaw !== null ? (string) $numRaw : '') . '">' . $cellHtml . '</td>';
         }
         echo '</tr>';
     }
@@ -5943,7 +6251,7 @@ function render_logs(): void
     echo '<section class="card"><h2>Logs</h2>';
     echo '<form class="table-filters" method="get" action="' . h(current_path()) . '">';
     echo '<input type="hidden" name="view" value="logs">';
-    echo '<select name="log" onchange="this.form.submit()">';
+    echo '<select name="log" onchange="this.form.submit()" data-single-combo="1" data-single-combo-placeholder="Archivo log">';
     foreach ($options as $name => $_path) {
         $sel = ($name === $selected) ? ' selected' : '';
         echo '<option value="' . h($name) . '"' . $sel . '>' . h($name) . '</option>';
@@ -6223,6 +6531,342 @@ function render_hall_of_fame(): void
     echo '</section>';
 }
 
+function render_trophies_summary(): void
+{
+    $table = 'v_user_trophies_summary';
+    $columns = gpt_table_columns($table);
+    $columnNames = array_keys($columns);
+
+    echo '<section class="card"><h2>Resumen Trofeos</h2>';
+    if ($columnNames === []) {
+        echo '<p class="muted">La vista gpt.' . h($table) . ' no tiene columnas visibles.</p></section>';
+        return;
+    }
+
+    $columnLabels = [
+        'user_id' => 'IdUsuario',
+        'player_name' => 'Jugador',
+        'gold_count' => 'Gold',
+        'silver_count' => 'Silver',
+        'bronze_count' => 'Bronze',
+        'total_trophies' => 'Total Trofeos',
+    ];
+    $labelForCol = static function (string $col) use ($columnLabels): string {
+        return $columnLabels[strtolower($col)] ?? $col;
+    };
+
+    $columnDefs = [];
+    foreach ($columnNames as $col) {
+        $columnDefs[$col] = ['label' => $labelForCol($col)];
+    }
+
+    $defaultCols = ['player_name', 'gold_count', 'silver_count', 'bronze_count', 'total_trophies'];
+    $selectedCols = persistent_selected_columns('trophies_summary_visible_cols', $columnDefs, 'tscol_', $defaultCols);
+    $dragOrderRaw = query_text('tscol_order');
+    if ($dragOrderRaw !== null && trim($dragOrderRaw) !== '') {
+        $ordered = array_values(array_filter(array_map('trim', explode(',', $dragOrderRaw)), static fn(string $k): bool => $k !== '' && isset($columnDefs[$k])));
+        if ($ordered !== []) {
+            $rest = array_values(array_filter($selectedCols, static fn(string $k): bool => !in_array($k, $ordered, true)));
+            $selectedCols = array_merge($ordered, $rest);
+            $_SESSION['trophies_summary_visible_cols'] = $selectedCols;
+        }
+    }
+
+    $detailColumnDefs = [
+        'trophy_entry_id' => ['label' => 'IdTrofeo'],
+        'trophy_name' => ['label' => 'Trofeo'],
+        'competition_id' => ['label' => 'IdCompeticion'],
+        'competition_name' => ['label' => 'Competicion'],
+        'trophy_at' => ['label' => 'Fecha'],
+    ];
+    $detailDefaultCols = ['trophy_name', 'competition_name', 'trophy_at'];
+    $detailSelectedCols = persistent_selected_columns(
+        'trophies_summary_detail_visible_cols',
+        $detailColumnDefs,
+        'tsdcol_',
+        $detailDefaultCols
+    );
+    $detailDragOrderRaw = query_text('tsdcol_order');
+    if ($detailDragOrderRaw !== null && trim($detailDragOrderRaw) !== '') {
+        $ordered = array_values(array_filter(
+            array_map('trim', explode(',', $detailDragOrderRaw)),
+            static fn(string $k): bool => $k !== '' && isset($detailColumnDefs[$k])
+        ));
+        if ($ordered !== []) {
+            $rest = array_values(array_filter(
+                $detailSelectedCols,
+                static fn(string $k): bool => !in_array($k, $ordered, true)
+            ));
+            $detailSelectedCols = array_merge($ordered, $rest);
+            $_SESSION['trophies_summary_detail_visible_cols'] = $detailSelectedCols;
+        }
+    }
+
+    $playerNames = query_list('player_name');
+    $playerOptionRows = app_query_all(
+        'SELECT DISTINCT player_name
+           FROM ' . quote_ident('gpt') . '.' . quote_ident($table) . '
+          WHERE COALESCE(player_name, \'\') <> \'\'
+          ORDER BY player_name ASC'
+    );
+    $playerOptions = [];
+    foreach ($playerOptionRows as $row) {
+        $name = trim((string) ($row['player_name'] ?? ''));
+        if ($name !== '') {
+            $playerOptions[] = $name;
+        }
+    }
+
+    $where = [];
+    $params = [];
+    $mainFilterCols = ['user_id', 'total_trophies'];
+    foreach ($mainFilterCols as $idx => $col) {
+        $value = query_text('ts_' . $col);
+        if ($value === null) {
+            continue;
+        }
+        $ph = ':ts_' . $idx;
+        $where[] = "COALESCE(" . quote_ident($col) . "::text, '') ILIKE " . $ph;
+        $params[$ph] = '%' . $value . '%';
+    }
+    if ($playerNames !== []) {
+        $playerPlaceholders = [];
+        foreach (array_values($playerNames) as $idx => $name) {
+            $ph = ':ts_player_' . $idx;
+            $playerPlaceholders[] = $ph;
+            $params[$ph] = $name;
+        }
+        $where[] = 'player_name IN (' . implode(', ', $playerPlaceholders) . ')';
+    }
+
+    $page = query_page();
+    $pageSize = query_page_size(100);
+
+    $sortable = [];
+    foreach ($columnNames as $col) {
+        $sortable[$col] = quote_ident($col);
+    }
+    [$sortKey, $sortDir] = query_sort('total_trophies', 'desc', $sortable);
+
+    $selectCols = implode(', ', array_map(static fn(string $c): string => quote_ident($c), $columnNames));
+    $tableSql = quote_ident('gpt') . '.' . quote_ident($table);
+
+    $sql = 'SELECT ' . $selectCols . ' FROM ' . $tableSql;
+    $countSql = 'SELECT COUNT(*) AS c FROM ' . $tableSql;
+    if ($where !== []) {
+        $sql .= ' WHERE ' . implode(' AND ', $where);
+        $countSql .= ' WHERE ' . implode(' AND ', $where);
+    }
+    $sql .= ' ORDER BY ' . $sortable[$sortKey] . ' ' . strtoupper($sortDir) . ', player_name ASC';
+
+    if (is_csv_export_requested()) {
+        $rows = app_query_all($sql, $params);
+        $headers = array_map(static fn(string $k): string => $columnDefs[$k]['label'], $selectedCols);
+        csv_stream('resumen_trofeos.csv', $headers, $rows, $selectedCols);
+    }
+
+    $totalRow = app_query_one($countSql, $params);
+    $totalRows = (int) ($totalRow['c'] ?? 0);
+    $pageCount = max(1, (int) ceil($totalRows / $pageSize));
+    $page = min($page, $pageCount);
+    $offset = ($page - 1) * $pageSize;
+
+    $sql .= ' LIMIT :_limit OFFSET :_offset';
+    $rows = app_query_all(
+        $sql,
+        $params + [
+            ':_limit' => $pageSize,
+            ':_offset' => $offset,
+        ]
+    );
+
+    $detailFilters = [];
+    foreach (array_keys($detailColumnDefs) as $col) {
+        $value = query_text('tsd_' . $col);
+        if ($value !== null) {
+            $detailFilters[$col] = $value;
+        }
+    }
+
+    $detailByUserType = [];
+    $userIds = [];
+    foreach ($rows as $row) {
+        $userId = isset($row['user_id']) ? (int) $row['user_id'] : 0;
+        if ($userId > 0) {
+            $userIds[] = $userId;
+        }
+    }
+    $userIds = array_values(array_unique($userIds));
+    if ($userIds !== []) {
+        $placeholders = [];
+        $detailParams = [];
+        foreach ($userIds as $idx => $userId) {
+            $ph = ':ts_user_' . $idx;
+            $placeholders[] = $ph;
+            $detailParams[$ph] = $userId;
+        }
+        $detailSql = 'SELECT trophy_entry_id, user_id, trophy_name, competition_id, competition_name, trophy_at
+                      FROM gpt.user_trophies
+                      WHERE user_id IN (' . implode(', ', $placeholders) . ')
+                        AND (
+                            LOWER(COALESCE(trophy_name, \'\')) LIKE \'%gold%\'
+                            OR LOWER(COALESCE(trophy_name, \'\')) LIKE \'%silver%\'
+                            OR LOWER(COALESCE(trophy_name, \'\')) LIKE \'%bronze%\'
+                        )
+                       ORDER BY trophy_at DESC NULLS LAST, trophy_entry_id DESC';
+        foreach (app_query_all($detailSql, $detailParams) as $drow) {
+            $name = strtolower(trim((string) ($drow['trophy_name'] ?? '')));
+            $medalType = null;
+            if (str_contains($name, 'gold')) {
+                $medalType = 'gold';
+            } elseif (str_contains($name, 'silver')) {
+                $medalType = 'silver';
+            } elseif (str_contains($name, 'bronze')) {
+                $medalType = 'bronze';
+            }
+            $userId = isset($drow['user_id']) ? (int) $drow['user_id'] : 0;
+            if ($medalType === null || $userId <= 0) {
+                continue;
+            }
+
+            $matchesDetailFilters = true;
+            foreach ($detailFilters as $filterCol => $filterValue) {
+                $candidate = '';
+                if ($filterCol === 'trophy_at') {
+                    $candidate = format_datetime_display($drow['trophy_at'] ?? null);
+                } else {
+                    $candidate = (string) ($drow[$filterCol] ?? '');
+                }
+                if (stripos($candidate, $filterValue) === false) {
+                    $matchesDetailFilters = false;
+                    break;
+                }
+            }
+
+            if ($matchesDetailFilters) {
+                $detailByUserType[$userId][$medalType][] = $drow;
+            }
+        }
+    }
+
+    echo '<p class="muted">Vista: gpt.' . h($table) . '</p>';
+    echo '<form class="table-filters" method="get" action="' . h(current_path()) . '">';
+    echo '<input type="hidden" name="view" value="trophies_summary">';
+    echo '<input type="hidden" name="page" value="1">';
+    echo '<input type="hidden" name="tscol_order" value="' . h(query_raw('tscol_order')) . '">';
+    echo '<input type="hidden" name="tsdcol_order" value="' . h(query_raw('tsdcol_order')) . '">';
+    echo '<input type="text" name="ts_user_id" placeholder="IdUsuario" value="' . h(query_raw('ts_user_id')) . '">';
+    echo '<select name="player_name[]" multiple data-check-combo="1" data-check-combo-placeholder="Jugador (todos)" data-check-combo-many-label="jugadores">';
+    echo '<option value="">Jugador (todos)</option>';
+    foreach ($playerOptions as $name) {
+        $selected = in_array($name, $playerNames, true) ? ' selected' : '';
+        echo '<option value="' . h($name) . '"' . $selected . '>' . h($name) . '</option>';
+    }
+    echo '</select>';
+    echo '<input type="text" name="ts_total_trophies" placeholder="Total Trofeos" value="' . h(query_raw('ts_total_trophies')) . '">';
+    echo '<details class="filter-details visible-columns" data-col-prefix="tscol_" data-order-field="tscol_order"><summary>Columnas visibles</summary><div class="visible-row">';
+    foreach ($columnDefs as $key => $def) {
+        $checked = in_array($key, $selectedCols, true) ? ' checked' : '';
+        echo '<label class="visible-item" draggable="true" data-col-key="' . h($key) . '"><input class="col-check" type="checkbox" name="tscol_' . h($key) . '" value="1"' . $checked . '><span>' . h($def['label']) . '</span></label>';
+    }
+    echo '<button type="button" class="btn-reset-cols" data-default-cols="' . h(implode(',', $defaultCols)) . '">Restablecer</button>';
+    echo '</div></details>';
+    echo '<details class="filter-details"><summary>Filtros Detalle</summary><div class="cols-grid">';
+    foreach ($detailColumnDefs as $key => $def) {
+        echo '<input type="text" name="tsd_' . h($key) . '" placeholder="' . h($def['label']) . '" value="' . h(query_raw('tsd_' . $key)) . '">';
+    }
+    echo '</div></details>';
+    echo '<details class="filter-details visible-columns" data-col-prefix="tsdcol_" data-order-field="tsdcol_order"><summary>Columnas Detalle</summary><div class="visible-row">';
+    foreach ($detailColumnDefs as $key => $def) {
+        $checked = in_array($key, $detailSelectedCols, true) ? ' checked' : '';
+        echo '<label class="visible-item" draggable="true" data-col-key="' . h($key) . '"><input class="col-check" type="checkbox" name="tsdcol_' . h($key) . '" value="1"' . $checked . '><span>' . h($def['label']) . '</span></label>';
+    }
+    echo '<button type="button" class="btn-reset-cols" data-default-cols="' . h(implode(',', $detailDefaultCols)) . '">Restablecer</button>';
+    echo '</div></details>';
+    echo '<select name="page_size">';
+    echo '<option value="50"' . ($pageSize === 50 ? ' selected' : '') . '>50 filas</option>';
+    echo '<option value="100"' . ($pageSize === 100 ? ' selected' : '') . '>100 filas</option>';
+    echo '<option value="200"' . ($pageSize === 200 ? ' selected' : '') . '>200 filas</option>';
+    echo '<option value="500"' . ($pageSize === 500 ? ' selected' : '') . '>500 filas</option>';
+    echo '</select>';
+    echo '<button type="submit">Filtrar</button>';
+    echo '<button type="submit" name="export_csv" value="1">Exportar CSV</button>';
+    echo '<a class="btn-link" href="?view=trophies_summary&reset=1">Limpiar</a>';
+    echo '</form>';
+
+    echo '<table><thead><tr>';
+    foreach ($selectedCols as $col) {
+        echo '<th>' . sort_link($col, $columnDefs[$col]['label'], $sortKey, $sortDir) . '</th>';
+    }
+    echo '</tr></thead><tbody>';
+    foreach ($rows as $row) {
+        $userId = isset($row['user_id']) ? (int) $row['user_id'] : 0;
+        echo '<tr>';
+        foreach ($selectedCols as $col) {
+            $cell = $row[$col] ?? null;
+            if ($userId > 0 && in_array($col, ['gold_count', 'silver_count', 'bronze_count'], true)) {
+                $count = (int) ($cell ?? 0);
+                $medalType = substr($col, 0, -6);
+                if ($count > 0) {
+                    echo '<td><button type="button" class="trophy-count-toggle" data-user-id="' . h((string) $userId) . '" data-medal-type="' . h($medalType) . '">' . h((string) $count) . '</button></td>';
+                } else {
+                    echo '<td>0</td>';
+                }
+                continue;
+            }
+            echo '<td>' . h($cell === null ? '' : (string) $cell) . '</td>';
+        }
+        echo '</tr>';
+        echo '<tr class="trophy-summary-detail-row" data-user-id="' . h((string) $userId) . '" style="display:none;">';
+        echo '<td colspan="' . h((string) max(1, count($selectedCols))) . '">';
+        echo '<div class="trophy-summary-detail-wrap">';
+        foreach (['gold' => 'Gold', 'silver' => 'Silver', 'bronze' => 'Bronze'] as $medalType => $medalLabel) {
+            $detailRows = $detailByUserType[$userId][$medalType] ?? [];
+            echo '<div class="trophy-summary-panel" data-medal-type="' . h($medalType) . '" style="display:none;">';
+            echo '<div class="trophy-summary-panel-title">' . h($medalLabel) . ' - ' . h((string) count($detailRows)) . '</div>';
+            if ($detailRows === []) {
+                echo '<span class="muted">Sin trofeos</span>';
+            } else {
+                echo '<table class="trophy-summary-detail-table"><thead><tr>';
+                foreach ($detailSelectedCols as $detailCol) {
+                    echo '<th>' . h($detailColumnDefs[$detailCol]['label']) . '</th>';
+                }
+                echo '</tr></thead><tbody>';
+                foreach ($detailRows as $drow) {
+                    $competitionId = isset($drow['competition_id']) ? (int) $drow['competition_id'] : 0;
+                    $competitionName = trim((string) ($drow['competition_name'] ?? ''));
+                    $competitionCell = h($competitionName);
+                    if ($competitionId > 0 && $competitionName !== '') {
+                        $competitionUrl = 'https://www.thehunter.com/#competitions/details/' . rawurlencode((string) $competitionId);
+                        $competitionCell = '<a class="record-link" href="' . h($competitionUrl) . '" target="_blank" rel="noopener noreferrer">' . h($competitionName) . '</a>';
+                    }
+                    echo '<tr>';
+                    foreach ($detailSelectedCols as $detailCol) {
+                        if ($detailCol === 'competition_name') {
+                            echo '<td>' . $competitionCell . '</td>';
+                            continue;
+                        }
+                        if ($detailCol === 'trophy_at') {
+                            echo '<td>' . h(format_datetime_display($drow['trophy_at'] ?? null)) . '</td>';
+                            continue;
+                        }
+                        echo '<td>' . h((string) ($drow[$detailCol] ?? '')) . '</td>';
+                    }
+                    echo '</tr>';
+                }
+                echo '</tbody></table>';
+            }
+            echo '</div>';
+        }
+        echo '</div>';
+        echo '</td>';
+        echo '</tr>';
+    }
+    echo '</tbody></table>';
+    render_pagination($page, $pageSize, $totalRows);
+    echo '</section>';
+}
+
 
 if (is_csv_export_requested()) {
     switch ($view) {
@@ -6253,6 +6897,9 @@ if (is_csv_export_requested()) {
         case 'best_xml':
             render_best_xml_preview();
             break;
+        case 'trophies_summary':
+            render_trophies_summary();
+            break;
         case 'cheat_risk':
             render_cheat_risk();
             break;
@@ -6274,7 +6921,7 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
     <title>THC GPT Panel</title>
     <link rel="stylesheet" href="style.css?v=<?= h($cssVersion) ?>">
 </head>
-<body class="theme-<?= h($theme) ?>">
+<body class="theme-<?= h($theme) ?> font-<?= h($font) ?>">
 <div class="layout">
     <aside class="sidebar">
         <h1 class="sidebar-logo-wrap">
@@ -6306,6 +6953,7 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
             <?= menu_link('classifications_history', 'Tablas Clasificacion Hist.', $view) ?>
             <?= menu_link('species_ppft', 'Especies PPFT', $view) ?>
             <?= menu_link('hall_of_fame', 'Salones Fama', $view) ?>
+            <?= menu_link('trophies_summary', 'Resumen Trofeos', $view) ?>
             <?= menu_link('cheat_risk', 'Anti-trampas', $view) ?>
             <?php if (app_is_admin_user()): ?>
                 <?= menu_link('logs', 'Logs', $view) ?>
@@ -6317,14 +6965,23 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
             <div class="theme-row">
                 <?= theme_link('sober', 'Sobrio', $view, $theme) ?>
                 <?= theme_link('gaming', 'Gaming', $view, $theme) ?>
-                <?= theme_link('coral', 'Coral', $view, $theme) ?>
                 <?= theme_link('arctic', 'Artico', $view, $theme) ?>
                 <?= theme_link('graphite', 'Grafito', $view, $theme) ?>
-                <?= theme_link('blossom', 'Blossom', $view, $theme) ?>
                 <?= theme_link('midnight', 'Midnight', $view, $theme) ?>
                 <?= theme_link('ember', 'Ember', $view, $theme) ?>
-                <?= theme_link('forest', 'Forest', $view, $theme) ?>
                 <?= theme_link('skyline', 'Skyline', $view, $theme) ?>
+                <?= theme_link('terminal', 'Terminal', $view, $theme) ?>
+                <?= theme_link('missions', 'Misiones', $view, $theme) ?>
+            </div>
+        </div>
+        <div class="font-switch">
+            <div class="theme-title">Fuente</div>
+            <div class="font-row">
+                <?= font_link('system', 'UI', 'Aa Bb 123', $view, $font, 'font-chip-system') ?>
+                <?= font_link('modern', 'Moderna', 'Aa Bb 123', $view, $font, 'font-chip-modern') ?>
+                <?= font_link('classic', 'Clasica', 'Aa Bb 123', $view, $font, 'font-chip-classic') ?>
+                <?= font_link('serif', 'Serif', 'Aa Bb 123', $view, $font, 'font-chip-serif') ?>
+                <?= font_link('mono', 'Mono', 'Aa Bb 123', $view, $font, 'font-chip-mono') ?>
             </div>
         </div>
         <div class="sidebar-note">
@@ -6363,6 +7020,9 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
                 break;
             case 'hall_of_fame':
                 render_hall_of_fame();
+                break;
+            case 'trophies_summary':
+                render_trophies_summary();
                 break;
             case 'logs':
                 render_logs();
@@ -7102,6 +7762,105 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
 </script>
 <script>
 (() => {
+    const nav = document.querySelector('.sidebar .nav');
+    if (!(nav instanceof HTMLElement)) {
+        return;
+    }
+
+    const storageKey = 'thc_sidebar_nav_order';
+    const navLinks = () => Array.from(nav.querySelectorAll('.nav-link[data-nav-key]'));
+
+    const applySavedOrder = () => {
+        try {
+            const raw = localStorage.getItem(storageKey);
+            if (!raw) {
+                return;
+            }
+            const saved = JSON.parse(raw);
+            if (!Array.isArray(saved)) {
+                return;
+            }
+            const map = new Map(navLinks().map((link) => [String(link.getAttribute('data-nav-key') || ''), link]));
+            saved.forEach((key) => {
+                const link = map.get(String(key));
+                if (link) {
+                    nav.appendChild(link);
+                    map.delete(String(key));
+                }
+            });
+            map.forEach((link) => {
+                nav.appendChild(link);
+            });
+        } catch (_) {}
+    };
+
+    const saveOrder = () => {
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(
+                navLinks()
+                    .map((link) => String(link.getAttribute('data-nav-key') || '').trim())
+                    .filter((key) => key !== '')
+            ));
+        } catch (_) {}
+    };
+
+    const clearDropState = () => {
+        navLinks().forEach((link) => {
+            link.classList.remove('dragging', 'nav-drop-before', 'nav-drop-after');
+        });
+    };
+
+    applySavedOrder();
+
+    let draggedLink = null;
+    navLinks().forEach((link) => {
+        link.addEventListener('dragstart', () => {
+            draggedLink = link;
+            clearDropState();
+            link.classList.add('dragging');
+        });
+
+        link.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            if (!(draggedLink instanceof HTMLElement) || draggedLink === link) {
+                return;
+            }
+            const rect = link.getBoundingClientRect();
+            const placeBefore = event.clientY < (rect.top + rect.height / 2);
+            link.classList.toggle('nav-drop-before', placeBefore);
+            link.classList.toggle('nav-drop-after', !placeBefore);
+        });
+
+        link.addEventListener('dragleave', () => {
+            link.classList.remove('nav-drop-before', 'nav-drop-after');
+        });
+
+        link.addEventListener('drop', (event) => {
+            event.preventDefault();
+            if (!(draggedLink instanceof HTMLElement) || draggedLink === link) {
+                clearDropState();
+                return;
+            }
+            const rect = link.getBoundingClientRect();
+            const placeBefore = event.clientY < (rect.top + rect.height / 2);
+            if (placeBefore) {
+                nav.insertBefore(draggedLink, link);
+            } else {
+                nav.insertBefore(draggedLink, link.nextSibling);
+            }
+            clearDropState();
+            saveOrder();
+        });
+
+        link.addEventListener('dragend', () => {
+            clearDropState();
+            draggedLink = null;
+        });
+    });
+})();
+</script>
+<script>
+(() => {
     document.querySelectorAll('.content th, .content .visible-item span').forEach((el) => {
         const raw = el.textContent || '';
         const cleaned = raw.replace(/\s*\(exp\)\s*/gi, ' ').replace(/\s{2,}/g, ' ').trim();
@@ -7291,12 +8050,21 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
         });
     };
 
+    const closeOtherCombos = (current) => {
+        document.querySelectorAll('.filter-check-combo[open], .filter-single-combo[open]').forEach((other) => {
+            if (other !== current) {
+                other.open = false;
+            }
+        });
+    };
+
     const wireCheckCombo = (select) => {
         if (!(select instanceof HTMLSelectElement) || !select.multiple || select.dataset.comboWired === '1') {
             return;
         }
 
         const placeholder = select.dataset.checkComboPlaceholder || select.options[0]?.textContent?.trim() || 'Seleccionar';
+        const manyLabel = select.dataset.checkComboManyLabel || 'especies';
         const colTarget = select.dataset.colTarget || select.name || '';
         const options = Array.from(select.options).filter((option) => option.value !== '');
         if (options.length === 0) {
@@ -7306,6 +8074,7 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
         const details = document.createElement('details');
         details.className = 'filter-check-combo';
         details.dataset.colTarget = colTarget;
+        details.dataset.fieldName = select.name.replace(/\[\]$/g, '');
 
         const summary = document.createElement('summary');
         details.appendChild(summary);
@@ -7360,15 +8129,18 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
 
             if (selectedLabels.length === 0) {
                 summary.textContent = placeholder;
+                summary.title = summary.dataset.baseTitle ? `${summary.dataset.baseTitle} Actual: ${placeholder}` : placeholder;
                 return;
             }
 
             if (selectedLabels.length <= 2) {
                 summary.textContent = selectedLabels.join(', ');
+                summary.title = summary.dataset.baseTitle ? `${summary.dataset.baseTitle} Actual: ${summary.textContent}` : summary.textContent;
                 return;
             }
 
-            summary.textContent = `${selectedLabels.length} especies`;
+            summary.textContent = `${selectedLabels.length} ${manyLabel}`;
+            summary.title = summary.dataset.baseTitle ? `${summary.dataset.baseTitle} Actual: ${summary.textContent}` : summary.textContent;
         };
 
         const dispatchChange = () => {
@@ -7405,11 +8177,7 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
             if (!details.open) {
                 return;
             }
-            document.querySelectorAll('.filter-check-combo[open]').forEach((other) => {
-                if (other !== details) {
-                    other.open = false;
-                }
-            });
+            closeOtherCombos(details);
         });
 
         document.addEventListener('click', (event) => {
@@ -7425,11 +8193,805 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
         select.style.display = 'none';
         select.insertAdjacentElement('afterend', details);
         select.dataset.comboWired = '1';
+        details.dataset.filterKey = `combo:${select.name}`;
+        updateSummary();
+    };
+
+    const wireSingleCombo = (select) => {
+        if (!(select instanceof HTMLSelectElement) || select.multiple || select.dataset.singleComboWired === '1') {
+            return;
+        }
+
+        const options = Array.from(select.options);
+        if (options.length === 0) {
+            return;
+        }
+
+        const placeholder = select.dataset.singleComboPlaceholder || options[0]?.textContent?.trim() || 'Seleccionar';
+        const details = document.createElement('details');
+        details.className = 'filter-single-combo';
+        details.dataset.fieldName = select.name.replace(/\[\]$/g, '');
+
+        const summary = document.createElement('summary');
+        details.appendChild(summary);
+
+        const menu = document.createElement('div');
+        menu.className = 'filter-single-combo-menu';
+
+        const actions = document.createElement('div');
+        actions.className = 'filter-check-combo-actions';
+
+        const clearBtn = document.createElement('button');
+        clearBtn.type = 'button';
+        clearBtn.className = 'btn-link';
+        clearBtn.textContent = 'Limpiar';
+        actions.appendChild(clearBtn);
+        menu.appendChild(actions);
+
+        const radioName = `single_combo_${select.name}_${Math.random().toString(36).slice(2)}`;
+        const radioMap = new Map();
+        options.forEach((option) => {
+            const label = document.createElement('label');
+            label.className = 'filter-single-combo-item';
+
+            const radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.name = radioName;
+            radio.value = option.value;
+            radio.checked = option.selected;
+
+            const text = document.createElement('span');
+            text.textContent = option.textContent || option.value;
+
+            label.appendChild(radio);
+            label.appendChild(text);
+            menu.appendChild(label);
+            radioMap.set(option.value, radio);
+        });
+
+        details.appendChild(menu);
+
+        const updateSummary = () => {
+            const selectedOption = options.find((option) => option.selected) || null;
+            const text = (selectedOption?.textContent || placeholder).trim();
+            summary.textContent = text;
+            summary.title = summary.dataset.baseTitle ? `${summary.dataset.baseTitle} Actual: ${text}` : text;
+        };
+
+        const dispatchChange = () => {
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+        };
+
+        const applySelection = (selectedValue) => {
+            Array.from(select.options).forEach((option) => {
+                option.selected = option.value === selectedValue;
+            });
+            radioMap.forEach((radio, value) => {
+                radio.checked = value === selectedValue;
+            });
+            updateSummary();
+            dispatchChange();
+            details.open = false;
+        };
+
+        radioMap.forEach((radio, value) => {
+            radio.addEventListener('change', () => {
+                if (radio.checked) {
+                    applySelection(value);
+                }
+            });
+        });
+
+        clearBtn.addEventListener('click', () => {
+            const emptyOption = options.find((option) => option.value === '') || options[0];
+            applySelection(emptyOption?.value || '');
+        });
+
+        details.addEventListener('toggle', () => {
+            if (!details.open) {
+                return;
+            }
+            closeOtherCombos(details);
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!details.open) {
+                return;
+            }
+            if (event.target instanceof Node && details.contains(event.target)) {
+                return;
+            }
+            details.open = false;
+        });
+
+        select.style.display = 'none';
+        select.insertAdjacentElement('afterend', details);
+        select.dataset.singleComboWired = '1';
+        details.dataset.filterKey = `single:${select.name}`;
         updateSummary();
     };
 
     document.querySelectorAll('select[data-check-combo="1"]').forEach((select) => {
         wireCheckCombo(select);
+    });
+    document.querySelectorAll('select[data-single-combo="1"]').forEach((select) => {
+        wireSingleCombo(select);
+    });
+})();
+
+(() => {
+    const view = <?= json_encode($view, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+    const tooltipByName = {
+        preset_name_select: 'Preset guardado de la consulta avanzada.',
+        table: 'Tabla de datos sobre la que aplicar la consulta.',
+        column: 'Columna usada para filtrar.',
+        op: 'Operacion aplicada al filtro.',
+        value: 'Valor introducido para filtrar.',
+        log: 'Archivo de log a visualizar.',
+        global_rank: 'Posicion global del jugador o marca.',
+        expedition_id: 'Identificador de la expedicion.',
+        ts_user_id: 'Identificador interno del usuario.',
+        player_name: 'Seleccion de jugadores.',
+        reserve_name: 'Seleccion de reservas.',
+        reserve_id: 'Identificador interno de la reserva.',
+        kill_species_name: 'Seleccion de especies de las muertes.',
+        species_name: 'Seleccion de especies.',
+        species_name_es: 'Seleccion de especies en espanol.',
+        especie: 'Nombre de la especie.',
+        type_name: 'Seleccion de tipos de competicion.',
+        leaderboard_type: 'Tipo de clasificacion o comparativa.',
+        finished: 'Estado de finalizacion.',
+        kill_ethical: 'Indica si la muerte fue etica.',
+        mark_filter: 'Filtro por tipo de mejor marca.',
+        photo_tax_filter: 'Filtro por foto o taxidermia.',
+        risk_level: 'Nivel de riesgo calculado.',
+        user_id: 'Identificador interno de usuario.',
+        competition_id: 'Identificador de la competicion.',
+        kill_id: 'Identificador de la muerte.',
+        hit_index: 'Identificador o indice del disparo.',
+        kill_gender: 'Genero de la pieza abatida.',
+        kill_score_min: 'Puntuacion minima de la muerte.',
+        kill_score_max: 'Puntuacion maxima de la muerte.',
+        kill_distance_min: 'Distancia minima de la muerte.',
+        kill_distance_max: 'Distancia maxima de la muerte.',
+        kill_weight_min: 'Peso minimo de la muerte.',
+        kill_weight_max: 'Peso maximo de la muerte.',
+        kill_integrity_min: 'Integridad minima de la muerte.',
+        kill_integrity_max: 'Integridad maxima de la muerte.',
+        kill_harvest_min: 'Harvest minimo de la muerte.',
+        kill_harvest_max: 'Harvest maximo de la muerte.',
+        hit_weapon_id: 'Identificador del arma usada en el disparo.',
+        hit_ammo_id: 'Identificador de la municion usada en el disparo.',
+        hit_organ: 'Organo impactado en el disparo.',
+        exp_duration_min: 'Duracion minima de la expedicion.',
+        exp_duration_max: 'Duracion maxima de la expedicion.',
+        start_at: 'Fecha y hora de inicio.',
+        end_at: 'Fecha y hora de fin.',
+        date_from: 'Fecha inicial del rango.',
+        date_to: 'Fecha final del rango.',
+        entrants: 'Numero de participantes.',
+        hunter_score: 'Hunter Score del jugador.',
+        best_score_value: 'Mejor puntuacion registrada.',
+        best_distance_m: 'Mejor distancia registrada.',
+        duration: 'Duracion acumulada.',
+        distance: 'Distancia acumulada.',
+        foto_min: 'Numero minimo de fotos.',
+        foto_max: 'Numero maximo de fotos.',
+        tax_min: 'Numero minimo de taxidermias.',
+        tax_max: 'Numero maximo de taxidermias.',
+        peso_max_kg: 'Peso maximo en kg.',
+        score_min: 'Puntuacion minima.',
+        score_max: 'Puntuacion maxima.',
+        animal_species_id: 'Identificador de especie en estadisticas.',
+        animal_kills_min: 'Minimo de muertes por especie.',
+        weapon_id: 'Identificador de arma.',
+        weapon_ammo_id: 'Identificador de municion.',
+        weapon_kills_min: 'Minimo de muertes con arma.',
+        reward_type: 'Tipo de premio.',
+        reward_define: 'Codigo o definicion del premio.',
+        prize_position: 'Puesto del premio.',
+        attempts: 'Numero de intentos.',
+        point_type: 'Modo o tipo de puntuacion.',
+        rank_pos: 'Posicion del ranking.',
+        value_numeric: 'Valor numerico de puntuacion.',
+        distance_m: 'Valor de distancia en metros.',
+        snapshot_at: 'Snapshot actual de clasificacion.',
+        compare_snapshot_at: 'Snapshot con el que comparar.',
+        min_score: 'Riesgo minimo.',
+        min_kills: 'Numero minimo de muertes.',
+        signals_only: 'Mostrar solo filas con senales.',
+        page_size: 'Numero de filas por pagina.',
+        xml_rows: 'Numero maximo de filas a mostrar.',
+        sheet: 'Hoja del XML a visualizar.',
+        ts_total_trophies: 'Total de trofeos del usuario.'
+    };
+    const defaultOrderByView = {
+        advanced: [[
+            'single:table',
+            'single:column',
+            'single:op',
+            'field:value',
+            'field:page_size',
+            'button:Filtrar',
+            'button:Exportar CSV'
+        ]],
+        best: [[
+            'field:global_rank',
+            'combo:player_name[]',
+            'field:hunter_score',
+            'combo:species_name_es[]',
+            'field:best_score_value',
+            'field:best_distance_m',
+            'details:Columnas visibles',
+            'field:page_size',
+            'button:Filtrar',
+            'button:Exportar CSV'
+        ]],
+        profiles: [[
+            'field:global_rank',
+            'combo:player_name[]',
+            'field:hunter_score',
+            'field:duration',
+            'field:distance',
+            'field:animal_species_id',
+            'field:animal_kills_min',
+            'field:weapon_id',
+            'field:weapon_ammo_id',
+            'field:weapon_kills_min',
+            'details:Columnas Estadisticas',
+            'details:Columnas Estadisticas Especies',
+            'details:Columnas Estadisticas Armas',
+            'details:Columnas Estadisticas Coleccionables',
+            'details:Columnas Estadisticas Misiones',
+            'field:page_size',
+            'button:Filtrar',
+            'button:Exportar CSV'
+        ]],
+        competitions: [[
+            'field:competition_id',
+            'combo:type_name[]',
+            'field:entrants',
+            'single:finished',
+            'field:start_at',
+            'field:end_at',
+            'combo:species_name_es[]',
+            'field:reward_type',
+            'field:reward_define',
+            'field:prize_position',
+            'field:attempts',
+            'field:point_type',
+            'details:Columnas visibles',
+            'details:Columnas Tipo',
+            'details:Columnas Especies',
+            'details:Columnas Premios',
+            'field:page_size',
+            'button:Filtrar',
+            'button:Exportar CSV'
+        ]],
+        classifications: [[
+            'single:leaderboard_type',
+            'combo:species_name[]',
+            'field:rank_pos',
+            'combo:player_name[]',
+            'field:user_id',
+            'field:value_numeric',
+            'field:distance_m',
+            'details:Columnas visibles',
+            'field:page_size',
+            'button:Filtrar',
+            'button:Exportar CSV'
+        ]],
+        classifications_history: [[
+            'single:snapshot_at',
+            'single:compare_snapshot_at',
+            'single:leaderboard_type',
+            'field:rank_pos',
+            'combo:species_name[]',
+            'combo:player_name[]',
+            'field:user_id',
+            'check:only_changed',
+            'details:Columnas visibles',
+            'field:page_size',
+            'button:Filtrar',
+            'button:Exportar CSV'
+        ]],
+        cheat_risk: [[
+            'field:user_id',
+            'combo:player_name[]',
+            'single:risk_level',
+            'field:min_score',
+            'field:min_kills',
+            'check:signals_only',
+            'details:Columnas Riesgo',
+            'details:Columnas Senales',
+            'details:Columnas Expediciones Senales',
+            'field:page_size',
+            'button:Filtrar',
+            'button:Exportar CSV'
+        ]],
+        hall_of_fame: [[
+            'combo:species_name[]',
+            'details:Columnas visibles',
+            'field:page_size',
+            'button:Filtrar',
+            'button:Exportar CSV'
+        ]],
+        trophies_summary: [[
+            'combo:player_name[]',
+            'details:Columnas visibles',
+            'details:Filtros Detalle',
+            'details:Columnas Detalle',
+            'field:page_size',
+            'button:Filtrar',
+            'button:Exportar CSV'
+        ]],
+        expeditions: [[
+            'field:expedition_id',
+            'field:user_id',
+            'combo:player_name[]',
+            'combo:reserve_name[]',
+            'field:start_at',
+            'field:end_at',
+            'combo:kill_species_name[]',
+            'field:kill_id',
+            'field:hit_index',
+            'single:kill_ethical',
+            'single:mark_filter',
+            'single:photo_tax_filter',
+            'field:date_from',
+            'field:date_to',
+            'details:Columnas Expediciones',
+            'details:Columnas de Muertes',
+            'details:Columnas de Disparos',
+            'field:page_size',
+            'button:Filtrar',
+            'button:Exportar CSV'
+        ]],
+        species_ppft: [[
+            'field:especie',
+            'field:foto_min',
+            'field:foto_max',
+            'field:tax_min',
+            'field:tax_max',
+            'field:peso_max_kg',
+            'field:score_min',
+            'field:score_max',
+            'details:Columnas visibles',
+            'field:page_size',
+            'button:Filtrar',
+            'button:Exportar CSV'
+        ]],
+        logs: [[
+            'single:log',
+            'button:Ver'
+        ]]
+    };
+    const humanizeName = (value) => String(value || '')
+        .replace(/\[\]/g, '')
+        .replace(/_/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    const nodeKey = (node) => {
+        if (!(node instanceof HTMLElement)) {
+            return null;
+        }
+        if (node.dataset.filterKey) {
+            return node.dataset.filterKey;
+        }
+        if (node instanceof HTMLInputElement || node instanceof HTMLSelectElement || node instanceof HTMLTextAreaElement) {
+            return node.name ? `field:${node.name}` : null;
+        }
+        if (node instanceof HTMLDetailsElement) {
+            if (node.classList.contains('filter-check-combo')) {
+                const prev = node.previousElementSibling;
+                if (prev instanceof HTMLSelectElement && prev.name) {
+                    return `combo:${prev.name}`;
+                }
+            }
+            const summary = node.querySelector(':scope > summary');
+            return `details:${(summary?.textContent || '').trim()}`;
+        }
+        if (node instanceof HTMLButtonElement) {
+            return `button:${(node.textContent || '').trim()}`;
+        }
+        if (node instanceof HTMLAnchorElement) {
+            return `link:${node.getAttribute('href') || (node.textContent || '').trim()}`;
+        }
+        if (node.matches('label.inline-check')) {
+            const input = node.querySelector('input');
+            if (input instanceof HTMLInputElement && input.name) {
+                return `check:${input.name}`;
+            }
+            return `label:${(node.textContent || '').trim()}`;
+        }
+        return null;
+    };
+
+    const applyTooltip = (node) => {
+        if (!(node instanceof HTMLElement)) {
+            return;
+        }
+        if (node instanceof HTMLInputElement || node instanceof HTMLTextAreaElement) {
+            if (!node.title) {
+                node.title = tooltipByName[node.name.replace(/\[\]$/g, '')] || node.placeholder || humanizeName(node.name);
+            }
+            return;
+        }
+        if (node instanceof HTMLSelectElement) {
+            if (!node.title) {
+                const selected = node.selectedOptions.length > 0
+                    ? Array.from(node.selectedOptions).map((opt) => opt.textContent || '').join(', ').trim()
+                    : '';
+                node.title = tooltipByName[node.name.replace(/\[\]$/g, '')] || selected || node.options[0]?.textContent?.trim() || humanizeName(node.name);
+            }
+            return;
+        }
+        if (node instanceof HTMLDetailsElement) {
+            const summary = node.querySelector(':scope > summary');
+            if (summary instanceof HTMLElement && !summary.dataset.baseTitle) {
+                const fieldName = (node.dataset.fieldName || '').replace(/\[\]$/g, '');
+                const baseTitle = tooltipByName[fieldName] || (summary.textContent || '').trim();
+                summary.dataset.baseTitle = baseTitle;
+                if (!summary.title) {
+                    summary.title = baseTitle;
+                }
+            }
+            return;
+        }
+        if (node.matches('label.inline-check')) {
+            const input = node.querySelector('input');
+            if (input instanceof HTMLInputElement && !node.title) {
+                node.title = tooltipByName[input.name.replace(/\[\]$/g, '')] || (node.textContent || '').trim();
+            }
+            return;
+        }
+        if ((node instanceof HTMLButtonElement || node instanceof HTMLAnchorElement) && !node.title) {
+            node.title = (node.textContent || '').trim();
+        }
+    };
+
+    document.querySelectorAll('.content form.table-filters').forEach((form, formIndex) => {
+        if (!(form instanceof HTMLFormElement)) {
+            return;
+        }
+
+        const storageKey = `thc_filter_order_v2_${view}_${formIndex}`;
+        const filterNodes = () => Array.from(form.children).filter((node) => {
+            if (!(node instanceof HTMLElement)) {
+                return false;
+            }
+            if (node instanceof HTMLInputElement && node.type === 'hidden') {
+                return false;
+            }
+            if (node instanceof HTMLSelectElement && node.style.display === 'none') {
+                return false;
+            }
+            return nodeKey(node) !== null;
+        });
+
+        const saveOrder = () => {
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(
+                    filterNodes().map((node) => nodeKey(node)).filter((key) => typeof key === 'string' && key !== '')
+                ));
+            } catch (_) {}
+        };
+
+        const clearState = () => {
+            filterNodes().forEach((node) => {
+                node.classList.remove('filter-drop-before', 'filter-drop-after', 'is-dragging', 'filter-reorder-item');
+            });
+        };
+
+        const wireNode = (node) => {
+            if (!(node instanceof HTMLElement)) {
+                return;
+            }
+            applyTooltip(node);
+            node.classList.add('filter-reorder-item');
+            node.draggable = true;
+        };
+
+        const applySavedOrder = () => {
+            try {
+                const raw = localStorage.getItem(storageKey);
+                const defaultOrder = defaultOrderByView[view]?.[formIndex] || [];
+                if (!raw) {
+                    if (defaultOrder.length === 0) {
+                        return;
+                    }
+                    const map = new Map(filterNodes().map((node) => [nodeKey(node), node]));
+                    defaultOrder.forEach((key) => {
+                        const current = map.get(key);
+                        if (current) {
+                            form.appendChild(current);
+                            map.delete(key);
+                        }
+                    });
+                    map.forEach((node) => {
+                        form.appendChild(node);
+                    });
+                    return;
+                }
+                const saved = JSON.parse(raw);
+                if (!Array.isArray(saved)) {
+                    return;
+                }
+                const map = new Map(filterNodes().map((node) => [nodeKey(node), node]));
+                saved.forEach((key) => {
+                    const current = map.get(key);
+                    if (current) {
+                        form.appendChild(current);
+                        map.delete(key);
+                    }
+                });
+                map.forEach((node) => {
+                    form.appendChild(node);
+                });
+            } catch (_) {}
+        };
+
+        let dragged = null;
+        applySavedOrder();
+        filterNodes().forEach(wireNode);
+
+        filterNodes().forEach((node) => {
+            node.addEventListener('dragstart', () => {
+                dragged = node;
+                clearState();
+                node.classList.add('is-dragging');
+            });
+
+            node.addEventListener('dragover', (event) => {
+                event.preventDefault();
+                if (!(dragged instanceof HTMLElement) || dragged === node) {
+                    return;
+                }
+                const rect = node.getBoundingClientRect();
+                const before = event.clientY < (rect.top + rect.height / 2);
+                node.classList.toggle('filter-drop-before', before);
+                node.classList.toggle('filter-drop-after', !before);
+            });
+
+            node.addEventListener('dragleave', () => {
+                node.classList.remove('filter-drop-before', 'filter-drop-after');
+            });
+
+            node.addEventListener('drop', (event) => {
+                event.preventDefault();
+                if (!(dragged instanceof HTMLElement) || dragged === node) {
+                    clearState();
+                    return;
+                }
+                const rect = node.getBoundingClientRect();
+                const before = event.clientY < (rect.top + rect.height / 2);
+                if (before) {
+                    form.insertBefore(dragged, node);
+                } else {
+                    form.insertBefore(dragged, node.nextSibling);
+                }
+                clearState();
+                filterNodes().forEach(wireNode);
+                saveOrder();
+            });
+
+            node.addEventListener('dragend', () => {
+                clearState();
+                dragged = null;
+            });
+        });
+    });
+
+    document.querySelectorAll('.content .visible-item span, .content form.table-filters details > summary').forEach((node) => {
+        if (node instanceof HTMLElement && !node.title) {
+            node.title = (node.textContent || '').trim();
+        }
+    });
+})();
+
+(() => {
+    const view = <?= json_encode($view, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+    if (view !== 'trophies_summary') {
+        return;
+    }
+
+    const closeAll = () => {
+        document.querySelectorAll('.trophy-summary-detail-row').forEach((row) => {
+            if (!(row instanceof HTMLTableRowElement)) {
+                return;
+            }
+
+            row.style.display = 'none';
+            row.dataset.activeMedalType = '';
+            row.querySelectorAll('.trophy-summary-panel').forEach((panel) => {
+                if (panel instanceof HTMLElement) {
+                    panel.style.display = 'none';
+                }
+            });
+        });
+
+        document.querySelectorAll('.trophy-count-toggle.is-active').forEach((btn) => {
+            btn.classList.remove('is-active');
+        });
+    };
+
+    document.querySelectorAll('.trophy-count-toggle').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            if (!(btn instanceof HTMLButtonElement)) {
+                return;
+            }
+
+            const userId = btn.getAttribute('data-user-id') || '';
+            const medalType = btn.getAttribute('data-medal-type') || '';
+            const row = document.querySelector(`.trophy-summary-detail-row[data-user-id="${userId}"]`);
+            if (!(row instanceof HTMLTableRowElement)) {
+                return;
+            }
+
+            const sameOpen = row.style.display !== 'none' && row.dataset.activeMedalType === medalType;
+            closeAll();
+            if (sameOpen) {
+                return;
+            }
+
+            row.style.display = '';
+            row.dataset.activeMedalType = medalType;
+            const panel = row.querySelector(`.trophy-summary-panel[data-medal-type="${medalType}"]`);
+            if (panel instanceof HTMLElement) {
+                panel.style.display = 'block';
+            }
+
+            btn.classList.add('is-active');
+        });
+    });
+})();
+
+(() => {
+    const collator = new Intl.Collator('es', { numeric: true, sensitivity: 'base' });
+
+    const parseSortableNumber = (raw) => {
+        let value = String(raw || '').trim();
+        if (value === '') {
+            return null;
+        }
+        value = value.replace(/\s+/g, '');
+        value = value.replace(/[^0-9,.\-]/g, '');
+        if (value === '' || !/\d/.test(value)) {
+            return null;
+        }
+        if (value.includes(',') && value.includes('.')) {
+            if (value.lastIndexOf(',') > value.lastIndexOf('.')) {
+                value = value.replace(/\./g, '').replace(',', '.');
+            } else {
+                value = value.replace(/,/g, '');
+            }
+        } else if (value.includes(',')) {
+            value = value.replace(',', '.');
+        }
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : null;
+    };
+
+    const parseSortableDate = (raw) => {
+        const value = String(raw || '').trim();
+        const match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+        if (!match) {
+            return null;
+        }
+        const [, dd, mm, yyyy, hh = '0', mi = '0', ss = '0'] = match;
+        return Date.UTC(Number(yyyy), Number(mm) - 1, Number(dd), Number(hh), Number(mi), Number(ss));
+    };
+
+    const cellComparable = (row, colIndex) => {
+        const cell = row.cells[colIndex];
+        if (!(cell instanceof HTMLTableCellElement)) {
+            return { empty: true, kind: 'string', value: '' };
+        }
+        const raw = String(cell.dataset.sortValue || cell.dataset.num || cell.textContent || '').replace(/\s+/g, ' ').trim();
+        if (raw === '') {
+            return { empty: true, kind: 'string', value: '' };
+        }
+        const dateValue = parseSortableDate(raw);
+        if (dateValue !== null) {
+            return { empty: false, kind: 'number', value: dateValue };
+        }
+        const numValue = parseSortableNumber(raw);
+        if (numValue !== null) {
+            return { empty: false, kind: 'number', value: numValue };
+        }
+        return { empty: false, kind: 'string', value: raw };
+    };
+
+    const sortTableBody = (table, colIndex, dir) => {
+        const tbody = table.tBodies[0];
+        if (!(tbody instanceof HTMLTableSectionElement)) {
+            return;
+        }
+
+        const decorated = Array.from(tbody.rows).map((row, idx) => ({
+            row,
+            idx,
+            comparable: cellComparable(row, colIndex),
+        }));
+
+        decorated.sort((a, b) => {
+            if (a.comparable.empty && b.comparable.empty) {
+                return a.idx - b.idx;
+            }
+            if (a.comparable.empty) {
+                return 1;
+            }
+            if (b.comparable.empty) {
+                return -1;
+            }
+
+            let result = 0;
+            if (a.comparable.kind === 'number' && b.comparable.kind === 'number') {
+                result = a.comparable.value - b.comparable.value;
+            } else {
+                result = collator.compare(String(a.comparable.value), String(b.comparable.value));
+            }
+            if (result === 0) {
+                result = a.idx - b.idx;
+            }
+            return dir === 'desc' ? -result : result;
+        });
+
+        decorated.forEach((item) => {
+            tbody.appendChild(item.row);
+        });
+    };
+
+    const clearHeaderState = (table) => {
+        table.querySelectorAll('.client-sortable-th').forEach((th) => {
+            th.classList.remove('is-asc', 'is-desc');
+        });
+    };
+
+    const wireClientSortableTable = (table) => {
+        if (!(table instanceof HTMLTableElement) || table.dataset.clientSortableWired === '1') {
+            return;
+        }
+        if (!(table.tHead instanceof HTMLTableSectionElement) || !(table.tBodies[0] instanceof HTMLTableSectionElement)) {
+            return;
+        }
+        if (table.tBodies[0].rows.length < 2) {
+            return;
+        }
+        if (table.tHead.querySelector('.th-sort')) {
+            return;
+        }
+
+        const headerRow = table.tHead.rows[table.tHead.rows.length - 1];
+        if (!(headerRow instanceof HTMLTableRowElement)) {
+            return;
+        }
+
+        Array.from(headerRow.cells).forEach((cell, idx) => {
+            if (!(cell instanceof HTMLTableCellElement)) {
+                return;
+            }
+            if (cell.colSpan !== 1) {
+                return;
+            }
+            cell.classList.add('client-sortable-th');
+            cell.title = 'Ordenar';
+            cell.addEventListener('click', () => {
+                const nextDir = table.dataset.clientSortCol === String(idx) && table.dataset.clientSortDir === 'asc' ? 'desc' : 'asc';
+                table.dataset.clientSortCol = String(idx);
+                table.dataset.clientSortDir = nextDir;
+                clearHeaderState(table);
+                cell.classList.add(nextDir === 'asc' ? 'is-asc' : 'is-desc');
+                sortTableBody(table, idx, nextDir);
+            });
+        });
+
+        table.dataset.clientSortableWired = '1';
+    };
+
+    document.querySelectorAll('.content table').forEach((table) => {
+        wireClientSortableTable(table);
     });
 })();
 

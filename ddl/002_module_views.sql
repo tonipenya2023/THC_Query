@@ -80,6 +80,29 @@ FROM gpt.exp_expeditions e
 LEFT JOIN gpt.exp_payloads ep ON ep.expedition_id = e.expedition_id;
 
 
+DROP VIEW IF EXISTS gpt.v_user_trophies_summary;
+
+CREATE VIEW gpt.v_user_trophies_summary AS
+WITH trophy_counts AS (
+    SELECT
+        ut.user_id,
+        COUNT(*) FILTER (WHERE LOWER(COALESCE(ut.trophy_name, '')) LIKE '%gold%') AS gold_count,
+        COUNT(*) FILTER (WHERE LOWER(COALESCE(ut.trophy_name, '')) LIKE '%silver%') AS silver_count,
+        COUNT(*) FILTER (WHERE LOWER(COALESCE(ut.trophy_name, '')) LIKE '%bronze%') AS bronze_count
+    FROM gpt.user_trophies ut
+    GROUP BY ut.user_id
+)
+SELECT
+    u.user_id,
+    u.player_name,
+    COALESCE(tc.gold_count, 0) AS gold_count,
+    COALESCE(tc.silver_count, 0) AS silver_count,
+    COALESCE(tc.bronze_count, 0) AS bronze_count,
+    (COALESCE(tc.gold_count, 0) + COALESCE(tc.silver_count, 0) + COALESCE(tc.bronze_count, 0)) AS total_trophies
+FROM gpt.tab_usuarios u
+LEFT JOIN trophy_counts tc ON tc.user_id = u.user_id;
+
+
 CREATE OR REPLACE VIEW gpt.v_best_records AS
 SELECT
     b.user_id,
