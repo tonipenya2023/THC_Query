@@ -596,3 +596,38 @@ SELECT DISTINCT ON (s.url)
 FROM gpt.scrape_kill_urls s
 ORDER BY s.url, s.run_at DESC, s.id DESC;
 
+
+CREATE OR REPLACE VIEW gpt.v_kill_detail_scrapes_latest AS
+SELECT DISTINCT ON (k.player_name, k.kill_id)
+    k.scrape_id,
+    k.kill_id,
+    k.player_name,
+    k.url,
+    k.scraped_at,
+    k.species_name,
+    k.hunter_name,
+    k.weapon_text,
+    k.scope_text,
+    k.ammo_text,
+    k.shot_distance_text,
+    k.animal_state_text,
+    k.body_part_text,
+    k.posture_text,
+    k.platform_text,
+    k.shot_location_text,
+    k.weight_text,
+    k.type_text,
+    k.wound_time_text,
+    k.trophy_integrity_text,
+    k.shot_count_text,
+    k.capture_time_text,
+    k.trophy_score_text,
+    k.harvest_value_text,
+    k.page_title,
+    k.render_url,
+    k.raw_body_text,
+    k.raw_html,
+    k.kill_data_json
+FROM gpt.kill_detail_scrapes k
+ORDER BY k.player_name, k.kill_id, k.scraped_at DESC, k.scrape_id DESC;
+

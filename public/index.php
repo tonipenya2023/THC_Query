@@ -1406,7 +1406,7 @@ function render_dashboard(): void
     $scheduledTasks = TaskScheduleManager::forPanel();
     echo '<section class="card">';
     echo '<h2>Tareas programadas</h2>';
-    echo '<table><thead><tr><th>Tarea</th><th>Activa</th><th>Cada (min)</th><th>&Uacute;ltima ejecuci&oacute;n</th><th>Estado</th><th>Ejecutar</th>' . ($isAdmin ? '<th>Guardar</th>' : '') . '</tr></thead><tbody>';
+    echo '<table><thead><tr><th>Tarea</th><th>Activa</th><th>Cada (min)</th><th>Jugador</th><th>&Uacute;ltima ejecuci&oacute;n</th><th>Estado</th><th>Ejecutar</th>' . ($isAdmin ? '<th>Guardar</th>' : '') . '</tr></thead><tbody>';
     foreach ($scheduledTasks as $action => $def) {
         $last = null;
         $isBusy = false;
@@ -1439,9 +1439,16 @@ function render_dashboard(): void
             $checked = ((bool) ($def['enabled'] ?? false)) ? ' checked' : '';
             echo '<td><label><input type="checkbox" name="enabled" value="1" form="' . h($saveFormId) . '"' . $checked . '> Si</label></td>';
             echo '<td><input type="number" name="interval_min" min="1" max="10080" value="' . h((string) ($def['interval_min'] ?? 180)) . '" form="' . h($saveFormId) . '" style="width:92px"></td>';
+            if ((string) $action === 'scrape_kill_details') {
+                echo '<td><input type="text" name="player" value="' . h((string) ($def['player'] ?? '')) . '" form="' . h($saveFormId) . '" style="width:140px" placeholder="Jugador"></td>';
+            } else {
+                echo '<td><span class="muted">-</span></td>';
+            }
         } else {
             echo '<td>' . (((bool) ($def['enabled'] ?? false)) ? 'Si' : 'No') . '</td>';
             echo '<td>' . h((string) ($def['interval_min'] ?? 180)) . '</td>';
+            $playerText = trim((string) ($def['player'] ?? ''));
+            echo '<td>' . ($playerText !== '' ? h($playerText) : '<span class="muted">-</span>') . '</td>';
         }
         echo '<td>' . h($lastAt) . '</td>';
         echo '<td>' . h($lastStatus) . '</td>';
@@ -1692,6 +1699,8 @@ function render_expeditions(): void
         'score' => 'Puntuacion',
         'harvest_value' => 'Harvest',
         'trophy_integrity' => 'Integridad (%)',
+        'wound_time_text' => 'Tiempo herida',
+        'shot_location_text' => 'Lugar disparo',
         'confirm_at' => 'Confirmado',
         'hits_count' => 'Disparos',
         'hits_avg_distance' => 'Dist Avg (m)',
@@ -1709,7 +1718,7 @@ function render_expeditions(): void
         'hits_avg_distance' => true,
         'hits_max_distance' => true,
     ];
-    $defaultKillCols = ['kill_id', 'player_name', 'species_name', 'species_name_es', 'hit_min_distance', 'score', 'harvest_value', 'trophy_integrity', 'weight', 'ethical', 'hits_count'];
+    $defaultKillCols = ['kill_id', 'player_name', 'species_name', 'species_name_es', 'hit_min_distance', 'score', 'harvest_value', 'trophy_integrity', 'wound_time_text', 'shot_location_text', 'weight', 'ethical', 'hits_count'];
     $selectedKillCols = persistent_selected_columns('exp_kill_cols', $killColumnDefs, 'kcol_', $defaultKillCols);
     $killDragOrderRaw = query_text('kcol_order');
     if ($killDragOrderRaw !== null) {
@@ -1730,7 +1739,16 @@ function render_expeditions(): void
         'hit_index' => 'Disparo',
         'player_name' => 'Jugador',
         'user_id' => 'IdUsuario',
+        'hunter_name' => 'Cazador',
+        'weapon_text' => 'Arma',
+        'scope_text' => 'Visor',
+        'ammo_text' => 'Municion',
         'distance' => 'Distancia (m)',
+        'shot_distance_text' => 'Distancia disparo',
+        'animal_state_text' => 'Estado animal',
+        'body_part_text' => 'Parte cuerpo',
+        'posture_text' => 'Postura',
+        'platform_text' => 'Plataforma',
         'weapon_id' => 'Weapon',
         'ammo_id' => 'Ammo',
         'organ' => 'Organo',
@@ -1743,7 +1761,7 @@ function render_expeditions(): void
         'ammo_id' => true,
         'organ' => true,
     ];
-    $defaultHitCols = ['hit_index', 'player_name', 'distance', 'weapon_id', 'ammo_id', 'organ'];
+    $defaultHitCols = ['hit_index', 'hunter_name', 'weapon_text', 'scope_text', 'ammo_text', 'shot_distance_text', 'animal_state_text', 'body_part_text', 'posture_text', 'platform_text'];
     $selectedHitCols = persistent_selected_columns('exp_hit_cols', $hitColumnDefs, 'hcol_', $defaultHitCols);
     $hitDragOrderRaw = query_text('hcol_order');
     if ($hitDragOrderRaw !== null) {
@@ -1773,6 +1791,8 @@ function render_expeditions(): void
         'score' => 'COALESCE(k.score, -1)',
         'harvest_value' => 'COALESCE(k.harvest_value, -1)',
         'trophy_integrity' => 'COALESCE(k.trophy_integrity, -1)',
+        'wound_time_text' => 'COALESCE(kd.wound_time_text, \'\')',
+        'shot_location_text' => 'COALESCE(kd.shot_location_text, \'\')',
         'confirm_at' => 'COALESCE(k.confirm_at, k.created_at)',
         'hits_count' => 'COALESCE(hs.hits_count, -1)',
         'hits_avg_distance' => 'COALESCE(hs.avg_distance_raw, -1)',
@@ -1785,7 +1805,16 @@ function render_expeditions(): void
         'hit_index' => 'hit_index',
         'player_name' => 'player_name',
         'user_id' => 'COALESCE(user_id, -1)',
+        'hunter_name' => 'COALESCE(hunter_name, \'\')',
+        'weapon_text' => 'COALESCE(weapon_text, \'\')',
+        'scope_text' => 'COALESCE(scope_text, \'\')',
+        'shot_distance_text' => 'COALESCE(shot_distance_text, \'\')',
+        'animal_state_text' => 'COALESCE(animal_state_text, \'\')',
+        'body_part_text' => 'COALESCE(body_part_text, \'\')',
+        'posture_text' => 'COALESCE(posture_text, \'\')',
+        'platform_text' => 'COALESCE(platform_text, \'\')',
         'distance' => 'COALESCE(distance, -1)',
+        'ammo_text' => 'COALESCE(ammo_text, \'\')',
         'weapon_id' => 'COALESCE(weapon_id, -1)',
         'ammo_id' => 'COALESCE(ammo_id, -1)',
         'organ' => 'COALESCE(organ, -1)',
@@ -1826,6 +1855,8 @@ function render_expeditions(): void
     $killIntegrityMax = query_text('kill_integrity_max');
     $killHarvestMin = query_text('kill_harvest_min');
     $killHarvestMax = query_text('kill_harvest_max');
+    $killWoundTime = query_text('kill_wound_time');
+    $killShotLocation = query_text('kill_shot_location');
     $markFilter = query_text('mark_filter') ?? '';
     if (!in_array($markFilter, ['', 'any', 'mmp', 'mmd'], true)) {
         $markFilter = '';
@@ -1840,6 +1871,15 @@ function render_expeditions(): void
     $hitWeaponId = query_int('hit_weapon_id');
     $hitAmmoId = query_int('hit_ammo_id');
     $hitOrgan = query_int('hit_organ');
+    $hitHunterText = query_text('hit_hunter_name');
+    $hitWeaponText = query_text('hit_weapon_text');
+    $hitScopeText = query_text('hit_scope_text');
+    $hitAmmoText = query_text('hit_ammo_text');
+    $hitShotDistanceText = query_text('hit_shot_distance_text');
+    $hitAnimalStateText = query_text('hit_animal_state_text');
+    $hitBodyPartText = query_text('hit_body_part_text');
+    $hitPostureText = query_text('hit_posture_text');
+    $hitPlatformText = query_text('hit_platform_text');
     $expDurationMin = query_text('exp_duration_min');
     $expDurationMax = query_text('exp_duration_max');
 
@@ -1868,11 +1908,22 @@ function render_expeditions(): void
         $killIntegrityMax = null;
         $killHarvestMin = null;
         $killHarvestMax = null;
+        $killWoundTime = null;
+        $killShotLocation = null;
         $markFilter = '';
         $photoTaxFilter = '';
         $hitWeaponId = null;
         $hitAmmoId = null;
         $hitOrgan = null;
+        $hitHunterText = null;
+        $hitWeaponText = null;
+        $hitScopeText = null;
+        $hitAmmoText = null;
+        $hitShotDistanceText = null;
+        $hitAnimalStateText = null;
+        $hitBodyPartText = null;
+        $hitPostureText = null;
+        $hitPlatformText = null;
         $expDurationMin = null;
         $expDurationMax = null;
         $startAtFrom = null;
@@ -2259,11 +2310,22 @@ function render_expeditions(): void
     echo '<input type="text" name="kill_integrity_max" data-col-target="k_trophy_integrity" placeholder="Kill integridad max (%)" value="' . h(query_raw('kill_integrity_max')) . '">';
     echo '<input type="text" name="kill_harvest_min" data-col-target="k_harvest_value" placeholder="Kill harvest min" value="' . h(query_raw('kill_harvest_min')) . '">';
     echo '<input type="text" name="kill_harvest_max" data-col-target="k_harvest_value" placeholder="Kill harvest max" value="' . h(query_raw('kill_harvest_max')) . '">';
+    echo '<input type="text" name="kill_wound_time" data-col-target="k_wound_time_text" placeholder="Tiempo herida" value="' . h(query_raw('kill_wound_time')) . '">';
+    echo '<input type="text" name="kill_shot_location" data-col-target="k_shot_location_text" placeholder="Lugar disparo" value="' . h(query_raw('kill_shot_location')) . '">';
     echo '<select name="mark_filter" data-single-combo="1" data-single-combo-placeholder="Marca (todas)"><option value="">Marca (todas)</option><option value="any"' . ($markFilter === 'any' ? ' selected' : '') . '>MM (MMP o MMD)</option><option value="mmp"' . ($markFilter === 'mmp' ? ' selected' : '') . '>Solo MMP</option><option value="mmd"' . ($markFilter === 'mmd' ? ' selected' : '') . '>Solo MMD</option></select>';
     echo '<select name="photo_tax_filter" data-single-combo="1" data-single-combo-placeholder="Foto/Tax"><option value="">Todas</option><option value="ft"' . ($photoTaxFilter === 'ft' ? ' selected' : '') . '>Foto o Tax</option><option value="f"' . ($photoTaxFilter === 'f' ? ' selected' : '') . '>Foto</option><option value="t"' . ($photoTaxFilter === 't' ? ' selected' : '') . '>Tax</option></select>';
     echo '<input type="text" name="hit_weapon_id" data-col-target="h_weapon_id" placeholder="Disparo weapon_id" value="' . h(query_raw('hit_weapon_id')) . '">';
     echo '<input type="text" name="hit_ammo_id" data-col-target="h_ammo_id" placeholder="Disparo ammo_id" value="' . h(query_raw('hit_ammo_id')) . '">';
     echo '<input type="text" name="hit_organ" data-col-target="h_organ" placeholder="Disparo organo" value="' . h(query_raw('hit_organ')) . '">';
+    echo '<input type="text" name="hit_hunter_name" data-col-target="h_hunter_name" placeholder="Cazador" value="' . h(query_raw('hit_hunter_name')) . '">';
+    echo '<input type="text" name="hit_weapon_text" data-col-target="h_weapon_text" placeholder="Arma" value="' . h(query_raw('hit_weapon_text')) . '">';
+    echo '<input type="text" name="hit_scope_text" data-col-target="h_scope_text" placeholder="Visor" value="' . h(query_raw('hit_scope_text')) . '">';
+    echo '<input type="text" name="hit_ammo_text" data-col-target="h_ammo_text" placeholder="Municion" value="' . h(query_raw('hit_ammo_text')) . '">';
+    echo '<input type="text" name="hit_shot_distance_text" data-col-target="h_shot_distance_text" placeholder="Distancia disparo" value="' . h(query_raw('hit_shot_distance_text')) . '">';
+    echo '<input type="text" name="hit_animal_state_text" data-col-target="h_animal_state_text" placeholder="Estado animal" value="' . h(query_raw('hit_animal_state_text')) . '">';
+    echo '<input type="text" name="hit_body_part_text" data-col-target="h_body_part_text" placeholder="Parte cuerpo" value="' . h(query_raw('hit_body_part_text')) . '">';
+    echo '<input type="text" name="hit_posture_text" data-col-target="h_posture_text" placeholder="Postura" value="' . h(query_raw('hit_posture_text')) . '">';
+    echo '<input type="text" name="hit_platform_text" data-col-target="h_platform_text" placeholder="Plataforma" value="' . h(query_raw('hit_platform_text')) . '">';
     echo '<input type="text" name="exp_duration_min" placeholder="Duracion" value="' . h(query_raw('exp_duration_min')) . '">';
     echo '<input type="text" name="exp_duration_max" placeholder="Duracion" value="' . h(query_raw('exp_duration_max')) . '">';
     echo '<input type="date" name="date_from" data-col-target="e_start_at" title="Fecha inicio" value="' . h(query_raw('date_from') !== '' ? query_raw('date_from') : query_raw('start_at_from')) . '">';
@@ -2321,6 +2383,7 @@ function render_expeditions(): void
     $expeditionIds = array_values(array_unique($expeditionIds));
 
     $hitsByKill = [];
+    $scrapedKillMap = [];
     $bestScoreByUserSpecies = [];
     $bestDistanceByUserSpecies = [];
     $bestScoreKillByUserSpecies = [];
@@ -2439,6 +2502,14 @@ function render_expeditions(): void
             $killSql .= ' AND k.harvest_value <= :kill_harvest_max';
             $killParams[':kill_harvest_max'] = $killHarvestMax;
         }
+        if ($killWoundTime !== null) {
+            $killSql .= ' AND EXISTS (SELECT 1 FROM gpt.v_kill_detail_scrapes_latest kd1 WHERE kd1.kill_id = k.kill_id AND kd1.wound_time_text ILIKE :kill_wound_time)';
+            $killParams[':kill_wound_time'] = '%' . $killWoundTime . '%';
+        }
+        if ($killShotLocation !== null) {
+            $killSql .= ' AND EXISTS (SELECT 1 FROM gpt.v_kill_detail_scrapes_latest kd1 WHERE kd1.kill_id = k.kill_id AND kd1.shot_location_text ILIKE :kill_shot_location)';
+            $killParams[':kill_shot_location'] = '%' . $killShotLocation . '%';
+        }
         if ($markFilter !== '') {
             $scoreMarkCondition = 'k.score IS NOT NULL
                   AND bpr.best_score_value IS NOT NULL
@@ -2474,6 +2545,12 @@ function render_expeditions(): void
             $killSql .= ' AND EXISTS (SELECT 1 FROM gpt.exp_hits hf WHERE hf.kill_id = k.kill_id AND hf.organ = :hit_organ)';
             $killParams[':hit_organ'] = $hitOrgan;
         }
+
+        $killSql = str_replace(
+            'WHERE k.expedition_id IN (' . implode(', ', $inParts) . ')',
+            'LEFT JOIN gpt.v_kill_detail_scrapes_latest kd ON kd.kill_id = k.kill_id WHERE k.expedition_id IN (' . implode(', ', $inParts) . ')',
+            $killSql
+        );
 
         $killSql .= ' ORDER BY k.expedition_id DESC, ' . $killSortDefs[$killSortKey] . ' ' . strtoupper($killSortDir) . ', k.kill_id DESC';
         $killRows = app_query_all($killSql, $killParams);
@@ -2557,6 +2634,34 @@ function render_expeditions(): void
             }
         }
         if ($killIds !== []) {
+            $detailInParts = [];
+            $detailParams = [];
+            foreach ($killIds as $idx => $id) {
+                $ph = ':dkill_' . $idx;
+                $detailInParts[] = $ph;
+                $detailParams[$ph] = $id;
+            }
+            try {
+                $detailRows = app_query_all(
+                    'SELECT kill_id, player_name, scraped_at
+                     FROM gpt.v_kill_detail_scrapes_latest
+                     WHERE kill_id IN (' . implode(', ', $detailInParts) . ')',
+                    $detailParams
+                );
+                foreach ($detailRows as $drow) {
+                    $detailKillId = (int) ($drow['kill_id'] ?? 0);
+                    if ($detailKillId <= 0) {
+                        continue;
+                    }
+                    $scrapedKillMap[$detailKillId] = [
+                        'player_name' => (string) ($drow['player_name'] ?? ''),
+                        'scraped_at' => (string) ($drow['scraped_at'] ?? ''),
+                    ];
+                }
+            } catch (Throwable) {
+                $scrapedKillMap = [];
+            }
+
             $hitInParts = [];
             $hitParams = [];
             foreach ($killIds as $idx => $id) {
@@ -2565,26 +2670,65 @@ function render_expeditions(): void
                 $hitParams[$ph] = $id;
             }
 
-            $hitSql = 'SELECT kill_id, hit_index, user_id, player_name, distance, weapon_id, ammo_id, organ
-                       FROM gpt.exp_hits
-                       WHERE kill_id IN (' . implode(', ', $hitInParts) . ')';
+            $hitSql = 'SELECT h.kill_id, h.hit_index, h.user_id, h.player_name, h.distance, h.weapon_id, h.ammo_id, h.organ,
+                              kd.hunter_name, kd.weapon_text, kd.scope_text, kd.ammo_text, kd.shot_distance_text,
+                              kd.animal_state_text, kd.body_part_text, kd.posture_text, kd.platform_text
+                       FROM gpt.exp_hits h
+                       LEFT JOIN gpt.v_kill_detail_scrapes_latest kd ON kd.kill_id = h.kill_id
+                       WHERE h.kill_id IN (' . implode(', ', $hitInParts) . ')';
             if ($hitIndex !== null) {
-                $hitSql .= ' AND hit_index = :hit_index_exact';
+                $hitSql .= ' AND h.hit_index = :hit_index_exact';
                 $hitParams[':hit_index_exact'] = $hitIndex;
             }
             if ($hitWeaponId !== null) {
-                $hitSql .= ' AND weapon_id = :hit_weapon_id_exact';
+                $hitSql .= ' AND h.weapon_id = :hit_weapon_id_exact';
                 $hitParams[':hit_weapon_id_exact'] = $hitWeaponId;
             }
             if ($hitAmmoId !== null) {
-                $hitSql .= ' AND ammo_id = :hit_ammo_id_exact';
+                $hitSql .= ' AND h.ammo_id = :hit_ammo_id_exact';
                 $hitParams[':hit_ammo_id_exact'] = $hitAmmoId;
             }
             if ($hitOrgan !== null) {
-                $hitSql .= ' AND organ = :hit_organ_exact';
+                $hitSql .= ' AND h.organ = :hit_organ_exact';
                 $hitParams[':hit_organ_exact'] = $hitOrgan;
             }
-            $hitSql .= ' ORDER BY kill_id DESC, ' . $hitSortDefs[$hitSortKey] . ' ' . strtoupper($hitSortDir) . ', hit_index ASC';
+            if ($hitHunterText !== null) {
+                $hitSql .= ' AND kd.hunter_name ILIKE :hit_hunter_name';
+                $hitParams[':hit_hunter_name'] = '%' . $hitHunterText . '%';
+            }
+            if ($hitWeaponText !== null) {
+                $hitSql .= ' AND kd.weapon_text ILIKE :hit_weapon_text';
+                $hitParams[':hit_weapon_text'] = '%' . $hitWeaponText . '%';
+            }
+            if ($hitScopeText !== null) {
+                $hitSql .= ' AND kd.scope_text ILIKE :hit_scope_text';
+                $hitParams[':hit_scope_text'] = '%' . $hitScopeText . '%';
+            }
+            if ($hitAmmoText !== null) {
+                $hitSql .= ' AND kd.ammo_text ILIKE :hit_ammo_text';
+                $hitParams[':hit_ammo_text'] = '%' . $hitAmmoText . '%';
+            }
+            if ($hitShotDistanceText !== null) {
+                $hitSql .= ' AND kd.shot_distance_text ILIKE :hit_shot_distance_text';
+                $hitParams[':hit_shot_distance_text'] = '%' . $hitShotDistanceText . '%';
+            }
+            if ($hitAnimalStateText !== null) {
+                $hitSql .= ' AND kd.animal_state_text ILIKE :hit_animal_state_text';
+                $hitParams[':hit_animal_state_text'] = '%' . $hitAnimalStateText . '%';
+            }
+            if ($hitBodyPartText !== null) {
+                $hitSql .= ' AND kd.body_part_text ILIKE :hit_body_part_text';
+                $hitParams[':hit_body_part_text'] = '%' . $hitBodyPartText . '%';
+            }
+            if ($hitPostureText !== null) {
+                $hitSql .= ' AND kd.posture_text ILIKE :hit_posture_text';
+                $hitParams[':hit_posture_text'] = '%' . $hitPostureText . '%';
+            }
+            if ($hitPlatformText !== null) {
+                $hitSql .= ' AND kd.platform_text ILIKE :hit_platform_text';
+                $hitParams[':hit_platform_text'] = '%' . $hitPlatformText . '%';
+            }
+            $hitSql .= ' ORDER BY h.kill_id DESC, ' . $hitSortDefs[$hitSortKey] . ' ' . strtoupper($hitSortDir) . ', h.hit_index ASC';
 
             $hitRows = app_query_all($hitSql, $hitParams);
             foreach ($hitRows as $hitRow) {
@@ -7518,6 +7662,219 @@ function render_kill_url_scrape_status(): void
     echo '</section>';
 }
 
+function render_kill_detail_scrapes(): void
+{
+    echo '<section class="card"><h2>Detalle Muertes Scraper</h2>';
+
+    $columnDefs = [
+        'scraped_at' => ['label' => 'Ultima captura'],
+        'player_name' => ['label' => 'Jugador'],
+        'kill_id' => ['label' => 'Kill ID'],
+        'species_name' => ['label' => 'Especie'],
+        'hunter_name' => ['label' => 'Cazador'],
+        'weapon_text' => ['label' => 'Arma'],
+        'scope_text' => ['label' => 'Visor'],
+        'ammo_text' => ['label' => 'Municion'],
+        'shot_distance_text' => ['label' => 'Distancia disparo'],
+        'animal_state_text' => ['label' => 'Estado animal'],
+        'body_part_text' => ['label' => 'Parte cuerpo'],
+        'posture_text' => ['label' => 'Postura'],
+        'platform_text' => ['label' => 'Plataforma'],
+        'shot_location_text' => ['label' => 'Lugar disparo'],
+        'weight_text' => ['label' => 'Peso'],
+        'type_text' => ['label' => 'Tipo'],
+        'wound_time_text' => ['label' => 'Tiempo herida'],
+        'trophy_integrity_text' => ['label' => 'Integridad trofeo'],
+        'shot_count_text' => ['label' => 'Disparos'],
+        'capture_time_text' => ['label' => 'Tiempo captura'],
+        'trophy_score_text' => ['label' => 'Trophy score'],
+        'harvest_value_text' => ['label' => 'Valor captura'],
+        'page_title' => ['label' => 'Titulo'],
+    ];
+    $defaultCols = ['scraped_at', 'player_name', 'kill_id', 'species_name', 'weapon_text', 'scope_text', 'ammo_text', 'shot_distance_text', 'animal_state_text', 'body_part_text', 'posture_text', 'platform_text', 'shot_location_text', 'trophy_score_text'];
+    $selectedCols = persistent_selected_columns('kill_detail_visible_cols', $columnDefs, 'kdcol_', $defaultCols);
+    $dragOrderRaw = query_text('kdcol_order');
+    if ($dragOrderRaw !== null && trim($dragOrderRaw) !== '') {
+        $ordered = array_values(array_filter(array_map('trim', explode(',', $dragOrderRaw)), static fn(string $k): bool => $k !== '' && isset($columnDefs[$k])));
+        if ($ordered !== []) {
+            $rest = array_values(array_filter($selectedCols, static fn(string $k): bool => !in_array($k, $ordered, true)));
+            $selectedCols = array_merge($ordered, $rest);
+            $_SESSION['kill_detail_visible_cols'] = $selectedCols;
+        }
+    }
+
+    $playerNames = query_list('kd_player_name');
+    $speciesNames = query_list('kd_species_name');
+    $weaponText = query_text('kd_weapon_text');
+    $ammoText = query_text('kd_ammo_text');
+    $scopeText = query_text('kd_scope_text');
+    $platformText = query_text('kd_platform_text');
+    $killIdText = query_text('kd_kill_id');
+
+    $playerOptions = array_values(array_filter(array_map(static fn(array $r): string => trim((string) ($r['player_name'] ?? '')), app_query_all("SELECT DISTINCT player_name FROM gpt.v_kill_detail_scrapes_latest WHERE COALESCE(player_name,'') <> '' ORDER BY player_name"))));
+    $speciesOptions = array_values(array_filter(array_map(static fn(array $r): string => trim((string) ($r['species_name'] ?? '')), app_query_all("SELECT DISTINCT species_name FROM gpt.v_kill_detail_scrapes_latest WHERE COALESCE(species_name,'') <> '' ORDER BY species_name"))));
+
+    $where = [];
+    $params = [];
+    if ($playerNames !== []) {
+        $phs = [];
+        foreach (array_values($playerNames) as $idx => $value) {
+            $ph = ':kd_player_' . $idx;
+            $phs[] = $ph;
+            $params[$ph] = $value;
+        }
+        $where[] = 'player_name IN (' . implode(', ', $phs) . ')';
+    }
+    if ($speciesNames !== []) {
+        $phs = [];
+        foreach (array_values($speciesNames) as $idx => $value) {
+            $ph = ':kd_species_' . $idx;
+            $phs[] = $ph;
+            $params[$ph] = $value;
+        }
+        $where[] = 'species_name IN (' . implode(', ', $phs) . ')';
+    }
+    foreach ([
+        ['kill_id', $killIdText],
+        ['weapon_text', $weaponText],
+        ['ammo_text', $ammoText],
+        ['scope_text', $scopeText],
+        ['platform_text', $platformText],
+    ] as $idx => [$col, $value]) {
+        if ($value === null) {
+            continue;
+        }
+        $ph = ':kd_filter_' . $idx;
+        $where[] = quote_ident((string) $col) . '::text ILIKE ' . $ph;
+        $params[$ph] = '%' . $value . '%';
+    }
+
+    $page = query_page();
+    $pageSize = query_page_size(100);
+    $sortable = [
+        'scraped_at' => 'scraped_at',
+        'player_name' => 'player_name',
+        'kill_id' => 'kill_id',
+        'species_name' => 'species_name',
+        'hunter_name' => 'hunter_name',
+        'weapon_text' => 'weapon_text',
+        'ammo_text' => 'ammo_text',
+        'shot_distance_text' => 'shot_distance_text',
+        'trophy_score_text' => 'trophy_score_text',
+    ];
+    [$sortKey, $sortDir] = query_sort('scraped_at', 'desc', $sortable);
+    $sql = 'SELECT * FROM gpt.v_kill_detail_scrapes_latest';
+    $countSql = 'SELECT COUNT(*) AS c FROM gpt.v_kill_detail_scrapes_latest';
+    if ($where !== []) {
+        $whereSql = implode(' AND ', $where);
+        $sql .= ' WHERE ' . $whereSql;
+        $countSql .= ' WHERE ' . $whereSql;
+    }
+    $sql .= ' ORDER BY ' . $sortable[$sortKey] . ' ' . strtoupper($sortDir) . ', scrape_id DESC';
+
+    if (is_csv_export_requested()) {
+        $rows = app_query_all($sql, $params);
+        foreach ($rows as &$row) {
+            $row['scraped_at'] = format_datetime_display($row['scraped_at'] ?? null);
+        }
+        unset($row);
+        $headers = array_map(static fn(string $k): string => $columnDefs[$k]['label'], $selectedCols);
+        csv_stream('detalle_muertes_scraper.csv', $headers, $rows, $selectedCols);
+    }
+
+    $summary = app_query_one(
+        'SELECT COUNT(*) AS total_rows,
+                COUNT(*) FILTER (WHERE COALESCE(weapon_text, \'\') <> \'\') AS con_arma,
+                COUNT(*) FILTER (WHERE COALESCE(scope_text, \'\') <> \'\') AS con_visor,
+                COUNT(*) FILTER (WHERE COALESCE(ammo_text, \'\') <> \'\') AS con_municion,
+                COUNT(*) FILTER (WHERE COALESCE(shot_location_text, \'\') <> \'\') AS con_lugar
+         FROM gpt.v_kill_detail_scrapes_latest'
+    );
+
+    $totalRows = (int) ((app_query_one($countSql, $params)['c'] ?? 0));
+    $pageCount = max(1, (int) ceil($totalRows / $pageSize));
+    $page = min($page, $pageCount);
+    $offset = ($page - 1) * $pageSize;
+    $rows = app_query_all($sql . ' LIMIT :_limit OFFSET :_offset', $params + [':_limit' => $pageSize, ':_offset' => $offset]);
+
+    echo '<p class="muted">Vista: gpt.v_kill_detail_scrapes_latest</p>';
+    echo '<form class="table-filters" method="get" action="' . h(current_path()) . '">';
+    echo '<input type="hidden" name="view" value="kill_detail_scrapes">';
+    echo '<input type="hidden" name="page" value="1">';
+    echo '<input type="hidden" name="kdcol_order" value="' . h(query_raw('kdcol_order')) . '">';
+    echo '<select name="kd_player_name[]" multiple data-check-combo="1" data-check-combo-placeholder="Jugador (todos)" data-check-combo-many-label="jugadores" title="Jugador del registro capturado">';
+    echo '<option value="">Jugador (todos)</option>';
+    foreach ($playerOptions as $value) {
+        $selected = in_array($value, $playerNames, true) ? ' selected' : '';
+        echo '<option value="' . h($value) . '"' . $selected . '>' . h($value) . '</option>';
+    }
+    echo '</select>';
+    echo '<select name="kd_species_name[]" multiple data-check-combo="1" data-check-combo-placeholder="Especie (todas)" data-check-combo-many-label="especies" title="Especie de la muerte capturada">';
+    echo '<option value="">Especie (todas)</option>';
+    foreach ($speciesOptions as $value) {
+        $selected = in_array($value, $speciesNames, true) ? ' selected' : '';
+        echo '<option value="' . h($value) . '"' . $selected . '>' . h($value) . '</option>';
+    }
+    echo '</select>';
+    echo '<input type="text" name="kd_kill_id" placeholder="Kill ID" value="' . h(query_raw('kd_kill_id')) . '" title="Kill ID del theHunter">';
+    echo '<input type="text" name="kd_weapon_text" placeholder="Arma" value="' . h(query_raw('kd_weapon_text')) . '" title="Arma mostrada en la ficha">';
+    echo '<input type="text" name="kd_scope_text" placeholder="Visor" value="' . h(query_raw('kd_scope_text')) . '" title="Visor mostrado en la ficha">';
+    echo '<input type="text" name="kd_ammo_text" placeholder="Municion" value="' . h(query_raw('kd_ammo_text')) . '" title="Municion mostrada en la ficha">';
+    echo '<input type="text" name="kd_platform_text" placeholder="Plataforma" value="' . h(query_raw('kd_platform_text')) . '" title="Plataforma mostrada en la ficha">';
+    echo '<details class="filter-details visible-columns" data-col-prefix="kdcol_" data-order-field="kdcol_order"><summary>Columnas visibles</summary><div class="visible-row">';
+    foreach ($columnDefs as $key => $def) {
+        $checked = in_array($key, $selectedCols, true) ? ' checked' : '';
+        echo '<label class="visible-item" draggable="true" data-col-key="' . h($key) . '"><input class="col-check" type="checkbox" name="kdcol_' . h($key) . '" value="1"' . $checked . '><span>' . h($def['label']) . '</span></label>';
+    }
+    echo '<button type="button" class="btn-reset-cols" data-default-cols="' . h(implode(',', $defaultCols)) . '">Restablecer</button>';
+    echo '</div></details>';
+    echo '<select name="page_size"><option value="50"' . ($pageSize === 50 ? ' selected' : '') . '>50 filas</option><option value="100"' . ($pageSize === 100 ? ' selected' : '') . '>100 filas</option><option value="200"' . ($pageSize === 200 ? ' selected' : '') . '>200 filas</option></select>';
+    echo '<button type="submit">Filtrar</button>';
+    echo '<button type="submit" name="export" value="csv">Exportar CSV</button>';
+    echo '<a class="btn-link" href="?view=kill_detail_scrapes">Limpiar</a>';
+    echo '</form>';
+
+    echo '<div class="table-head-wrap">';
+    echo '<span class="muted">Registros: ' . h((string) ($summary['total_rows'] ?? 0)) . '</span> ';
+    echo '<span class="muted">Con arma: ' . h((string) ($summary['con_arma'] ?? 0)) . '</span> ';
+    echo '<span class="muted">Con visor: ' . h((string) ($summary['con_visor'] ?? 0)) . '</span> ';
+    echo '<span class="muted">Con municion: ' . h((string) ($summary['con_municion'] ?? 0)) . '</span> ';
+    echo '<span class="muted">Con lugar: ' . h((string) ($summary['con_lugar'] ?? 0)) . '</span>';
+    echo '</div>';
+
+    echo '<div style="overflow:auto"><table><thead><tr>';
+    foreach ($selectedCols as $col) {
+        if (isset($sortable[$col])) {
+            echo '<th>' . sort_link($col, $columnDefs[$col]['label'], $sortKey, $sortDir) . '</th>';
+        } else {
+            echo '<th>' . h($columnDefs[$col]['label']) . '</th>';
+        }
+    }
+    echo '<th>Abrir</th></tr></thead><tbody>';
+    foreach ($rows as $row) {
+        echo '<tr>';
+        foreach ($selectedCols as $col) {
+            $value = $row[$col] ?? null;
+            if ($col === 'player_name' || $col === 'hunter_name') {
+                echo '<td>' . player_profile_link_html((string) $value, $value) . '</td>';
+                continue;
+            }
+            if ($col === 'scraped_at') {
+                echo '<td>' . h(format_datetime_display($value)) . '</td>';
+                continue;
+            }
+            $cellClass = is_numeric((string) $value) ? ' class="num-cell"' : '';
+            echo '<td' . $cellClass . '>' . h((string) $value) . '</td>';
+        }
+        $url = thehunter_kill_url((string) ($row['player_name'] ?? ''), $row['kill_id'] ?? null);
+        echo $url !== null ? '<td><a class="record-link" href="' . h($url) . '" target="_blank" rel="noopener noreferrer">Abrir muerte</a></td>' : '<td class="muted">-</td>';
+        echo '</tr>';
+    }
+    echo '</tbody></table></div>';
+    render_pagination($page, $pageSize, $totalRows);
+    echo '</section>';
+}
+
 function render_competition_signups(): void
 {
     echo '<section class="card"><h2>Inscripciones Competiciones</h2>';
@@ -7807,6 +8164,9 @@ if (is_csv_export_requested()) {
         case 'kill_scrape_status':
             render_kill_url_scrape_status();
             break;
+        case 'kill_detail_scrapes':
+            render_kill_detail_scrapes();
+            break;
         case 'competition_signups':
             render_competition_signups();
             break;
@@ -7864,6 +8224,7 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
             <?= menu_link('trophies_summary', 'Resumen Trofeos', $view) ?>
             <?= menu_link('user_gallery', 'Galerias Usuarios', $view) ?>
             <?= menu_link('kill_scrape_status', 'Estado Scraper', $view) ?>
+            <?= menu_link('kill_detail_scrapes', 'Detalle Muertes', $view) ?>
             <?= menu_link('competition_signups', 'Inscripciones Comp.', $view) ?>
             <?= menu_link('cheat_risk', 'Anti-trampas', $view) ?>
             <?php if (app_is_admin_user()): ?>
@@ -7940,6 +8301,9 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
                 break;
             case 'kill_scrape_status':
                 render_kill_url_scrape_status();
+                break;
+            case 'kill_detail_scrapes':
+                render_kill_detail_scrapes();
                 break;
             case 'competition_signups':
                 render_competition_signups();
@@ -8215,7 +8579,10 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
                     .map((item) => item.getAttribute('data-col-key'))
                     .filter((key) => key && defaults.has(key));
                 hiddenOrder.value = ordered.join(',');
+                hiddenOrder.dispatchEvent(new Event('change', { bubbles: true }));
             }
+
+            checkboxes.forEach((cb) => cb.dispatchEvent(new Event('change', { bubbles: true })));
         });
     });
 })();
@@ -8264,6 +8631,7 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
             });
             if (hiddenOrder instanceof HTMLInputElement) {
                 hiddenOrder.value = orderedKeys.join(',');
+                hiddenOrder.dispatchEvent(new Event('change', { bubbles: true }));
             }
         };
 
@@ -8300,6 +8668,199 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
             cb.addEventListener('change', syncOrder);
         });
         syncOrder();
+    });
+})();
+</script>
+<script>
+(() => {
+    const view = new URLSearchParams(window.location.search).get('view') || 'dashboard';
+    const params = new URLSearchParams(window.location.search);
+    const resetRequested = params.get('reset') === '1';
+
+    const normalizeName = (name) => String(name || '').trim();
+    const safeRead = (key) => {
+        try {
+            return JSON.parse(localStorage.getItem(key) || '{}');
+        } catch (_) {
+            return {};
+        }
+    };
+    const safeWrite = (key, value) => {
+        localStorage.setItem(key, JSON.stringify(value));
+    };
+
+    const isSystemName = (name) => ['view', 'page', 'csrf_token', 'export_csv', 'export'].includes(name);
+
+    const controlValue = (control) => {
+        if (control instanceof HTMLSelectElement && control.multiple) {
+            return Array.from(control.options)
+                .filter((opt) => opt.selected && String(opt.value || '').trim() !== '')
+                .map((opt) => String(opt.value));
+        }
+        if (control instanceof HTMLInputElement) {
+            if (control.type === 'checkbox') {
+                return control.checked ? '1' : '0';
+            }
+            if (control.type === 'radio') {
+                return control.checked ? String(control.value || '1') : null;
+            }
+        }
+        return String(control.value ?? '');
+    };
+
+    const applyControlValue = (control, value) => {
+        if (control instanceof HTMLSelectElement && control.multiple) {
+            const wanted = new Set(Array.isArray(value) ? value.map(String) : []);
+            let changed = false;
+            Array.from(control.options).forEach((opt) => {
+                const nextSelected = wanted.has(String(opt.value));
+                if (opt.selected !== nextSelected) {
+                    opt.selected = nextSelected;
+                    changed = true;
+                }
+            });
+            return changed;
+        }
+        if (control instanceof HTMLInputElement) {
+            if (control.type === 'checkbox') {
+                const nextChecked = String(value) === '1';
+                if (control.checked !== nextChecked) {
+                    control.checked = nextChecked;
+                    return true;
+                }
+                return false;
+            }
+            if (control.type === 'radio') {
+                const nextChecked = String(control.value) === String(value);
+                if (control.checked !== nextChecked) {
+                    control.checked = nextChecked;
+                    return true;
+                }
+                return false;
+            }
+        }
+        const nextValue = Array.isArray(value) ? (value[0] ?? '') : String(value ?? '');
+        if (String(control.value ?? '') !== nextValue) {
+            control.value = nextValue;
+            return true;
+        }
+        return false;
+    };
+
+    const sameValue = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+    document.querySelectorAll('form.table-filters').forEach((form, formIndex) => {
+        if (!(form instanceof HTMLFormElement)) {
+            return;
+        }
+
+        const layoutKey = `thc_form_layout_v1_${view}_${formIndex}`;
+        const filterKey = `thc_form_filters_v1_${view}_${formIndex}`;
+
+        const columnPrefixes = Array.from(form.querySelectorAll('.visible-columns'))
+            .map((details) => details.getAttribute('data-col-prefix') || '')
+            .filter(Boolean);
+        const orderFields = Array.from(form.querySelectorAll('.visible-columns'))
+            .map((details) => details.getAttribute('data-order-field') || '')
+            .filter(Boolean);
+
+        const allControls = () => Array.from(form.elements).filter((el) =>
+            (el instanceof HTMLInputElement || el instanceof HTMLSelectElement || el instanceof HTMLTextAreaElement) &&
+            normalizeName(el.name) !== '' &&
+            !isSystemName(normalizeName(el.name))
+        );
+
+        const isLayoutControl = (name) => {
+            if (name === 'page_size') {
+                return true;
+            }
+            if (orderFields.includes(name)) {
+                return true;
+            }
+            return columnPrefixes.some((prefix) => name.startsWith(prefix));
+        };
+
+        const serializeGroup = (wantLayout) => {
+            const payload = {};
+            allControls().forEach((control) => {
+                const name = normalizeName(control.name);
+                if (isLayoutControl(name) !== wantLayout) {
+                    return;
+                }
+                if (control instanceof HTMLInputElement && control.type === 'radio' && !control.checked) {
+                    return;
+                }
+                payload[name] = controlValue(control);
+            });
+            return payload;
+        };
+
+        const persistAll = () => {
+            safeWrite(layoutKey, serializeGroup(true));
+            safeWrite(filterKey, serializeGroup(false));
+        };
+
+        if (resetRequested) {
+            localStorage.removeItem(filterKey);
+        }
+
+        const savedLayout = safeRead(layoutKey);
+        const savedFilters = safeRead(filterKey);
+        let changedByRestore = false;
+
+        allControls().forEach((control) => {
+            const name = normalizeName(control.name);
+            const bucket = isLayoutControl(name) ? savedLayout : savedFilters;
+            if (!Object.prototype.hasOwnProperty.call(bucket, name)) {
+                return;
+            }
+            const before = controlValue(control);
+            const changed = applyControlValue(control, bucket[name]);
+            if (changed && !sameValue(before, controlValue(control))) {
+                changedByRestore = true;
+            }
+        });
+
+        allControls().forEach((control) => {
+            const eventName = (control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement) ? 'input' : 'change';
+            control.addEventListener(eventName, persistAll);
+            control.addEventListener('change', persistAll);
+        });
+
+        form.querySelectorAll('.btn-reset-cols').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                window.setTimeout(persistAll, 0);
+            });
+        });
+
+        form.querySelectorAll('.btn-link').forEach((link) => {
+            if (!(link instanceof HTMLAnchorElement)) {
+                return;
+            }
+            const text = (link.textContent || '').trim().toLowerCase();
+            if (text !== 'limpiar') {
+                return;
+            }
+            link.addEventListener('click', () => {
+                localStorage.removeItem(filterKey);
+            });
+        });
+
+        persistAll();
+
+        const syncFlag = `thc_form_sync_once_${view}_${formIndex}`;
+        if (changedByRestore && sessionStorage.getItem(syncFlag) !== '1') {
+            sessionStorage.setItem(syncFlag, '1');
+            const pageField = form.querySelector('input[name="page"]');
+            if (pageField instanceof HTMLInputElement) {
+                pageField.value = '1';
+            }
+            form.submit();
+            return;
+        }
+        if (!changedByRestore) {
+            sessionStorage.removeItem(syncFlag);
+        }
     });
 })();
 </script>
@@ -9951,6 +10512,463 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
 
     document.querySelectorAll('.content table').forEach((table) => {
         wireClientSortableTable(table);
+    });
+})();
+
+(() => {
+    const view = new URLSearchParams(window.location.search).get('view') || 'panel';
+    const renameStorageKey = 'thc_table_header_labels_v1';
+    const widthStorageKey = 'thc_table_column_widths_v1';
+    const orderStorageKey = 'thc_table_column_order_v1';
+
+    const safeReadJson = (key) => {
+        try {
+            return JSON.parse(localStorage.getItem(key) || '{}');
+        } catch (_) {
+            return {};
+        }
+    };
+
+    const readRenameMap = () => safeReadJson(renameStorageKey);
+    const writeRenameMap = (data) => localStorage.setItem(renameStorageKey, JSON.stringify(data));
+    const readWidthMap = () => safeReadJson(widthStorageKey);
+    const writeWidthMap = (data) => localStorage.setItem(widthStorageKey, JSON.stringify(data));
+    const readOrderMap = () => safeReadJson(orderStorageKey);
+    const writeOrderMap = (data) => localStorage.setItem(orderStorageKey, JSON.stringify(data));
+
+    const normalizeText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
+
+    const tableSignature = (table) => {
+        if (!(table instanceof HTMLTableElement) || !(table.tHead instanceof HTMLTableSectionElement) || !table.tHead.rows.length) {
+            return 'table';
+        }
+        const headerRow = table.tHead.rows[table.tHead.rows.length - 1];
+        if (!(headerRow instanceof HTMLTableRowElement)) {
+            return 'table';
+        }
+        const parts = Array.from(headerRow.cells)
+            .filter((cell) => cell instanceof HTMLTableCellElement && cell.colSpan === 1)
+            .map((th) => {
+                const colKey = normalizeText(th.dataset.colKey || '');
+                const text = normalizeText(th.dataset.defaultHeaderLabel || th.textContent || '');
+                return colKey || text || 'col';
+            });
+        return parts.join('|') || 'table';
+    };
+
+    const tablePersistId = (table, tableIndex) => {
+        if (table.dataset.persistTableId) {
+            return table.dataset.persistTableId;
+        }
+        const card = table.closest('.card');
+        const cardTitle = normalizeText(card?.querySelector('h2')?.textContent || '');
+        const wrapperTitle = normalizeText(
+            table.closest('details')?.querySelector(':scope > summary')?.textContent ||
+            table.closest('.subtable-panels > details')?.querySelector(':scope > summary')?.textContent ||
+            ''
+        );
+        const signature = tableSignature(table);
+        const id = [view, cardTitle || 'table', wrapperTitle || 'main', signature || `idx_${tableIndex}`].join('__');
+        table.dataset.persistTableId = id;
+        return id;
+    };
+
+    const headerPersistKey = (table, th, colIndex, tableIndex) => {
+        const colKey = normalizeText(th.dataset.colKey || '');
+        const defaultLabel = normalizeText(th.dataset.defaultHeaderLabel || '');
+        const currentLabel = normalizeText(th.textContent || '');
+        const stableKey = colKey || defaultLabel || currentLabel || `col_${colIndex}`;
+        return [tablePersistId(table, tableIndex), stableKey].join('::');
+    };
+
+    const ensureLabelTarget = (th) => {
+        const sortLink = th.querySelector(':scope > .th-sort');
+        if (sortLink instanceof HTMLElement) {
+            sortLink.classList.add('th-label-text');
+            return sortLink;
+        }
+        let label = th.querySelector(':scope > .th-label-text');
+        if (!(label instanceof HTMLElement)) {
+            label = document.createElement('span');
+            label.className = 'th-label-text';
+            label.textContent = normalizeText(th.textContent || '');
+            th.textContent = '';
+            th.appendChild(label);
+        }
+        return label;
+    };
+
+    const setHeaderLabel = (th, label) => {
+        const target = ensureLabelTarget(th);
+        target.textContent = label;
+        th.dataset.headerLabel = label;
+    };
+
+    const applyColumnWidth = (table, colIndex, widthPx) => {
+        const width = `${Math.max(48, Math.round(widthPx))}px`;
+        Array.from(table.rows).forEach((row) => {
+            if (!(row instanceof HTMLTableRowElement)) {
+                return;
+            }
+            const cell = row.cells[colIndex];
+            if (!(cell instanceof HTMLTableCellElement)) {
+                return;
+            }
+            cell.style.width = width;
+            cell.style.minWidth = width;
+            cell.style.maxWidth = width;
+        });
+    };
+
+    const moveCellInRow = (row, fromIndex, toIndex) => {
+        if (!(row instanceof HTMLTableRowElement)) {
+            return;
+        }
+        if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0) {
+            return;
+        }
+        if (row.cells.length <= Math.max(fromIndex, toIndex)) {
+            return;
+        }
+        const fromCell = row.cells[fromIndex];
+        const targetCell = row.cells[toIndex];
+        if (!(fromCell instanceof HTMLTableCellElement) || !(targetCell instanceof HTMLTableCellElement)) {
+            return;
+        }
+        const insertBeforeNode = fromIndex < toIndex ? targetCell.nextSibling : targetCell;
+        row.insertBefore(fromCell, insertBeforeNode);
+    };
+
+    const reorderTableColumns = (table, fromIndex, toIndex) => {
+        if (!(table instanceof HTMLTableElement) || fromIndex === toIndex) {
+            return;
+        }
+        Array.from(table.rows).forEach((row) => moveCellInRow(row, fromIndex, toIndex));
+    };
+
+    const applySavedOrder = (table, tableIndex) => {
+        const orderMap = readOrderMap();
+        const tableKey = tablePersistId(table, tableIndex);
+        const saved = Array.isArray(orderMap[tableKey]) ? orderMap[tableKey] : null;
+        if (!saved || !table.tHead || !table.tHead.rows.length) {
+            return;
+        }
+        const headerRow = table.tHead.rows[table.tHead.rows.length - 1];
+        const currentHeaders = Array.from(headerRow.cells).filter((cell) => cell instanceof HTMLTableCellElement && cell.colSpan === 1);
+        if (currentHeaders.length < 2) {
+            return;
+        }
+        const currentKeys = currentHeaders.map((th, idx) => headerPersistKey(table, th, idx, tableIndex));
+        if (saved.length !== currentKeys.length || !saved.every((key) => currentKeys.includes(key))) {
+            return;
+        }
+        saved.forEach((wantedKey, targetIndex) => {
+            const liveHeaders = Array.from(headerRow.cells).filter((cell) => cell instanceof HTMLTableCellElement && cell.colSpan === 1);
+            const sourceIndex = liveHeaders.findIndex((th, idx) => headerPersistKey(table, th, idx, tableIndex) === wantedKey);
+            if (sourceIndex >= 0 && sourceIndex !== targetIndex) {
+                reorderTableColumns(table, sourceIndex, targetIndex);
+            }
+        });
+    };
+
+    const persistCurrentOrder = (table, tableIndex) => {
+        if (!(table.tHead instanceof HTMLTableSectionElement) || !table.tHead.rows.length) {
+            return;
+        }
+        const headerRow = table.tHead.rows[table.tHead.rows.length - 1];
+        const order = Array.from(headerRow.cells)
+            .filter((cell) => cell instanceof HTMLTableCellElement && cell.colSpan === 1)
+            .map((th, idx) => headerPersistKey(table, th, idx, tableIndex));
+        const orderMap = readOrderMap();
+        orderMap[tablePersistId(table, tableIndex)] = order;
+        writeOrderMap(orderMap);
+    };
+
+    const syncVisibleControlsForTable = (table) => {
+        const form = table.closest('.card')?.querySelector('form.table-filters');
+        if (!(form instanceof HTMLFormElement) || !(table.tHead instanceof HTMLTableSectionElement) || !table.tHead.rows.length) {
+            return;
+        }
+
+        const headerRow = table.tHead.rows[table.tHead.rows.length - 1];
+        const headerKeys = Array.from(headerRow.cells)
+            .filter((cell) => cell instanceof HTMLTableCellElement && cell.colSpan === 1)
+            .map((cell) => String(cell.dataset.colKey || '').trim())
+            .filter((key) => key !== '');
+
+        if (headerKeys.length === 0) {
+            return;
+        }
+
+        const groups = Array.from(form.querySelectorAll('.visible-columns'));
+        groups.forEach((details) => {
+            if (!(details instanceof HTMLElement)) {
+                return;
+            }
+            const prefix = String(details.getAttribute('data-col-prefix') || '').trim();
+            const orderFieldName = String(details.getAttribute('data-order-field') || '').trim();
+            if (prefix === '' || orderFieldName === '') {
+                return;
+            }
+
+            const visibleRow = details.querySelector('.visible-row');
+            if (!(visibleRow instanceof HTMLElement)) {
+                return;
+            }
+
+            const keysForGroup = headerKeys
+                .map((key) => {
+                    if (prefix === 'col_') {
+                        return key.startsWith('k_') || key.startsWith('h_') ? null : key;
+                    }
+                    if (prefix === 'kcol_') {
+                        return key.startsWith('k_') ? key.slice(2) : null;
+                    }
+                    if (prefix === 'hcol_') {
+                        return key.startsWith('h_') ? key.slice(2) : null;
+                    }
+                    return key;
+                })
+                .filter((key) => typeof key === 'string' && key !== '');
+
+            if (keysForGroup.length === 0) {
+                return;
+            }
+
+            const itemMap = new Map();
+            visibleRow.querySelectorAll('.visible-item').forEach((item) => {
+                const key = item.getAttribute('data-col-key');
+                if (key) {
+                    itemMap.set(key, item);
+                }
+            });
+
+            let moved = false;
+            keysForGroup.forEach((key) => {
+                const item = itemMap.get(key);
+                if (item) {
+                    visibleRow.appendChild(item);
+                    moved = true;
+                }
+            });
+
+            const hiddenOrder = form.querySelector(`input[name="${orderFieldName}"]`);
+            if (hiddenOrder instanceof HTMLInputElement) {
+                const orderedVisibleKeys = Array.from(visibleRow.querySelectorAll('.visible-item'))
+                    .map((item) => {
+                        const key = item.getAttribute('data-col-key');
+                        const cb = key ? item.querySelector(`input[name="${prefix}${key}"]`) : null;
+                        return key && cb instanceof HTMLInputElement && cb.checked ? key : null;
+                    })
+                    .filter((key) => typeof key === 'string' && key !== '');
+                hiddenOrder.value = orderedVisibleKeys.join(',');
+                hiddenOrder.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+
+            if (moved) {
+                visibleRow.querySelectorAll('.col-check').forEach((cb) => {
+                    cb.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+            }
+        });
+    };
+
+    const wireResizableAndRenameableTable = (table, tableIndex) => {
+        if (!(table instanceof HTMLTableElement) || !(table.tHead instanceof HTMLTableSectionElement)) {
+            return;
+        }
+        applySavedOrder(table, tableIndex);
+        const headerRow = table.tHead.rows[table.tHead.rows.length - 1];
+        if (!(headerRow instanceof HTMLTableRowElement)) {
+            return;
+        }
+
+        const renameMap = readRenameMap();
+        const widthMap = readWidthMap();
+        const tableKey = tablePersistId(table, tableIndex);
+
+        Array.from(headerRow.cells).forEach((th, colIndex) => {
+            if (!(th instanceof HTMLTableCellElement) || th.colSpan !== 1) {
+                return;
+            }
+
+            th.classList.add('th-renameable');
+            const initialLabel = normalizeText(th.dataset.headerLabel || th.textContent || '');
+            if (!th.dataset.defaultHeaderLabel && initialLabel !== '') {
+                th.dataset.defaultHeaderLabel = initialLabel;
+            }
+            ensureLabelTarget(th);
+
+            const persistKey = headerPersistKey(table, th, colIndex, tableIndex);
+            const renamedLabel = normalizeText(renameMap[persistKey] || '');
+            if (renamedLabel !== '') {
+                setHeaderLabel(th, renamedLabel);
+                th.classList.add('is-renamed');
+            }
+
+            const savedWidth = widthMap[`${tableKey}::${colIndex}`];
+            if (Number.isFinite(savedWidth)) {
+                applyColumnWidth(table, colIndex, savedWidth);
+            }
+
+            if (!th.querySelector(':scope > .th-resize-handle')) {
+                const handle = document.createElement('span');
+                handle.className = 'th-resize-handle';
+                handle.title = 'Arrastrar para cambiar ancho';
+                th.appendChild(handle);
+
+                handle.addEventListener('mousedown', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    const startX = event.clientX;
+                    const startWidth = th.getBoundingClientRect().width;
+                    th.classList.add('is-resizing');
+                    document.body.classList.add('col-resize-active');
+
+                    const onMove = (moveEvent) => {
+                        const nextWidth = startWidth + (moveEvent.clientX - startX);
+                        applyColumnWidth(table, colIndex, nextWidth);
+                    };
+
+                    const onUp = (upEvent) => {
+                        const finalWidth = startWidth + (upEvent.clientX - startX);
+                        applyColumnWidth(table, colIndex, finalWidth);
+                        const nextMap = readWidthMap();
+                        nextMap[`${tableKey}::${colIndex}`] = Math.max(48, Math.round(finalWidth));
+                        writeWidthMap(nextMap);
+                        th.classList.remove('is-resizing');
+                        document.body.classList.remove('col-resize-active');
+                        window.removeEventListener('mousemove', onMove);
+                        window.removeEventListener('mouseup', onUp);
+                    };
+
+                    window.addEventListener('mousemove', onMove);
+                    window.addEventListener('mouseup', onUp);
+                });
+            }
+
+            if (th.dataset.renameWired === '1') {
+                return;
+            }
+            th.dataset.renameWired = '1';
+            th.classList.add('th-draggable');
+            th.draggable = true;
+
+            th.addEventListener('dragstart', (event) => {
+                const target = event.target;
+                if (target instanceof HTMLElement && target.closest('.th-resize-handle')) {
+                    event.preventDefault();
+                    return;
+                }
+                const currentHeaderRow = table.tHead?.rows[table.tHead.rows.length - 1];
+                if (!(currentHeaderRow instanceof HTMLTableRowElement)) {
+                    event.preventDefault();
+                    return;
+                }
+                const dragHeaders = Array.from(currentHeaderRow.cells).filter((cell) => cell instanceof HTMLTableCellElement && cell.colSpan === 1);
+                const currentIndex = dragHeaders.indexOf(th);
+                if (currentIndex < 0) {
+                    event.preventDefault();
+                    return;
+                }
+                th.classList.add('is-dragging');
+                th.dataset.dragIndex = String(currentIndex);
+                if (event.dataTransfer) {
+                    event.dataTransfer.effectAllowed = 'move';
+                    event.dataTransfer.setData('text/plain', String(currentIndex));
+                }
+            });
+
+            th.addEventListener('dragend', () => {
+                table.querySelectorAll('th.th-draggable').forEach((cell) => {
+                    cell.classList.remove('is-dragging', 'drag-target-left', 'drag-target-right');
+                    delete cell.dataset.dragIndex;
+                });
+            });
+
+            th.addEventListener('dragover', (event) => {
+                const dragging = table.querySelector('th.th-draggable.is-dragging');
+                if (!(dragging instanceof HTMLTableCellElement) || dragging === th) {
+                    return;
+                }
+                event.preventDefault();
+                const rect = th.getBoundingClientRect();
+                const before = event.clientX < rect.left + rect.width / 2;
+                th.classList.toggle('drag-target-left', before);
+                th.classList.toggle('drag-target-right', !before);
+            });
+
+            th.addEventListener('dragleave', () => {
+                th.classList.remove('drag-target-left', 'drag-target-right');
+            });
+
+            th.addEventListener('drop', (event) => {
+                event.preventDefault();
+                const currentHeaderRow = table.tHead?.rows[table.tHead.rows.length - 1];
+                if (!(currentHeaderRow instanceof HTMLTableRowElement)) {
+                    return;
+                }
+                const dragHeaders = Array.from(currentHeaderRow.cells).filter((cell) => cell instanceof HTMLTableCellElement && cell.colSpan === 1);
+                const sourceIndex = Number(event.dataTransfer?.getData('text/plain') || -1);
+                const targetIndex = dragHeaders.indexOf(th);
+                if (!Number.isInteger(sourceIndex) || sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) {
+                    th.classList.remove('drag-target-left', 'drag-target-right');
+                    return;
+                }
+                const rect = th.getBoundingClientRect();
+                const before = event.clientX < rect.left + rect.width / 2;
+                const finalIndex = before ? targetIndex : targetIndex + 1;
+                const adjustedIndex = sourceIndex < finalIndex ? finalIndex - 1 : finalIndex;
+                reorderTableColumns(table, sourceIndex, adjustedIndex);
+                persistCurrentOrder(table, tableIndex);
+                syncVisibleControlsForTable(table);
+                table.querySelectorAll('th.th-draggable').forEach((cell) => {
+                    cell.classList.remove('is-dragging', 'drag-target-left', 'drag-target-right');
+                    delete cell.dataset.dragIndex;
+                });
+            });
+
+            th.addEventListener('click', (event) => {
+                const target = event.target;
+                if (!(event.ctrlKey && event.shiftKey)) {
+                    return;
+                }
+                if (target instanceof HTMLElement && target.closest('.th-resize-handle')) {
+                    return;
+                }
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                const currentLabel = normalizeText(th.dataset.headerLabel || th.dataset.defaultHeaderLabel || th.textContent || '');
+                const nextLabelRaw = window.prompt('Nuevo nombre de la columna. Deja vacio para restaurar el original.', currentLabel);
+                if (nextLabelRaw === null) {
+                    return;
+                }
+
+                const nextLabel = normalizeText(nextLabelRaw);
+                const defaultLabel = normalizeText(th.dataset.defaultHeaderLabel || currentLabel);
+                const nextMap = readRenameMap();
+
+                if (nextLabel === '' || nextLabel === defaultLabel) {
+                    delete nextMap[persistKey];
+                    writeRenameMap(nextMap);
+                    setHeaderLabel(th, defaultLabel);
+                    th.classList.remove('is-renamed');
+                    return;
+                }
+
+                nextMap[persistKey] = nextLabel;
+                writeRenameMap(nextMap);
+                setHeaderLabel(th, nextLabel);
+                th.classList.add('is-renamed');
+            }, true);
+        });
+    };
+
+    document.querySelectorAll('.content table').forEach((table, tableIndex) => {
+        wireResizableAndRenameableTable(table, tableIndex);
     });
 })();
 

@@ -31,6 +31,9 @@ $isInterruptible = in_array((string) ($task['status'] ?? ''), ['queued', 'runnin
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tarea <?= h($task['label']) ?></title>
     <link rel="stylesheet" href="style.css?v=<?= h($cssVersion) ?>">
+    <?php if ($isInterruptible): ?>
+        <meta http-equiv="refresh" content="2">
+    <?php endif; ?>
 </head>
 <body class="task-page theme-<?= h($theme) ?>">
     <p><a href="index.php?theme=<?= h($theme) ?>">Volver</a></p>

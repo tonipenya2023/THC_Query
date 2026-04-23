@@ -23,8 +23,9 @@ $action = is_string($_POST['action'] ?? null) ? trim($_POST['action']) : '';
 $enabled = isset($_POST['enabled']) && (string) $_POST['enabled'] === '1';
 $intervalMin = (int) ($_POST['interval_min'] ?? 180);
 $intervalMin = max(1, min(10080, $intervalMin));
+$player = is_string($_POST['player'] ?? null) ? trim($_POST['player']) : '';
 
-$ok = TaskScheduleManager::updateAction($action, $enabled, $intervalMin);
+$ok = TaskScheduleManager::updateAction($action, $enabled, $intervalMin, $player);
 if (!$ok) {
     header('Location: index.php?flash=' . urlencode('Tarea programada no valida'));
     exit;

@@ -83,15 +83,20 @@ El panel ofrece actualmente estas consultas:
     - filtro por jugador, competicion, estado, metodo y parametro usado
     - acceso directo a la competicion
 
-14. `Anti-trampas`
+14. `Detalle Muertes`
+    - detalle scrapeado de la ficha publica/autenticada de muerte
+    - campos extraidos como cazador, arma, visor, municion, distancia, estado, parte del cuerpo, postura, plataforma y lugar del disparo
+    - acceso directo a la ficha de muerte
+
+15. `Anti-trampas`
     - score de riesgo derivado de expediciones
     - subtablas de senales y expediciones asociadas
 
-15. `Logs`
+16. `Logs`
     - solo visible para admin
     - consulta de archivos de log
 
-16. `Consulta Avanzada`
+17. `Consulta Avanzada`
     - exploracion generica de tablas del esquema con filtro simple por columna
 
 ## Patron de interfaz
@@ -108,6 +113,8 @@ La UI del proyecto sigue estas reglas generales:
 - temas visuales seleccionables
 - fuentes seleccionables
 - cabeceras de tablas con separadores de campos y flechas de orden en todas las consultas
+- redimensionado manual de columnas desde la cabecera de cualquier tabla
+- renombrado persistente de cabeceras con `Ctrl+Shift+Click`, compartido entre temas en el mismo navegador
 
 Temas disponibles:
 - `sober`
@@ -389,6 +396,55 @@ Notas:
 - La consulta del panel `Estado Scraper` usa `gpt.v_scrape_kill_urls_latest` y muestra el ultimo estado por URL con resumen de parseo.
 - Limitacion tecnica actual: las URLs con hash de theHunter como `#animal/...` o `#profile/.../score/...` devuelven en descarga directa la portada publica/base del sitio. El parser detecta y registra ese caso como `public_home_not_signed_in`.
 
+### Scraper de detalle de muertes
+
+```powershell
+php src\run_scrape_kill_details.php --cookie-player=nefastix13 --pending-only --limit=50
+php src\run_scrape_kill_details.php --player=TheBubb --cookie-player=nefastix13 --pending-only --limit=20
+php src\run_scrape_kill_details.php --cookie-player=nefastix13 --all --limit=10
+```
+
+Notas:
+
+- Usa navegador Edge en modo headless para cargar la ficha real autenticada de theHunter.
+- Requiere una cookie valida guardada en `var\thehunter_cookies.json`.
+- Guarda el resultado en `gpt.kill_detail_scrapes`.
+- La vista del panel `Detalle Muertes` usa `gpt.v_kill_detail_scrapes_latest`.
+- Si la pagina no trae el texto ya resuelto, aplica respaldo por IDs y enums para arma, municion, visor, estado animal, postura, plataforma y tipo.
+- En `Expediciones`, los campos scrapeados se integran asi:
+  - `Muertes`: `Tiempo herida`, `Lugar disparo`
+  - `Disparos`: `Cazador`, `Arma`, `Visor`, `Municion`, `Distancia disparo`, `Estado animal`, `Parte cuerpo`, `Postura`, `Plataforma`
+  - No se duplican en `Muertes` los campos ya existentes como `Peso`, `Tipo`, `Integridad`, `Trophy score` o `Valor de la captura`.
+- Existe accion catalogada `scrape_kill_details`.
+- La tarea programada soporta `scrape_kill_details` y, cuando se ejecuta con un usuario autenticado, usa su cookie guardada y lanza:
+- La tarea programada de `scrape_kill_details` permite configurar un `Jugador` desde el panel. Si se informa, procesa todas las muertes pendientes de ese jugador y usa:
+- El scraper de detalle ya no abre un navegador por cada muerte. Procesa las URLs por lotes dentro de una sola sesion de Edge headless para reducir mucho el tiempo total de ejecucion.
+- El runner PHP agrupa candidatos en bloques y llama una sola vez al script `src/scrape_kill_detail_browser.mjs` por lote.
+
+```powershell
+php src\run_scrape_kill_details.php --player=<usuario> --cookie-player=<usuario> --pending-only
+```
+
+- Campos extraidos actualmente:
+  - `Cazador`
+  - `Arma`
+  - `Visor`
+  - `Municion`
+  - `Distancia del Disparo`
+  - `Estado del animal`
+  - `Parte del cuerpo`
+  - `Postura`
+  - `Plataforma`
+  - `Lugar donde se realizo el tiro del jugador`
+  - `Peso`
+  - `Tipo`
+  - `Tiempo de la herida`
+  - `Integridad del trofeo`
+  - `Disparos`
+  - `Tiempo de Captura`
+  - `Trophy score`
+  - `Valor de la captura`
+
 ### Traduccion de descripciones de competicion
 
 ```powershell
@@ -458,6 +514,7 @@ Acciones catalogadas actualmente:
 - `refresh_expeditions_all_users`
 - `export_best_xml`
 - `scrape_kill_urls`
+- `scrape_kill_details`
 - `refresh_my_expeditions`
 
 Persistencia:
@@ -613,3 +670,21 @@ Aunque el proyecto funciona, seria sano abordar estas mejoras cuando toque:
 - Manual de usuario PDF: `docs/MANUAL_USUARIO.pdf`
 - Manual de usuario revisado Word: `docs/MANUAL_USUARIO_v2.docx`
 - Manual de usuario revisado PDF: `docs/MANUAL_USUARIO_v2.pdf`
+
+- La vista de tarea (public/task_view.php) se refresca automaticamente cada 2 segundos mientras la tarea esta en cola o en ejecucion, y el scraper de detalle fuerza flush inmediato del log para que el contenido aparezca durante la ejecucion.
+
+
+- La barra lateral izquierda queda fija durante el scroll en escritorio y mantiene visible toda la botonera; en movil vuelve a flujo normal.
+- Las tablas permiten reordenar columnas arrastrando la cabecera. El orden queda guardado en localStorage por vista/tabla y convive con el redimensionado y el renombrado persistente.
+
+
+- Cada consulta guarda de forma persistente su estado en el navegador: filtros, columnas visibles, orden de columnas, orden de filtros, ancho de columnas y nombres personalizados.
+- El boton Limpiar solo elimina filtros persistidos de la consulta actual. No reinicia columnas visibles, orden, anchos ni renombrados.
+- Si el HTML renderizado no coincide con el estado persistido, la pagina se resincroniza automaticamente una sola vez para que checks y tabla queden alineados.
+
+
+- La persistencia del orden de columnas usa una clave estable por columna y tabla, independiente de la posicion actual, para que el orden arrastrado se mantenga tras recargar o volver a filtrar.
+
+
+- La persistencia de nombres de cabecera, orden y ancho de columnas se asocia a una firma estable de la tabla (vista, bloque y columnas), no al indice visual de renderizado, para que no se pierda al filtrar o cambiar el numero de filas/subtablas.
+

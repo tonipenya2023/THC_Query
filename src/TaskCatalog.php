@@ -54,6 +54,10 @@ final class TaskCatalog
                 'label' => 'Scraper URLs de Muertes',
                 'command' => [$php, $src . 'run_scrape_kill_urls.php', '--from=all', '--pending-only', '--sleep-ms=100', '--limit=5000'],
             ],
+            'scrape_kill_details' => [
+                'label' => 'Scraper Detalle de Muertes',
+                'command' => [$php, $src . 'run_scrape_kill_details.php', '--cookie-player=nefastix13', '--pending-only'],
+            ],
             'refresh_my_expeditions' => [
                 'label' => 'Actualizar mis Expediciones',
                 'command' => [$php, $src . 'run_import_user.php', '0', '40'],

@@ -13,7 +13,7 @@ final class TaskScheduleManager
     private const RUN_EVERY_SEC = 60;
 
     /**
-     * @return array<string,array{enabled:bool,interval_min:int}>
+     * @return array<string,array{enabled:bool,interval_min:int,player:string}>
      */
     public static function load(): array
     {
@@ -37,6 +37,7 @@ final class TaskScheduleManager
             $stored[$action] = [
                 'enabled' => (bool) ($row['enabled'] ?? $cfg['enabled']),
                 'interval_min' => max(1, (int) ($row['interval_min'] ?? $cfg['interval_min'])),
+                'player' => trim((string) ($row['player'] ?? $cfg['player'] ?? '')),
             ];
         }
 
@@ -44,7 +45,7 @@ final class TaskScheduleManager
     }
 
     /**
-     * @param array<string,array{enabled:bool,interval_min:int}> $map
+     * @param array<string,array{enabled:bool,interval_min:int,player:string}> $map
      */
     public static function save(array $map): void
     {
@@ -55,13 +56,14 @@ final class TaskScheduleManager
             $out[$action] = [
                 'enabled' => (bool) ($row['enabled'] ?? false),
                 'interval_min' => max(1, (int) ($row['interval_min'] ?? self::DEFAULT_INTERVAL_MIN)),
+                'player' => trim((string) ($row['player'] ?? '')),
             ];
         }
 
         @file_put_contents(self::filePath(), json_encode($out, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
 
-    public static function updateAction(string $action, bool $enabled, int $intervalMin): bool
+    public static function updateAction(string $action, bool $enabled, int $intervalMin, string $player = ''): bool
     {
         $defs = self::defaults();
         if (!isset($defs[$action])) {
@@ -72,13 +74,14 @@ final class TaskScheduleManager
         $all[$action] = [
             'enabled' => $enabled,
             'interval_min' => max(1, $intervalMin),
+            'player' => trim($player),
         ];
         self::save($all);
         return true;
     }
 
     /**
-     * @return array<string,array{label:string,enabled:bool,interval_min:int}>
+     * @return array<string,array{label:string,enabled:bool,interval_min:int,player:string}>
      */
     public static function forPanel(): array
     {
@@ -93,6 +96,7 @@ final class TaskScheduleManager
                 'label' => (string) ($catalog[$action]['label'] ?? $action),
                 'enabled' => (bool) ($cfg[$action]['enabled'] ?? false),
                 'interval_min' => (int) ($cfg[$action]['interval_min'] ?? self::DEFAULT_INTERVAL_MIN),
+                'player' => trim((string) ($cfg[$action]['player'] ?? '')),
             ];
         }
         return $out;
@@ -148,6 +152,16 @@ final class TaskScheduleManager
                 }
                 $php = 'C:\\xampp\\php\\php.exe';
                 $commandOverride = [$php, app_root() . '\\src\\run_join_all_competitions.php', '--player=' . $user, '--skip-attempted'];
+            }
+
+            if ($action === 'scrape_kill_details') {
+                $configuredPlayer = trim((string) ($row['player'] ?? ''));
+                $user = $configuredPlayer !== '' ? $configuredPlayer : (is_string($authUser) ? trim($authUser) : '');
+                if ($user === '') {
+                    continue;
+                }
+                $php = 'C:\\xampp\\php\\php.exe';
+                $commandOverride = [$php, app_root() . '\\src\\run_scrape_kill_details.php', '--player=' . $user, '--cookie-player=' . $user, '--pending-only'];
             }
 
             $taskId = TaskManager::create($action, (string) $catalog[$action]['label'], $commandOverride);
@@ -213,7 +227,7 @@ final class TaskScheduleManager
     }
 
     /**
-     * @return array<string,array{enabled:bool,interval_min:int}>
+     * @return array<string,array{enabled:bool,interval_min:int,player:string}>
      */
     private static function defaults(): array
     {
@@ -222,6 +236,7 @@ final class TaskScheduleManager
             $defaults[$action] = [
                 'enabled' => in_array($action, ['refresh_competitions', 'refresh_my_expeditions', 'refresh_public_all'], true),
                 'interval_min' => self::DEFAULT_INTERVAL_MIN,
+                'player' => '',
             ];
         }
         return $defaults;
@@ -235,7 +250,7 @@ final class TaskScheduleManager
         $catalog = TaskCatalog::all();
         $out = [];
         foreach (array_keys($catalog) as $action) {
-            if (str_starts_with((string) $action, 'refresh_') || $action === 'join_all_competitions') {
+            if (str_starts_with((string) $action, 'refresh_') || in_array($action, ['join_all_competitions', 'scrape_kill_details'], true)) {
                 $out[] = (string) $action;
             }
         }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once dirname(__DIR__) . '/src/web_bootstrap.php';
 require_once dirname(__DIR__) . '/src/TaskManager.php';
 require_once dirname(__DIR__) . '/src/TaskCatalog.php';
+require_once dirname(__DIR__) . '/src/TaskScheduleManager.php';
 
 app_require_panel_auth();
 app_start_session();
@@ -41,6 +42,7 @@ foreach (TaskManager::list(500) as $task) {
 }
 
 $commandOverride = null;
+$scheduleConfig = TaskScheduleManager::load();
 if ($action === 'refresh_my_expeditions') {
     $authUser = app_auth_username() ?? '';
     $userId = app_player_user_id($authUser);
@@ -60,6 +62,18 @@ if ($action === 'join_all_competitions') {
     }
     $php = 'C:\\xampp\\php\\php.exe';
     $commandOverride = [$php, app_root() . '\\src\\run_join_all_competitions.php', '--player=' . $authUser, '--skip-attempted'];
+}
+
+if ($action === 'scrape_kill_details') {
+    $authUser = trim((string) (app_auth_username() ?? ''));
+    $configuredPlayer = trim((string) (($scheduleConfig[$action]['player'] ?? '') ?: ''));
+    $player = $configuredPlayer !== '' ? $configuredPlayer : $authUser;
+    if ($player === '') {
+        header('Location: index.php?flash=' . urlencode('No se encontro jugador configurado para el scraper de detalle de muertes'));
+        exit;
+    }
+    $php = 'C:\\xampp\\php\\php.exe';
+    $commandOverride = [$php, app_root() . '\\src\\run_scrape_kill_details.php', '--player=' . $player, '--cookie-player=' . $player, '--pending-only'];
 }
 
 $taskId = TaskManager::create($action, (string) $actions[$action]['label'], $commandOverride);

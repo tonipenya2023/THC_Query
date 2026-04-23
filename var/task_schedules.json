@@ -1,26 +1,52 @@
 {
+    "join_all_competitions": {
+        "enabled": false,
+        "interval_min": 180,
+        "player": ""
+    },
     "refresh_best_all": {
         "enabled": false,
-        "interval_min": 180
+        "interval_min": 180,
+        "player": ""
     },
     "refresh_competitions": {
         "enabled": false,
-        "interval_min": 180
+        "interval_min": 180,
+        "player": ""
     },
     "refresh_expeditions_all_users": {
         "enabled": false,
-        "interval_min": 180
+        "interval_min": 180,
+        "player": ""
+    },
+    "refresh_gallery_all": {
+        "enabled": false,
+        "interval_min": 180,
+        "player": ""
     },
     "refresh_leaderboards": {
         "enabled": false,
-        "interval_min": 180
+        "interval_min": 180,
+        "player": ""
     },
     "refresh_my_expeditions": {
         "enabled": false,
-        "interval_min": 180
+        "interval_min": 180,
+        "player": ""
     },
     "refresh_public_all": {
         "enabled": false,
-        "interval_min": 180
+        "interval_min": 180,
+        "player": ""
+    },
+    "refresh_trophies_all": {
+        "enabled": false,
+        "interval_min": 180,
+        "player": ""
+    },
+    "scrape_kill_details": {
+        "enabled": false,
+        "interval_min": 180,
+        "player": "Nefastix13"
     }
 }

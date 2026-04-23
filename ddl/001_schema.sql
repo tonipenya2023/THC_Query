@@ -389,6 +389,38 @@ CREATE TABLE IF NOT EXISTS gpt.scrape_kill_urls (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS gpt.kill_detail_scrapes (
+    scrape_id BIGSERIAL PRIMARY KEY,
+    kill_id BIGINT NOT NULL,
+    player_name TEXT NOT NULL,
+    url TEXT NOT NULL,
+    scraped_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    species_name TEXT NULL,
+    hunter_name TEXT NULL,
+    weapon_text TEXT NULL,
+    scope_text TEXT NULL,
+    ammo_text TEXT NULL,
+    shot_distance_text TEXT NULL,
+    animal_state_text TEXT NULL,
+    body_part_text TEXT NULL,
+    posture_text TEXT NULL,
+    platform_text TEXT NULL,
+    shot_location_text TEXT NULL,
+    weight_text TEXT NULL,
+    type_text TEXT NULL,
+    wound_time_text TEXT NULL,
+    trophy_integrity_text TEXT NULL,
+    shot_count_text TEXT NULL,
+    capture_time_text TEXT NULL,
+    trophy_score_text TEXT NULL,
+    harvest_value_text TEXT NULL,
+    page_title TEXT NULL,
+    render_url TEXT NULL,
+    raw_body_text TEXT NULL,
+    raw_html TEXT NULL,
+    kill_data_json JSONB NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_exp_expeditions_user_id ON gpt.exp_expeditions(user_id);
 CREATE INDEX IF NOT EXISTS idx_exp_kills_expedition_id ON gpt.exp_kills(expedition_id);
 CREATE INDEX IF NOT EXISTS idx_exp_hits_expedition_id ON gpt.exp_hits(expedition_id);
@@ -402,6 +434,8 @@ CREATE INDEX IF NOT EXISTS idx_comp_join_results_competition ON gpt.comp_join_re
 CREATE INDEX IF NOT EXISTS idx_scrape_kill_urls_run_at ON gpt.scrape_kill_urls(run_at DESC);
 CREATE INDEX IF NOT EXISTS idx_scrape_kill_urls_url ON gpt.scrape_kill_urls(url);
 CREATE INDEX IF NOT EXISTS idx_scrape_kill_urls_ok_run ON gpt.scrape_kill_urls(ok, run_at DESC);
+CREATE INDEX IF NOT EXISTS idx_kill_detail_scrapes_kill ON gpt.kill_detail_scrapes(kill_id, scraped_at DESC);
+CREATE INDEX IF NOT EXISTS idx_kill_detail_scrapes_player ON gpt.kill_detail_scrapes(player_name, scraped_at DESC);
 
 ALTER TABLE gpt.exp_expeditions
     ALTER COLUMN x TYPE NUMERIC(18,6) USING x::NUMERIC,
@@ -578,6 +612,32 @@ ALTER TABLE gpt.scrape_kill_urls
     ADD COLUMN IF NOT EXISTS requires_login BOOLEAN NULL,
     ADD COLUMN IF NOT EXISTS parsed_ok BOOLEAN NULL,
     ADD COLUMN IF NOT EXISTS parsed_summary TEXT NULL;
+
+ALTER TABLE gpt.kill_detail_scrapes
+    ADD COLUMN IF NOT EXISTS species_name TEXT NULL,
+    ADD COLUMN IF NOT EXISTS hunter_name TEXT NULL,
+    ADD COLUMN IF NOT EXISTS weapon_text TEXT NULL,
+    ADD COLUMN IF NOT EXISTS scope_text TEXT NULL,
+    ADD COLUMN IF NOT EXISTS ammo_text TEXT NULL,
+    ADD COLUMN IF NOT EXISTS shot_distance_text TEXT NULL,
+    ADD COLUMN IF NOT EXISTS animal_state_text TEXT NULL,
+    ADD COLUMN IF NOT EXISTS body_part_text TEXT NULL,
+    ADD COLUMN IF NOT EXISTS posture_text TEXT NULL,
+    ADD COLUMN IF NOT EXISTS platform_text TEXT NULL,
+    ADD COLUMN IF NOT EXISTS shot_location_text TEXT NULL,
+    ADD COLUMN IF NOT EXISTS weight_text TEXT NULL,
+    ADD COLUMN IF NOT EXISTS type_text TEXT NULL,
+    ADD COLUMN IF NOT EXISTS wound_time_text TEXT NULL,
+    ADD COLUMN IF NOT EXISTS trophy_integrity_text TEXT NULL,
+    ADD COLUMN IF NOT EXISTS shot_count_text TEXT NULL,
+    ADD COLUMN IF NOT EXISTS capture_time_text TEXT NULL,
+    ADD COLUMN IF NOT EXISTS trophy_score_text TEXT NULL,
+    ADD COLUMN IF NOT EXISTS harvest_value_text TEXT NULL,
+    ADD COLUMN IF NOT EXISTS page_title TEXT NULL,
+    ADD COLUMN IF NOT EXISTS render_url TEXT NULL,
+    ADD COLUMN IF NOT EXISTS raw_body_text TEXT NULL,
+    ADD COLUMN IF NOT EXISTS raw_html TEXT NULL,
+    ADD COLUMN IF NOT EXISTS kill_data_json JSONB NULL;
 
 CREATE TABLE IF NOT EXISTS gpt.clas_rankings_history (
     snapshot_at TIMESTAMPTZ NOT NULL,
