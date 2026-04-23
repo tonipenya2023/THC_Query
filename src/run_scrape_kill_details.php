@@ -25,14 +25,20 @@ $player = null;
 $limit = 0;
 $pendingOnly = true;
 $cookiePlayer = null;
+$existingOnly = false;
+$killIdFilter = null;
 
 foreach (array_slice($argv, 1) as $arg) {
     if (str_starts_with((string) $arg, '--player=')) {
         $player = trim((string) substr((string) $arg, 9));
+    } elseif (str_starts_with((string) $arg, '--kill-id=')) {
+        $killIdFilter = max(0, (int) substr((string) $arg, 10));
     } elseif (str_starts_with((string) $arg, '--limit=')) {
         $limit = max(0, (int) substr((string) $arg, 8));
     } elseif (str_starts_with((string) $arg, '--cookie-player=')) {
         $cookiePlayer = trim((string) substr((string) $arg, 16));
+    } elseif ((string) $arg === '--existing-only') {
+        $existingOnly = true;
     } elseif ((string) $arg === '--all') {
         $pendingOnly = false;
     } elseif ((string) $arg === '--pending-only') {
@@ -57,22 +63,44 @@ if ($cookie === '') {
 $cookieFile = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'thehunter_cookies.json';
 $cookieKey = mb_strtolower((string) $cookiePlayer, 'UTF-8');
 
-$where = ["k.kill_id IS NOT NULL", "COALESCE(NULLIF(k.player_name, ''), NULLIF(e.player_name, '')) <> ''"];
+$where = [];
 $params = [];
 if ($player !== null && $player !== '') {
-    $where[] = "LOWER(COALESCE(NULLIF(k.player_name, ''), NULLIF(e.player_name, ''))) = LOWER(:player_name)";
+    $where[] = $existingOnly
+        ? "LOWER(COALESCE(NULLIF(kd.player_name, ''), '')) = LOWER(:player_name)"
+        : "LOWER(COALESCE(NULLIF(k.player_name, ''), NULLIF(e.player_name, ''))) = LOWER(:player_name)";
     $params[':player_name'] = $player;
 }
+if ($killIdFilter !== null && $killIdFilter > 0) {
+    $where[] = $existingOnly
+        ? 'kd.kill_id = :kill_id'
+        : 'k.kill_id = :kill_id';
+    $params[':kill_id'] = $killIdFilter;
+}
 
-$sql = "SELECT
-            k.kill_id,
-            COALESCE(NULLIF(k.player_name, ''), NULLIF(e.player_name, '')) AS player_name,
-            COALESCE(NULLIF(sp.especie_es, ''), NULLIF(sp.especie, ''), NULLIF(k.species_name, '')) AS species_name
-        FROM gpt.exp_kills k
-        LEFT JOIN gpt.exp_expeditions e ON e.expedition_id = k.expedition_id
-        LEFT JOIN gpt.tab_especies sp ON sp.id_especie = k.species_id
-        WHERE " . implode(' AND ', $where) . "
-        ORDER BY k.kill_id DESC";
+if ($existingOnly) {
+    $where[] = "kd.kill_id IS NOT NULL";
+    $where[] = "COALESCE(NULLIF(kd.player_name, ''), '') <> ''";
+    $sql = "SELECT
+                kd.kill_id,
+                kd.player_name,
+                kd.species_name
+            FROM gpt.v_kill_detail_scrapes_latest kd
+            WHERE " . implode(' AND ', $where) . "
+            ORDER BY kd.kill_id DESC";
+} else {
+    $where[] = "k.kill_id IS NOT NULL";
+    $where[] = "COALESCE(NULLIF(k.player_name, ''), NULLIF(e.player_name, '')) <> ''";
+    $sql = "SELECT
+                k.kill_id,
+                COALESCE(NULLIF(k.player_name, ''), NULLIF(e.player_name, '')) AS player_name,
+                COALESCE(NULLIF(sp.especie_es, ''), NULLIF(sp.especie, ''), NULLIF(k.species_name, '')) AS species_name
+            FROM gpt.exp_kills k
+            LEFT JOIN gpt.exp_expeditions e ON e.expedition_id = k.expedition_id
+            LEFT JOIN gpt.tab_especies sp ON sp.id_especie = k.species_id
+            WHERE " . implode(' AND ', $where) . "
+            ORDER BY k.kill_id DESC";
+}
 
 $rows = $pdo->prepare($sql);
 $rows->execute($params);
@@ -266,6 +294,7 @@ function parseKillDetailPayload(array $payload): array
 {
     $html = (string) ($payload['html'] ?? '');
     $bodyText = normalize_mojibake((string) ($payload['bodyText'] ?? ''));
+    $parsedHitRows = parseShotsTableRows($html);
     $out = [
         'species_name' => null,
         'hunter_name' => null,
@@ -293,20 +322,17 @@ function parseKillDetailPayload(array $payload): array
         $out['species_name'] = cleanHtmlText($m[1]);
     }
 
-    if (preg_match('~<table class="scoretable shots".*?<tbody>\s*<tr>(.*?)</tr>~is', $html, $m) === 1) {
-        preg_match_all('~<td[^>]*>(.*?)</td>~is', $m[1], $cells);
-        $vals = array_map('cleanHtmlText', $cells[1] ?? []);
-        if (count($vals) >= 10) {
-            $out['hunter_name'] = $vals[1] ?? null;
-            $out['weapon_text'] = $vals[2] ?? null;
-            $out['scope_text'] = $vals[3] ?? null;
-            $out['ammo_text'] = $vals[4] ?? null;
-            $out['shot_distance_text'] = $vals[5] ?? null;
-            $out['animal_state_text'] = $vals[6] ?? null;
-            $out['body_part_text'] = $vals[7] ?? null;
-            $out['posture_text'] = $vals[8] ?? null;
-            $out['platform_text'] = $vals[9] ?? null;
-        }
+    if ($parsedHitRows !== []) {
+        $firstShot = $parsedHitRows[0];
+        $out['hunter_name'] = $firstShot['hunter_name'] ?? null;
+        $out['weapon_text'] = $firstShot['weapon_text'] ?? null;
+        $out['scope_text'] = $firstShot['scope_text'] ?? null;
+        $out['ammo_text'] = $firstShot['ammo_text'] ?? null;
+        $out['shot_distance_text'] = $firstShot['shot_distance_text'] ?? null;
+        $out['animal_state_text'] = $firstShot['animal_state_text'] ?? null;
+        $out['body_part_text'] = $firstShot['body_part_text'] ?? null;
+        $out['posture_text'] = $firstShot['posture_text'] ?? null;
+        $out['platform_text'] = $firstShot['platform_text'] ?? null;
     }
 
     if (preg_match('~<table class="summary".*?</table>~is', $html, $m) === 1) {
@@ -328,8 +354,15 @@ function parseKillDetailPayload(array $payload): array
     if (preg_match('~var killData = (\{.*?\})\s*,\s*strs =~s', $html, $m) === 1) {
         $json = json_decode($m[1], true);
         if (is_array($json)) {
+            if ($parsedHitRows !== []) {
+                $json['parsed_hits'] = $parsedHitRows;
+            }
             $out['kill_data'] = $json;
         }
+    }
+
+    if ($out['kill_data'] === null && $parsedHitRows !== []) {
+        $out['kill_data'] = ['parsed_hits' => $parsedHitRows];
     }
 
     if ($out['capture_time_text'] === null && preg_match('/Tiempo de Captura:\s*(.*?)\s*Cazador:/isu', $bodyText, $m) === 1) {
@@ -420,6 +453,77 @@ function parseKillDetailPayload(array $payload): array
     }
 
     return $out;
+}
+
+/**
+ * @return array<int,array<string,string|null>>
+ */
+function parseShotsTableRows(string $html): array
+{
+    if (preg_match('~<table class="scoretable shots".*?<tbody>(.*?)</tbody>~is', $html, $m) !== 1) {
+        return [];
+    }
+
+    $rowsHtml = $m[1];
+    if (preg_match_all('~<tr[^>]*>(.*?)</tr>~is', $rowsHtml, $rowMatches) < 1) {
+        return [];
+    }
+
+    $rows = [];
+    foreach ($rowMatches[1] as $rowHtml) {
+        preg_match_all('~<td[^>]*>(.*?)</td>~is', $rowHtml, $cells);
+        $vals = array_map('cleanHtmlText', $cells[1] ?? []);
+        if (count($vals) < 10) {
+            continue;
+        }
+
+        $shotIndexRaw = trim((string) ($vals[0] ?? ''));
+        $rows[] = [
+            'hit_index' => $shotIndexRaw !== '' ? $shotIndexRaw : null,
+            'hunter_name' => $vals[1] ?? null,
+            'weapon_text' => $vals[2] ?? null,
+            'scope_text' => normalize_scope_cell($vals[3] ?? null, $cells[1][3] ?? null),
+            'ammo_text' => $vals[4] ?? null,
+            'shot_distance_text' => $vals[5] ?? null,
+            'animal_state_text' => $vals[6] ?? null,
+            'body_part_text' => $vals[7] ?? null,
+            'posture_text' => $vals[8] ?? null,
+            'platform_text' => $vals[9] ?? null,
+        ];
+    }
+
+    return $rows;
+}
+
+function normalize_scope_value(?string $value): ?string
+{
+    $value = $value !== null ? trim($value) : null;
+    if ($value === null || $value === '') {
+        return $value;
+    }
+    return $value === '✓' ? 'Si' : $value;
+}
+
+function normalize_scope_cell(?string $value, ?string $rawHtml = null): ?string
+{
+    $value = $value !== null ? trim($value) : null;
+    $rawHtml = $rawHtml !== null ? trim($rawHtml) : null;
+
+    $scopeTitle = null;
+    if ($rawHtml !== null && preg_match('/\btitle\s*=\s*"([^"]+)"/iu', $rawHtml, $m) === 1) {
+        $scopeTitle = cleanHtmlText($m[1]);
+    }
+
+    if ($value === null || $value === '') {
+        return $scopeTitle;
+    }
+
+    $normalized = preg_replace('/\s+/u', '', $value) ?? $value;
+    if (in_array($normalized, ['✓', '✔', '✅', 'âœ“'], true)) {
+        return $scopeTitle ?? 'Si';
+    }
+
+    return $value;
 }
 
 function cleanHtmlText(string $html): string
@@ -608,32 +712,39 @@ function parseSummaryRows(string $summaryHtml): array
         return $out;
     }
 
-    $valueRows = [];
     foreach ($rows as $row) {
-        $cells = $xpath->query('./td[contains(@class,"value")]', $row);
+        $cells = $xpath->query('./td', $row);
         if ($cells === false || $cells->length === 0) {
             continue;
         }
+
+        $labels = [];
         $values = [];
         foreach ($cells as $cell) {
-            $value = cleanHtmlText($dom->saveHTML($cell) ?: '');
-            if ($value !== '') {
-                $values[] = $value;
+            $classAttr = (string) ($cell->attributes?->getNamedItem('class')?->nodeValue ?? '');
+            $text = cleanHtmlText($dom->saveHTML($cell) ?: '');
+            if ($text === '') {
+                continue;
+            }
+            if (str_contains($classAttr, 'value')) {
+                $values[] = $text;
+            } else {
+                $labels[] = $text;
             }
         }
-        if ($values !== []) {
-            $valueRows[] = $values;
+
+        if ($labels === [] || $values === []) {
+            continue;
+        }
+
+        foreach ($labels as $idx => $label) {
+            $key = canonical_summary_label($label);
+            if ($key === null) {
+                continue;
+            }
+            $out[$key] = $values[$idx] ?? $values[0] ?? $out[$key];
         }
     }
-
-    $out['weight_text'] = $valueRows[0][0] ?? null;
-    $out['type_text'] = $valueRows[0][1] ?? null;
-    $out['wound_time_text'] = $valueRows[1][0] ?? null;
-    $out['trophy_integrity_text'] = $valueRows[1][1] ?? null;
-    $out['shot_location_text'] = $valueRows[2][0] ?? null;
-    $out['shot_count_text'] = $valueRows[2][1] ?? null;
-    $out['capture_time_text'] = $valueRows[3][0] ?? null;
-    $out['hunter_name'] = $valueRows[3][1] ?? null;
 
     if (preg_match('~<tr>\s*<td[^>]*class="value"[^>]*>\s*<a[^>]*>(.*?)</a>\s*</td>\s*<td[^>]*class="value"[^>]*>(.*?)</td>\s*</tr>~is', $summaryHtml, $m) === 1) {
         $out['capture_time_text'] = cleanHtmlText($m[1]);
@@ -641,4 +752,24 @@ function parseSummaryRows(string $summaryHtml): array
     }
 
     return $out;
+}
+
+function canonical_summary_label(string $label): ?string
+{
+    $normalized = mb_strtolower(normalize_mojibake($label), 'UTF-8');
+    $normalized = str_replace([':', '.'], '', $normalized);
+    $normalized = preg_replace('/\s+/u', ' ', $normalized) ?? $normalized;
+    $normalized = trim($normalized);
+
+    return match ($normalized) {
+        'peso' => 'weight_text',
+        'tipo' => 'type_text',
+        'tiempo de la herida' => 'wound_time_text',
+        'integridad del trofeo' => 'trophy_integrity_text',
+        'lugar donde se realizo el tiro del jugador', 'lugar donde se realizó el tiro del jugador' => 'shot_location_text',
+        'disparos' => 'shot_count_text',
+        'tiempo de captura' => 'capture_time_text',
+        'cazador' => 'hunter_name',
+        default => null,
+    };
 }

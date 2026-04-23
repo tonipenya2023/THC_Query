@@ -323,6 +323,63 @@ function app_query_one(string $sql, array $params = []): ?array
     return $row === false ? null : $row;
 }
 
+function app_ensure_ui_preferences_table(): void
+{
+    static $done = false;
+    if ($done) {
+        return;
+    }
+
+    app_pdo()->exec(
+        "CREATE TABLE IF NOT EXISTS gpt.ui_preferences (
+            pref_key TEXT PRIMARY KEY,
+            pref_value JSONB NOT NULL DEFAULT '{}'::jsonb,
+            updated_by TEXT NULL,
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )"
+    );
+    $done = true;
+}
+
+function app_ui_preferences_all(): array
+{
+    app_ensure_ui_preferences_table();
+    $rows = app_query_all('SELECT pref_key, pref_value FROM gpt.ui_preferences ORDER BY pref_key');
+    $out = [];
+    foreach ($rows as $row) {
+        $key = (string) ($row['pref_key'] ?? '');
+        if ($key === '') {
+            continue;
+        }
+        $raw = $row['pref_value'] ?? '{}';
+        if (is_array($raw)) {
+            $out[$key] = $raw;
+            continue;
+        }
+        $decoded = json_decode((string) $raw, true);
+        $out[$key] = is_array($decoded) ? $decoded : [];
+    }
+    return $out;
+}
+
+function app_ui_preference_save(string $key, array $value, ?string $updatedBy = null): void
+{
+    app_ensure_ui_preferences_table();
+    $stmt = app_pdo()->prepare(
+        "INSERT INTO gpt.ui_preferences (pref_key, pref_value, updated_by, updated_at)
+         VALUES (:pref_key, CAST(:pref_value AS jsonb), :updated_by, NOW())
+         ON CONFLICT (pref_key) DO UPDATE SET
+            pref_value = EXCLUDED.pref_value,
+            updated_by = EXCLUDED.updated_by,
+            updated_at = NOW()"
+    );
+    $stmt->execute([
+        ':pref_key' => $key,
+        ':pref_value' => json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+        ':updated_by' => $updatedBy,
+    ]);
+}
+
 function app_start_session(): void
 {
     if (session_status() === PHP_SESSION_ACTIVE) {

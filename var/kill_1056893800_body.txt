@@ -1,0 +1,78 @@
+1
+em$ 999
+gm$ 241870
+∞ munición: 0 días
+∞ combustible: 0 días
+Configuración 
+ 23892
+CAZAR AHORA 
+CONSIGUE EM$
+TIENDA
+COMPETICIONES
+TABLAS DE CLASIFICACIÓN
+MISIONES
+DESCARGAS
+AYUDA
+FORO
+Nefastix13
+Hunter  23892  Rank 2312  Online
+ Ranks
+ Logros
+ Habilidades
+ Estadísticas
+ Galería
+ Trofeos
+🐶 Perros
+ Amigos
+Bisonte
+	COLUMN 1	COLUMN 2	COLUMN 3
+A. Greatest Spread (not added to score)	9.8031	Right Horn	Left Horn	Difference
+B. Tip to Tip Spread (not added to score)	5.9843
+C. Length of Horn	13.3768	13.3161	0.0607
+D-1. Circumference at Base	8.2677	8.2677	0
+D-2. Circumference at First Quarter Location: 3.3442	5.5118	5.9055	0.3937
+D-3. Circumference at Second Quarter Location: 6.6884	3.0709	3.3465	0.2756
+D-4. Circumference at Third Quarter Location: 10.0326	1.2598	1.0630	0.1968
+ADD	Column 1	31.487
+Column 2	31.8988
+Subtoal	63.3858
+SUBTRACT Column 3	0.9268
+FINAL SCORE	62.4590
+#	Cazador:	Arma	Visor	Munición	Distancia del Disparo	Estado del animal	Parte del cuerpo	Postura	Plataforma
+1	Nefastix13	Arco Compuesto "Mordedura de serpiente"	Nada	Flechas trazadoras Arco Compuesto	6.010 m (19.7 ft)	Cargando	- (Pulmón derecho, Hígado, Intestinos, Columna vertebral 1, Hombro)	De pie	Nada
+2	Nefastix13	Arco Compuesto "Mordedura de serpiente"	Nada	Flechas trazadoras Arco Compuesto	42.310 m (138.8 ft)	Durmiendo	- (Cráneo)	Agazapado	Nada
+3	Nefastix13	Arco Compuesto "Mordedura de serpiente"	Nada	Flechas trazadoras Arco Compuesto	1.860 m (6.1 ft)	Parado	-	De pie	Nada
+Peso:	Tipo:	Mapa
+678.298 kg (1495.4 lbs)	Común (M)
+Tiempo de la herida:	Integridad del trofeo:
+411.413	100%
+Lugar donde se realizó el tiro del jugador:	Disparos:	PUNTUACIÓN FINAL
+Whiterime Ridge (-4706, -8448)	3
+Tiempo de Captura:	Cazador:	Trophy score: 62.4591
+Valor de la captura: 0
+2025-04-27 18:07	Nefastix13
+RECLUTA A UN AMIGO
+¡Invita a tus amigos a theHunter y consigue recompensas!
+RECLUTAR AMIGOS 
+DEVELOPED BY
+FOLLOW THEHUNTER
+     
+RATINGS
+
+Contact:
+
+Expansive Worlds AB
+
+Västgötagatan 5
+
+118 27 Stockholm
+
+Sweden
+
+info@expansiveworlds.com
+
+Customer support
+
+Privacy Policy
+
+End User Licence Agreement

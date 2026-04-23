@@ -702,6 +702,13 @@ ALTER TABLE gpt.clas_rankings_latest
     ADD COLUMN IF NOT EXISTS leaderboard_url TEXT NULL,
     ADD COLUMN IF NOT EXISTS mark_url TEXT NULL;
 
+CREATE TABLE IF NOT EXISTS gpt.ui_preferences (
+    pref_key TEXT PRIMARY KEY,
+    pref_value JSONB NOT NULL DEFAULT '{}'::jsonb,
+    updated_by TEXT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- Alias tab_* requested for catalogs
 DO $$
 BEGIN

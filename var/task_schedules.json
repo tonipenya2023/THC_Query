@@ -1,17 +1,17 @@
 {
     "join_all_competitions": {
-        "enabled": false,
-        "interval_min": 180,
+        "enabled": true,
+        "interval_min": 240,
         "player": ""
     },
     "refresh_best_all": {
-        "enabled": false,
-        "interval_min": 180,
+        "enabled": true,
+        "interval_min": 240,
         "player": ""
     },
     "refresh_competitions": {
-        "enabled": false,
-        "interval_min": 180,
+        "enabled": true,
+        "interval_min": 240,
         "player": ""
     },
     "refresh_expeditions_all_users": {
@@ -25,8 +25,8 @@
         "player": ""
     },
     "refresh_leaderboards": {
-        "enabled": false,
-        "interval_min": 180,
+        "enabled": true,
+        "interval_min": 120,
         "player": ""
     },
     "refresh_my_expeditions": {
@@ -45,8 +45,8 @@
         "player": ""
     },
     "scrape_kill_details": {
-        "enabled": false,
-        "interval_min": 180,
+        "enabled": true,
+        "interval_min": 60,
         "player": "Nefastix13"
     }
 }

@@ -688,3 +688,48 @@ Aunque el proyecto funciona, seria sano abordar estas mejoras cuando toque:
 
 - La persistencia de nombres de cabecera, orden y ancho de columnas se asocia a una firma estable de la tabla (vista, bloque y columnas), no al indice visual de renderizado, para que no se pierda al filtrar o cambiar el numero de filas/subtablas.
 
+
+- La firma persistente de cada tabla ya no depende del orden visible ni del texto editado de las cabeceras; usa claves estables de columna y firma ordenada para conservar nombres personalizados despues de filtrar o reordenar.
+
+
+- Se anade la vista tecnica ?view=table_styles_preview para comparar estilos reales de tablas de datos en HTML antes de aplicar uno al tema principal.
+
+
+- Se aplica el estilo global de tablas Acero compacto: cabeceras acero azul, filas claras alternas, separadores visibles y contraste alto para datos.
+
+
+- Los botones y enlaces de accion (button y .btn-link) permiten editar texto con Ctrl+Shift+Click; el texto queda persistido en localStorage por vista/formulario igual que las cabeceras.
+
+
+- La edicion persistente con Ctrl+Shift+Click tambien aplica a los botones/enlaces de navegacion de la barra lateral izquierda.
+
+
+- El orden de botones de la barra lateral se guarda siempre por data-nav-key, no por texto visible; tambien se persiste al finalizar cualquier arrastre y antes de salir de la pagina.
+
+
+- La persistencia de textos de botones usa la clave `thc_button_labels_v2`, invalida datos antiguos duplicados y genera identidad unica por navegacion, accion real, preset, tarea, href o control para que cambiar un boton no duplique automaticamente el texto en otros botones.
+
+
+
+- La personalizacion de interfaz ya no queda solo en el navegador: textos de botones, textos de cabeceras, anchos de columnas, orden de columnas, orden de botones laterales y columnas visibles se guardan de forma global en `gpt.ui_preferences` mediante `public/ui_preferences.php`, por lo que el cambio aplica a todos los usuarios.
+- Los filtros de consulta siguen siendo locales del navegador para no cambiar automaticamente la busqueda del resto de usuarios; el boton Limpiar solo borra filtros.
+
+- Los botones y enlaces de accion se pueden redimensionar arrastrando el tirador de la esquina inferior derecha; el tamano queda guardado de forma global para todos los usuarios en `gpt.ui_preferences`.
+- Se puede insertar texto persistente antes de cualquier boton con `Shift+Alt+Click` sobre el boton; dejar el texto vacio elimina el separador. Aplica tambien a la barra lateral.
+- Los nombres de tareas programadas y recientes se pueden renombrar con `Ctrl+Shift+Click`; el cambio queda guardado globalmente.
+
+- Los botones redimensionados mantienen el texto centrado vertical y horizontalmente, incluyendo enlaces boton y botones de navegacion lateral.
+
+- El tamano personalizado de un boton se puede restaurar al defecto con doble click en el tirador de redimensionado o con `Ctrl+Alt+Click` sobre el boton.
+
+- En botones redimensionados el texto queda centrado solo en altura; horizontalmente queda alineado a la izquierda.
+
+- Los botones de Procesos centran el texto en altura y anchura.
+- El tamano de botones se agrupa por zona: al redimensionar un boton de Procesos se actualizan todos los botones de Procesos; al redimensionar un boton de la barra lateral se actualizan todos los botones de la barra lateral.
+
+- El panel superior muestra mas indicadores de datos procesados: expediciones, muertes, disparos, mejores marcas, usuarios, perfiles EST, trofeos, galeria, competiciones, inscripciones, clasificaciones, historico, URLs de muertes y detalle del scraper.
+- Los indicadores del panel se reducen de tamano y se ajustan a contenido para mostrar mas informacion sin ocupar tanto espacio.
+
+- El espaciado entre botones se mantiene fijo al redimensionar: `Procesos` usa flex con `gap` estable y los botones redimensionados no estiran el espacio entre ellos.
+
+- El orden de la botonera lateral se aplica tambien en servidor antes de pintar la pagina, usando `thc_sidebar_nav_order`, para evitar el salto visual donde primero aparecia el orden original y despues el orden guardado.

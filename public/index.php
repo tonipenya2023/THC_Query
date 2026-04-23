@@ -15,6 +15,7 @@ $flash = $_GET['flash'] ?? null;
 $theme = app_theme();
 $font = app_font();
 TaskScheduleManager::runDueTasks(app_is_admin_user(), app_auth_username());
+$uiPreferences = app_ui_preferences_all();
 
 function menu_link(string $key, string $label, string $current): string
 {
@@ -1354,12 +1355,29 @@ function render_advanced(): void
 function render_dashboard(): void
 {
     $isAdmin = app_is_admin_user();
+    $countSql = static function (string $sql): int {
+        try {
+            $row = app_query_one($sql);
+            return (int) ($row['c'] ?? 0);
+        } catch (Throwable) {
+            return 0;
+        }
+    };
     $counts = [
-        'Expediciones' => app_query_one('SELECT COUNT(*) AS c FROM gpt.exp_expeditions')['c'] ?? 0,
-        'Mejores Marcas' => app_query_one('SELECT COUNT(*) AS c FROM gpt.best_personal_records')['c'] ?? 0,
-        'Perfiles EST' => app_query_one('SELECT COUNT(*) AS c FROM gpt.est_profiles')['c'] ?? 0,
-        'Competiciones' => app_query_one('SELECT COUNT(*) AS c FROM gpt.comp_competitions')['c'] ?? 0,
-        'Tablas de Clasificacion' => app_query_one('SELECT COUNT(*) AS c FROM gpt.clas_rankings_latest')['c'] ?? 0,
+        'Expediciones' => $countSql('SELECT COUNT(*) AS c FROM gpt.exp_expeditions'),
+        'Muertes' => $countSql('SELECT COUNT(*) AS c FROM gpt.exp_kills'),
+        'Disparos' => $countSql('SELECT COUNT(*) AS c FROM gpt.exp_hits'),
+        'Mejores Marcas' => $countSql('SELECT COUNT(*) AS c FROM gpt.best_personal_records'),
+        'Usuarios' => $countSql('SELECT COUNT(*) AS c FROM gpt.users'),
+        'Perfiles EST' => $countSql('SELECT COUNT(*) AS c FROM gpt.est_profiles'),
+        'Trofeos' => $countSql('SELECT COUNT(*) AS c FROM gpt.user_trophies'),
+        'Galeria Fotos' => $countSql('SELECT COUNT(*) AS c FROM gpt.user_gallery'),
+        'Competiciones' => $countSql('SELECT COUNT(*) AS c FROM gpt.comp_competitions'),
+        'Inscripciones' => $countSql('SELECT COUNT(*) AS c FROM gpt.comp_join_results'),
+        'Clasificacion' => $countSql('SELECT COUNT(*) AS c FROM gpt.clas_rankings_latest'),
+        'Clasif. Historico' => $countSql('SELECT COUNT(*) AS c FROM gpt.clas_rankings_history'),
+        'URLs Muertes' => $countSql('SELECT COUNT(*) AS c FROM gpt.scrape_kill_urls'),
+        'Detalle Scraper' => $countSql('SELECT COUNT(*) AS c FROM gpt.kill_detail_scrapes'),
     ];
 
     $tasks = TaskManager::list(8);
@@ -1434,7 +1452,7 @@ function render_dashboard(): void
         $runFormId = 'task-run-' . preg_replace('/[^a-z0-9_-]/i', '-', (string) $action);
 
         echo '<tr>';
-        echo '<td>' . h((string) $def['label']) . '</td>';
+        echo '<td class="task-label-editable" data-task-label-key="' . h('scheduled:' . (string) $action) . '">' . h((string) $def['label']) . '</td>';
         if ($isAdmin) {
             $checked = ((bool) ($def['enabled'] ?? false)) ? ' checked' : '';
             echo '<td><label><input type="checkbox" name="enabled" value="1" form="' . h($saveFormId) . '"' . $checked . '> Si</label></td>';
@@ -1488,7 +1506,13 @@ function render_dashboard(): void
         $taskId = (string) ($task['id'] ?? '');
         $taskStatus = (string) ($task['status'] ?? '');
         echo '<tr>';
-        echo '<td>' . h((string) ($task['label'] ?? '')) . '</td>';
+        $recentTaskKey = (string) ($task['action'] ?? '');
+        if ($recentTaskKey === '') {
+            $recentTaskKey = 'task:' . $taskId;
+        } else {
+            $recentTaskKey = 'recent:' . $recentTaskKey;
+        }
+        echo '<td class="task-label-editable" data-task-label-key="' . h($recentTaskKey) . '">' . h((string) ($task['label'] ?? '')) . '</td>';
         echo '<td>' . h($taskStatus) . '</td>';
         echo '<td>' . h((string) ($task['created_at'] ?? '')) . '</td>';
         echo '<td><a href="?view=logs&log=' . urlencode($taskId . '.log') . '">ver</a></td>';
@@ -1508,6 +1532,51 @@ function render_dashboard(): void
     }
     echo '</tbody></table>';
     echo '</section>';
+}
+
+function render_table_styles_preview(): void
+{
+    $rows = [
+        ['13415904', '21/04/2026 21:02:50', 'Nefastix13', 'Val-des-Bois', '12', '4791.820', '100.000'],
+        ['13415741', '21/04/2026 20:46:51', 'Nefastix13', 'Settler Creeks', '0', '6052.530', '94.924'],
+        ['13409280', '17/04/2026 10:04:40', 'TheBubb', 'Piccabeen Bay', '5', '244.117', '100.000'],
+        ['13408877', '16/04/2026 21:13:44', 'Bansan_', 'Whiterime Ridge', '1', '319.060', '86.420'],
+    ];
+    $styles = [
+        'table-style-forest' => 'Forest claro',
+        'table-style-graphite' => 'Grafito ambar',
+        'table-style-navy' => 'Azul tactico',
+        'table-style-parchment' => 'Pergamino',
+        'table-style-terminal' => 'Terminal',
+        'table-style-steel' => 'Acero compacto',
+        'table-style-burgundy' => 'Borgona',
+        'table-style-minimal' => 'Minimal blanco',
+    ];
+
+    echo '<section class="card table-style-preview"><h2>Estilos de tablas de datos</h2>';
+    echo '<p class="muted">Vista de comparacion. Son tablas HTML reales, no imagenes.</p>';
+    echo '<div class="table-style-grid">';
+    foreach ($styles as $class => $title) {
+        echo '<article class="table-style-card ' . h($class) . '">';
+        echo '<h3>' . h($title) . '</h3>';
+        echo '<table><thead><tr>';
+        foreach (['IdExpedicion', 'Inicio', 'Jugador', 'Reserva', 'Muertes', 'Puntuacion', 'Harvest'] as $idx => $label) {
+            $arrow = $idx === 0 ? ' <span class="active-sort-arrow">↓</span>' : '';
+            echo '<th>' . h($label) . $arrow . '</th>';
+        }
+        echo '</tr></thead><tbody>';
+        foreach ($rows as $row) {
+            echo '<tr>';
+            foreach ($row as $idx => $value) {
+                $classAttr = in_array($idx, [0, 4, 5, 6], true) ? ' class="num-cell"' : '';
+                echo '<td' . $classAttr . '>' . h($value) . '</td>';
+            }
+            echo '</tr>';
+        }
+        echo '</tbody></table>';
+        echo '</article>';
+    }
+    echo '</div></section>';
 }
 
 function render_expeditions(): void
@@ -1699,6 +1768,7 @@ function render_expeditions(): void
         'score' => 'Puntuacion',
         'harvest_value' => 'Harvest',
         'trophy_integrity' => 'Integridad (%)',
+        'type_text' => 'Tipo',
         'wound_time_text' => 'Tiempo herida',
         'shot_location_text' => 'Lugar disparo',
         'confirm_at' => 'Confirmado',
@@ -1706,6 +1776,18 @@ function render_expeditions(): void
         'hits_avg_distance' => 'Dist Avg (m)',
         'hits_max_distance' => 'Dist Max (m)',
         'hits_organs' => 'Organos',
+    ];
+    $expNumericCols = [
+        'e_expedition_id' => true,
+        'e_user_id' => true,
+        'e_reserve_id' => true,
+        'e_score' => true,
+        'e_distance' => true,
+        'e_duration' => true,
+        'e_kills' => true,
+        'e_hits' => true,
+        'e_harvest_total' => true,
+        'e_integrity_avg' => true,
     ];
     $killNumericCols = [
         'species_id' => true,
@@ -1718,7 +1800,24 @@ function render_expeditions(): void
         'hits_avg_distance' => true,
         'hits_max_distance' => true,
     ];
-    $defaultKillCols = ['kill_id', 'player_name', 'species_name', 'species_name_es', 'hit_min_distance', 'score', 'harvest_value', 'trophy_integrity', 'wound_time_text', 'shot_location_text', 'weight', 'ethical', 'hits_count'];
+    $expCenterCols = [
+        'e_single_player' => true,
+    ];
+    $killCenterCols = [
+        'gender' => true,
+        'ethical' => true,
+    ];
+    $hitCenterCols = [];
+    $columnAlignClass = static function (string $key, array $numericCols, array $centerCols): string {
+        if (isset($centerCols[$key])) {
+            return 'col-align-center';
+        }
+        if (isset($numericCols[$key])) {
+            return 'col-align-right';
+        }
+        return 'col-align-left';
+    };
+    $defaultKillCols = ['kill_id', 'player_name', 'species_name', 'species_name_es', 'type_text', 'hit_min_distance', 'score', 'harvest_value', 'trophy_integrity', 'wound_time_text', 'shot_location_text', 'weight', 'ethical', 'hits_count'];
     $selectedKillCols = persistent_selected_columns('exp_kill_cols', $killColumnDefs, 'kcol_', $defaultKillCols);
     $killDragOrderRaw = query_text('kcol_order');
     if ($killDragOrderRaw !== null) {
@@ -1791,6 +1890,7 @@ function render_expeditions(): void
         'score' => 'COALESCE(k.score, -1)',
         'harvest_value' => 'COALESCE(k.harvest_value, -1)',
         'trophy_integrity' => 'COALESCE(k.trophy_integrity, -1)',
+        'type_text' => 'COALESCE(kd.type_text, \'\')',
         'wound_time_text' => 'COALESCE(kd.wound_time_text, \'\')',
         'shot_location_text' => 'COALESCE(kd.shot_location_text, \'\')',
         'confirm_at' => 'COALESCE(k.confirm_at, k.created_at)',
@@ -2401,6 +2501,7 @@ function render_expeditions(): void
                            COALESCE(s.especie_es, s.especie, k.species_name) AS species_name_es,
                            k.weight, k.gender, k.texture, k.ethical, k.wound_time, k.harvest_value,
                            k.trophy_integrity, k.score, k.score_type, k.confirm_at,
+                           kd.type_text, kd.wound_time_text, kd.shot_location_text,
                            COALESCE(hs.hits_count, 0) AS hits_count,
                            hs.min_distance AS hit_min_distance,
                            hs.avg_distance AS hits_avg_distance,
@@ -2672,7 +2773,7 @@ function render_expeditions(): void
 
             $hitSql = 'SELECT h.kill_id, h.hit_index, h.user_id, h.player_name, h.distance, h.weapon_id, h.ammo_id, h.organ,
                               kd.hunter_name, kd.weapon_text, kd.scope_text, kd.ammo_text, kd.shot_distance_text,
-                              kd.animal_state_text, kd.body_part_text, kd.posture_text, kd.platform_text
+                              kd.animal_state_text, kd.body_part_text, kd.posture_text, kd.platform_text, kd.kill_data_json
                        FROM gpt.exp_hits h
                        LEFT JOIN gpt.v_kill_detail_scrapes_latest kd ON kd.kill_id = h.kill_id
                        WHERE h.kill_id IN (' . implode(', ', $hitInParts) . ')';
@@ -2736,6 +2837,7 @@ function render_expeditions(): void
                 if ($killIdRow <= 0) {
                     continue;
                 }
+                $hitRow = merge_hit_scrape_detail($hitRow);
                 $hitsByKill[$killIdRow][] = $hitRow;
             }
         }
@@ -2924,9 +3026,10 @@ function render_expeditions(): void
 
     echo '<table><thead><tr>';
     foreach ($selectedCols as $key) {
-        echo '<th data-col-key="' . h($key) . '">' . sort_link($key, $columnDefs[$key]['label'], $sortKey, $sortDir) . '</th>';
+        $mainThClass = $columnAlignClass($key, $expNumericCols, $expCenterCols);
+        echo '<th class="' . h($mainThClass) . '" data-col-key="' . h($key) . '">' . sort_link($key, $columnDefs[$key]['label'], $sortKey, $sortDir) . '</th>';
     }
-    echo '<th>Muertes</th>';
+    echo '<th class="col-align-left">Muertes</th>';
     echo '</tr></thead><tbody>';
     $isKillMmp = static function (array $krow) use ($bestScoreByUserSpecies, $bestScoreKillByUserSpecies): bool {
         $score = $krow['score'] ?? null;
@@ -3121,9 +3224,10 @@ function render_expeditions(): void
             } elseif ($key === 'e_user_id') {
                 $cellText = player_profile_link_html($expPlayerRaw, $row['e_user_id'] ?? '');
             }
-            echo '<td data-col-key="' . h($key) . '"' . $mainCellStyle . '>' . $cellText . '</td>';
+            $mainTdClass = $columnAlignClass($key, $expNumericCols, $expCenterCols);
+            echo '<td class="' . h($mainTdClass) . '" data-col-key="' . h($key) . '"' . $mainCellStyle . '>' . $cellText . '</td>';
         }
-        echo '<td>';
+        echo '<td class="col-align-left">';
         if ($killRows === []) {
             echo '<span class="muted">Sin muertes</span>';
         } else {
@@ -3131,21 +3235,21 @@ function render_expeditions(): void
             echo '<details class="exp-kills-details" data-exp-id="' . h((string) $expId) . '"' . $expOpenAttr . '><summary>Ver muertes (' . h((string) count($killRows)) . ')</summary>';
             echo '<table><thead><tr>';
             foreach ($selectedKillCols as $colKey) {
-                $thStyle = isset($killNumericCols[$colKey]) ? ' style="text-align:right"' : '';
+                $thClass = $columnAlignClass($colKey, $killNumericCols, $killCenterCols);
                 $label = $killColumnDefs[$colKey] ?? $colKey;
                 if (!isset($killSortDefs[$colKey])) {
-                    echo '<th data-col-key="k_' . h($colKey) . '"' . $thStyle . '>' . h($label) . '</th>';
+                    echo '<th class="' . h($thClass) . '" data-col-key="k_' . h($colKey) . '">' . h($label) . '</th>';
                 } else {
-                    echo '<th data-col-key="k_' . h($colKey) . '"' . $thStyle . '>' . sort_link_param('k_sort', 'k_dir', $colKey, $label, $killSortKey, $killSortDir) . '</th>';
+                    echo '<th class="' . h($thClass) . '" data-col-key="k_' . h($colKey) . '">' . sort_link_param('k_sort', 'k_dir', $colKey, $label, $killSortKey, $killSortDir) . '</th>';
                 }
             }
             foreach ($selectedHitCols as $hcolKey) {
-                $hitThStyle = isset($hitNumericCols[$hcolKey]) ? ' style="text-align:right"' : '';
+                $hitThClass = $columnAlignClass($hcolKey, $hitNumericCols, $hitCenterCols);
                 $hlabel = $hitColumnDefs[$hcolKey] ?? $hcolKey;
                 if (!isset($hitSortDefs[$hcolKey])) {
-                    echo '<th data-col-key="h_' . h($hcolKey) . '"' . $hitThStyle . '>' . h($hlabel) . '</th>';
+                    echo '<th class="' . h($hitThClass) . '" data-col-key="h_' . h($hcolKey) . '">' . h($hlabel) . '</th>';
                 } else {
-                    echo '<th data-col-key="h_' . h($hcolKey) . '"' . $hitThStyle . '>' . sort_link_param('h_sort', 'h_dir', $hcolKey, $hlabel, $hitSortKey, $hitSortDir) . '</th>';
+                    echo '<th class="' . h($hitThClass) . '" data-col-key="h_' . h($hcolKey) . '">' . sort_link_param('h_sort', 'h_dir', $hcolKey, $hlabel, $hitSortKey, $hitSortDir) . '</th>';
                 }
             }
             echo '</tr></thead><tbody>';
@@ -3157,7 +3261,8 @@ function render_expeditions(): void
                     echo '<tr>';
                     foreach ($selectedKillCols as $colKey) {
                         if ($hitRowIndex > 0) {
-                            echo '<td data-col-key="k_' . h($colKey) . '"></td>';
+                            $emptyKillClass = $columnAlignClass($colKey, $killNumericCols, $killCenterCols);
+                            echo '<td class="' . h($emptyKillClass) . '" data-col-key="k_' . h($colKey) . '"></td>';
                             continue;
                         }
 
@@ -3206,19 +3311,20 @@ function render_expeditions(): void
                         if ($colKey === 'confirm_at') {
                             $value = format_datetime_display($value);
                         }
-                        $killTdStyle = isset($killNumericCols[$colKey]) ? ' style="text-align:right"' : '';
+                        $killTdClass = $columnAlignClass($colKey, $killNumericCols, $killCenterCols);
+                        $killTdStyle = '';
                         if ($colKey === 'score' && $scoreCellColor !== null) {
-                            $killTdStyle = ' style="text-align:right;color:' . h($scoreCellColor) . ';font-weight:700"';
+                            $killTdStyle = ' style="color:' . h($scoreCellColor) . ';font-weight:700"';
                         }
                         if ($colKey === 'gender') {
-                            echo '<td data-col-key="k_' . h($colKey) . '"' . $killTdStyle . '>' . gender_badge_html($value) . '</td>';
+                            echo '<td class="' . h($killTdClass) . '" data-col-key="k_' . h($colKey) . '"' . $killTdStyle . '>' . gender_badge_html($value) . '</td>';
                             continue;
                         }
                         if ($colKey === 'ethical') {
                             $isEthical = in_array((string) $value, ['1', 'true', 't'], true);
                             $icon = $isEthical ? '&#10004;' : '&#10008;';
                             $color = $isEthical ? '#1f9d55' : '#c53030';
-                            echo '<td data-col-key="k_' . h($colKey) . '"' . $killTdStyle . '><span style="color:' . h($color) . ';font-weight:700">' . $icon . '</span></td>';
+                            echo '<td class="' . h($killTdClass) . '" data-col-key="k_' . h($colKey) . '"' . $killTdStyle . '><span style="color:' . h($color) . ';font-weight:700">' . $icon . '</span></td>';
                             continue;
                         }
                         $killText = h($value === null ? '' : (string) $value);
@@ -3266,16 +3372,17 @@ function render_expeditions(): void
                         } elseif ($colKey === 'user_id') {
                             $killText = player_profile_link_html($krow['player_name'] ?? ($row['e_player_name'] ?? ''), $krow['user_id'] ?? '');
                         }
-                        echo '<td data-col-key="k_' . h($colKey) . '"' . $killTdStyle . '>' . $killText . '</td>';
+                        echo '<td class="' . h($killTdClass) . '" data-col-key="k_' . h($colKey) . '"' . $killTdStyle . '>' . $killText . '</td>';
                     }
 
                     foreach ($selectedHitCols as $hcolKey) {
                         $value = $hrow[$hcolKey] ?? '';
+                        $hitTdClass = $columnAlignClass($hcolKey, $hitNumericCols, $hitCenterCols);
                         if ($hrow === []) {
                             if ($hcolKey === $selectedHitCols[0]) {
-                                echo '<td data-col-key="h_' . h($hcolKey) . '"><span class="muted">Sin disparos</span></td>';
+                                echo '<td class="' . h($hitTdClass) . '" data-col-key="h_' . h($hcolKey) . '"><span class="muted">Sin disparos</span></td>';
                             } else {
-                                echo '<td data-col-key="h_' . h($hcolKey) . '"></td>';
+                                echo '<td class="' . h($hitTdClass) . '" data-col-key="h_' . h($hcolKey) . '"></td>';
                             }
                             continue;
                         }
@@ -3285,13 +3392,13 @@ function render_expeditions(): void
                         if ($hcolKey === 'distance' && $value !== null && $value !== '' && is_numeric((string) $value)) {
                             $value = number_format(((float) $value) / 1000, 3, '.', '');
                         }
-                        $hitTdStyle = isset($hitNumericCols[$hcolKey]) ? ' style="text-align:right"' : '';
+                        $hitTdStyle = '';
                         if ($hcolKey === 'player_name') {
-                            echo '<td data-col-key="h_' . h($hcolKey) . '"' . $hitTdStyle . '>' . player_profile_link_html($hrow['player_name'] ?? ($krow['player_name'] ?? ($row['e_player_name'] ?? '')), $value) . '</td>';
+                            echo '<td class="' . h($hitTdClass) . '" data-col-key="h_' . h($hcolKey) . '"' . $hitTdStyle . '>' . player_profile_link_html($hrow['player_name'] ?? ($krow['player_name'] ?? ($row['e_player_name'] ?? '')), $value) . '</td>';
                         } elseif ($hcolKey === 'user_id') {
-                            echo '<td data-col-key="h_' . h($hcolKey) . '"' . $hitTdStyle . '>' . player_profile_link_html($hrow['player_name'] ?? ($krow['player_name'] ?? ($row['e_player_name'] ?? '')), $value) . '</td>';
+                            echo '<td class="' . h($hitTdClass) . '" data-col-key="h_' . h($hcolKey) . '"' . $hitTdStyle . '>' . player_profile_link_html($hrow['player_name'] ?? ($krow['player_name'] ?? ($row['e_player_name'] ?? '')), $value) . '</td>';
                         } else {
-                            echo '<td data-col-key="h_' . h($hcolKey) . '"' . $hitTdStyle . '>' . h($value === null ? '' : (string) $value) . '</td>';
+                            echo '<td class="' . h($hitTdClass) . '" data-col-key="h_' . h($hcolKey) . '"' . $hitTdStyle . '>' . h($value === null ? '' : (string) $value) . '</td>';
                         }
                     }
                     echo '</tr>';
@@ -3307,6 +3414,68 @@ function render_expeditions(): void
     echo '</div>';
     render_pagination($page, $pageSize, $totalRows);
     echo '</section>';
+}
+
+/**
+ * @param array<string,mixed> $hitRow
+ * @return array<string,mixed>
+ */
+function merge_hit_scrape_detail(array $hitRow): array
+{
+    $jsonRaw = $hitRow['kill_data_json'] ?? null;
+    if (!is_string($jsonRaw) || trim($jsonRaw) === '') {
+        return $hitRow;
+    }
+
+    $decoded = json_decode($jsonRaw, true);
+    if (!is_array($decoded)) {
+        return $hitRow;
+    }
+
+    $parsedHits = $decoded['parsed_hits'] ?? null;
+    if (!is_array($parsedHits) || $parsedHits === []) {
+        return $hitRow;
+    }
+
+    $targetIndex = is_numeric((string) ($hitRow['hit_index'] ?? null)) ? (int) $hitRow['hit_index'] : null;
+    if ($targetIndex === null || $targetIndex <= 0) {
+        return $hitRow;
+    }
+
+    $match = null;
+    foreach ($parsedHits as $offset => $parsedHit) {
+        if (!is_array($parsedHit)) {
+            continue;
+        }
+        $parsedIndex = is_numeric((string) ($parsedHit['hit_index'] ?? null)) ? (int) $parsedHit['hit_index'] : ($offset + 1);
+        if ($parsedIndex === $targetIndex) {
+            $match = $parsedHit;
+            break;
+        }
+    }
+
+    if (!is_array($match)) {
+        return $hitRow;
+    }
+
+    foreach ([
+        'hunter_name',
+        'weapon_text',
+        'scope_text',
+        'ammo_text',
+        'shot_distance_text',
+        'animal_state_text',
+        'body_part_text',
+        'posture_text',
+        'platform_text',
+    ] as $field) {
+        $value = $match[$field] ?? null;
+        if (is_string($value) && trim($value) !== '') {
+            $hitRow[$field] = $value;
+        }
+    }
+
+    return $hitRow;
 }
 
 function render_best(): void
@@ -8182,6 +8351,39 @@ if (is_csv_export_requested()) {
     }
 }
 $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
+$sidebarItems = [
+    'dashboard' => 'Panel',
+    'expeditions' => 'Expediciones',
+    'best' => 'Mejores Marcas',
+    'profiles' => 'Estadisticas',
+    'competitions' => 'Competiciones',
+    'classifications' => 'Tablas Clasificacion',
+    'species_ppft' => 'Especies PPFT',
+    'hall_of_fame' => 'Salones Fama',
+    'trophies_summary' => 'Resumen Trofeos',
+    'user_gallery' => 'Galerias Usuarios',
+    'kill_scrape_status' => 'Estado Scraper',
+    'kill_detail_scrapes' => 'Detalle Muertes',
+    'competition_signups' => 'Inscripciones Comp.',
+    'cheat_risk' => 'Anti-trampas',
+];
+if (app_is_admin_user()) {
+    $sidebarItems['logs'] = 'Logs';
+}
+$sidebarItems['advanced'] = 'Consulta Avanzada';
+
+$savedSidebarOrder = $uiPreferences['thc_sidebar_nav_order']['order'] ?? [];
+if (is_array($savedSidebarOrder) && $savedSidebarOrder !== []) {
+    $orderedSidebarItems = [];
+    foreach ($savedSidebarOrder as $key) {
+        $key = (string) $key;
+        if (array_key_exists($key, $sidebarItems)) {
+            $orderedSidebarItems[$key] = $sidebarItems[$key];
+            unset($sidebarItems[$key]);
+        }
+    }
+    $sidebarItems = $orderedSidebarItems + $sidebarItems;
+}
 ?>
 <!doctype html>
 <html lang="es">
@@ -8213,24 +8415,9 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
             </form>
         </details>
         <nav class="nav">
-            <?= menu_link('dashboard', 'Panel', $view) ?>
-            <?= menu_link('expeditions', 'Expediciones', $view) ?>
-            <?= menu_link('best', 'Mejores Marcas', $view) ?>
-            <?= menu_link('profiles', 'Estadisticas', $view) ?>
-            <?= menu_link('competitions', 'Competiciones', $view) ?>
-            <?= menu_link('classifications', 'Tablas Clasificacion', $view) ?>
-            <?= menu_link('species_ppft', 'Especies PPFT', $view) ?>
-            <?= menu_link('hall_of_fame', 'Salones Fama', $view) ?>
-            <?= menu_link('trophies_summary', 'Resumen Trofeos', $view) ?>
-            <?= menu_link('user_gallery', 'Galerias Usuarios', $view) ?>
-            <?= menu_link('kill_scrape_status', 'Estado Scraper', $view) ?>
-            <?= menu_link('kill_detail_scrapes', 'Detalle Muertes', $view) ?>
-            <?= menu_link('competition_signups', 'Inscripciones Comp.', $view) ?>
-            <?= menu_link('cheat_risk', 'Anti-trampas', $view) ?>
-            <?php if (app_is_admin_user()): ?>
-                <?= menu_link('logs', 'Logs', $view) ?>
-            <?php endif; ?>
-            <?= menu_link('advanced', 'Consulta Avanzada', $view) ?>
+            <?php foreach ($sidebarItems as $key => $label): ?>
+                <?= menu_link((string) $key, (string) $label, $view) ?>
+            <?php endforeach; ?>
         </nav>
         <details class="theme-switch sidebar-collapsible">
             <summary class="theme-title">Tema</summary>
@@ -8317,6 +8504,9 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
             case 'cheat_risk':
                 render_cheat_risk();
                 break;
+            case 'table_styles_preview':
+                render_table_styles_preview();
+                break;
             default:
                 render_dashboard();
                 break;
@@ -8324,6 +8514,26 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
         ?>
     </main>
 </div>
+<script>
+window.THC_GLOBAL_PREFS = <?= json_encode($uiPreferences, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+window.thcReadGlobalPref = (key) => {
+    const source = window.THC_GLOBAL_PREFS || {};
+    const value = source[key];
+    return value && typeof value === 'object' && !Array.isArray(value) ? {...value} : {};
+};
+window.thcWriteGlobalPref = (key, value) => {
+    if (!window.THC_GLOBAL_PREFS || typeof window.THC_GLOBAL_PREFS !== 'object') {
+        window.THC_GLOBAL_PREFS = {};
+    }
+    window.THC_GLOBAL_PREFS[key] = value && typeof value === 'object' ? value : {};
+    fetch('ui_preferences.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({key, value: window.THC_GLOBAL_PREFS[key]}),
+        credentials: 'same-origin',
+    }).catch(() => {});
+};
+</script>
 <script>
 (() => {
     const view = <?= json_encode($view, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
@@ -8964,6 +9174,144 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
 </script>
 <script>
 (() => {
+    const normalize = (value) => String(value || '').replace(/\s+/g, ' ').trim();
+
+    const parseNumber = (raw) => {
+        let value = normalize(raw);
+        if (value === '') {
+            return null;
+        }
+        value = value.replace(/[%]/g, '');
+        value = value.replace(/[^\d,.\-]/g, '');
+        if (value === '' || !/\d/.test(value)) {
+            return null;
+        }
+        if (value.includes(',') && value.includes('.')) {
+            if (value.lastIndexOf(',') > value.lastIndexOf('.')) {
+                value = value.replace(/\./g, '').replace(',', '.');
+            } else {
+                value = value.replace(/,/g, '');
+            }
+        } else if (value.includes(',')) {
+            value = value.replace(',', '.');
+        }
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : null;
+    };
+
+    const centerKeyPattern = /(?:^|_)(gender|ethical|icon|icons|scope|visor|platform|posture|pose|singleplayer|enabled|status|ok|reward_position|prize_position|medal|badge)(?:$|_)/i;
+    const rightKeyPattern = /(?:^|_)(id|rank|score|distance|distancia|peso|weight|hits|hit|kills|kill|shots|shot|amount|value|count|integrity|harvest|time|duration|x|y|z|min|max|avg|position|timestamp|money|cash|price|puntuacion)(?:$|_)/i;
+
+    const hasInteractiveContent = (cell) =>
+        cell.querySelector(':scope > details > summary, button, a.btn-link, input:not([type="checkbox"]), select, textarea');
+
+    const isCenteredWidget = (cell) =>
+        cell.querySelector('input[type="checkbox"], .species-gender-icon, img, svg, .medal-icon, .ethical-icon');
+
+    const detectCellKind = (cell) => {
+        if (!(cell instanceof HTMLTableCellElement)) {
+            return 'left';
+        }
+        if (hasInteractiveContent(cell)) {
+            return 'left';
+        }
+        const text = normalize(cell.dataset.sortValue || cell.dataset.num || cell.textContent || '');
+        if (isCenteredWidget(cell)) {
+            return 'center';
+        }
+        if (/^(si|no|sí|true|false|ok|x|✓|✔|✅|m|f)$/iu.test(text)) {
+            return 'center';
+        }
+        if (text !== '' && parseNumber(text) !== null) {
+            return 'right';
+        }
+        return 'left';
+    };
+
+    const classifyColumn = (table, colIndex) => {
+        const headerCell = table.tHead?.rows[table.tHead.rows.length - 1]?.cells[colIndex];
+        const colKey = normalize(headerCell instanceof HTMLTableCellElement ? headerCell.dataset.colKey || '' : '');
+        if (colKey !== '') {
+            if (rightKeyPattern.test(colKey)) {
+                return 'right';
+            }
+            if (centerKeyPattern.test(colKey)) {
+                return 'center';
+            }
+        }
+
+        const kinds = [];
+        Array.from(table.tBodies).forEach((tbody) => {
+            Array.from(tbody.rows).forEach((row) => {
+                const cell = row.cells[colIndex];
+                if (!(cell instanceof HTMLTableCellElement)) {
+                    return;
+                }
+                if (hasInteractiveContent(cell)) {
+                    kinds.push('left');
+                    return;
+                }
+                const text = normalize(cell.textContent || '');
+                if (text === '' && !isCenteredWidget(cell)) {
+                    return;
+                }
+                kinds.push(detectCellKind(cell));
+            });
+        });
+
+        if (kinds.length === 0) {
+            return 'left';
+        }
+        if (kinds.every((kind) => kind === 'center')) {
+            return 'center';
+        }
+        if (kinds.every((kind) => kind === 'right')) {
+            return 'right';
+        }
+        return 'left';
+    };
+
+    const applyColumnAlignment = (table) => {
+        if (!(table instanceof HTMLTableElement) || !(table.tHead instanceof HTMLTableSectionElement) || table.tHead.rows.length === 0) {
+            return;
+        }
+        const headerRow = table.tHead.rows[table.tHead.rows.length - 1];
+        if (!(headerRow instanceof HTMLTableRowElement)) {
+            return;
+        }
+
+        Array.from(headerRow.cells).forEach((headerCell, colIndex) => {
+            if (!(headerCell instanceof HTMLTableCellElement)) {
+                return;
+            }
+            const align = classifyColumn(table, colIndex);
+            const className = `col-align-${align}`;
+            headerCell.classList.remove('col-align-left', 'col-align-center', 'col-align-right');
+            headerCell.classList.add(className);
+            headerCell.style.textAlign = '';
+
+            Array.from(table.rows).forEach((row) => {
+                if (!(row instanceof HTMLTableRowElement)) {
+                    return;
+                }
+                const cell = row.cells[colIndex];
+                if (!(cell instanceof HTMLTableCellElement)) {
+                    return;
+                }
+                cell.classList.remove('col-align-left', 'col-align-center', 'col-align-right');
+                cell.classList.add(className);
+                cell.style.textAlign = '';
+            });
+        });
+    };
+
+    document.querySelectorAll('.content table').forEach((table) => {
+        applyColumnAlignment(table);
+    });
+})();
+</script>
+<script>
+(() => {
     const view = <?= json_encode($view, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
     if (view !== 'expeditions') {
         return;
@@ -9253,11 +9601,8 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
 
     const applySavedOrder = () => {
         try {
-            const raw = localStorage.getItem(storageKey);
-            if (!raw) {
-                return;
-            }
-            const saved = JSON.parse(raw);
+            const pref = window.thcReadGlobalPref ? window.thcReadGlobalPref(storageKey) : {};
+            const saved = Array.isArray(pref.order) ? pref.order : [];
             if (!Array.isArray(saved)) {
                 return;
             }
@@ -9277,11 +9622,12 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
 
     const saveOrder = () => {
         try {
-            localStorage.setItem(storageKey, JSON.stringify(
-                navLinks()
-                    .map((link) => String(link.getAttribute('data-nav-key') || '').trim())
-                    .filter((key) => key !== '')
-            ));
+            const order = navLinks()
+                .map((link) => String(link.getAttribute('data-nav-key') || '').trim())
+                .filter((key) => key !== '');
+            if (window.thcWriteGlobalPref) {
+                window.thcWriteGlobalPref(storageKey, {order});
+            }
         } catch (_) {}
     };
 
@@ -9299,6 +9645,9 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
             draggedLink = link;
             clearDropState();
             link.classList.add('dragging');
+            if (link instanceof HTMLElement) {
+                link.dataset.draggingNav = '1';
+            }
         });
 
         link.addEventListener('dragover', (event) => {
@@ -9335,9 +9684,15 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
 
         link.addEventListener('dragend', () => {
             clearDropState();
+            if (draggedLink instanceof HTMLElement) {
+                delete draggedLink.dataset.draggingNav;
+            }
             draggedLink = null;
+            saveOrder();
         });
     });
+
+    window.addEventListener('beforeunload', saveOrder);
 })();
 </script>
 <script>
@@ -9360,10 +9715,10 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
     }
 
     const key = `thc_filters_${view}`;
+    const layoutKey = `thc_layout_${view}`;
     const ignored = new Set(['view', 'theme', 'flash', 'page', 'sort', 'dir', 'reset', 'export', 'export_csv']);
     const params = new URLSearchParams(window.location.search);
     const forceReset = params.get('reset') === '1';
-    const hasUserFilters = [...params.keys()].some((name) => !ignored.has(name));
     const isLayoutParam = (name) => {
         if (['view', 'theme', 'page_size', 'sort', 'dir'].includes(name)) {
             return true;
@@ -9376,48 +9731,55 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
         }
         return false;
     };
+    const hasUserFilters = [...params.keys()].some((name) => !ignored.has(name) && !isLayoutParam(name));
 
-    const saveState = () => {
-        const state = {};
-        Array.from(form.elements).forEach((el) => {
-            if (!el.name || el.name === 'export' || el.name === 'export_csv') {
-                return;
-            }
-            if (el instanceof HTMLSelectElement && el.multiple) {
-                state[el.name] = Array.from(el.selectedOptions).map((opt) => opt.value);
-                return;
-            }
-            if (el instanceof HTMLInputElement && el.type === 'checkbox') {
-                state[el.name] = el.checked ? '1' : '0';
-                return;
-            }
-            state[el.name] = el.value ?? '';
-        });
+    const readLocalState = () => {
+        try {
+            const raw = localStorage.getItem(key);
+            const state = raw ? JSON.parse(raw) : {};
+            return state && typeof state === 'object' && !Array.isArray(state) ? state : {};
+        } catch (_) {
+            return {};
+        }
+    };
+
+    const writeLocalState = (state) => {
         try {
             localStorage.setItem(key, JSON.stringify(state));
         } catch (_) {}
     };
 
-    if (forceReset) {
-        try {
-            const raw = localStorage.getItem(key);
-            if (raw) {
-                const state = JSON.parse(raw);
-                if (state && typeof state === 'object') {
-                    const kept = {};
-                    Object.keys(state).forEach((name) => {
-                        if (isLayoutParam(name)) {
-                            kept[name] = state[name];
-                        }
-                    });
-                    localStorage.setItem(key, JSON.stringify(kept));
-                } else {
-                    localStorage.removeItem(key);
-                }
-            }
-        } catch (_) {
-            try { localStorage.removeItem(key); } catch (_) {}
+    const readGlobalLayout = () => window.thcReadGlobalPref ? window.thcReadGlobalPref(layoutKey) : {};
+    const writeGlobalLayout = (state) => {
+        if (window.thcWriteGlobalPref) {
+            window.thcWriteGlobalPref(layoutKey, state);
         }
+    };
+
+    const saveState = () => {
+        const state = {};
+        const layoutState = {};
+        Array.from(form.elements).forEach((el) => {
+            if (!el.name || el.name === 'export' || el.name === 'export_csv') {
+                return;
+            }
+            const target = isLayoutParam(el.name) ? layoutState : state;
+            if (el instanceof HTMLSelectElement && el.multiple) {
+                target[el.name] = Array.from(el.selectedOptions).map((opt) => opt.value);
+                return;
+            }
+            if (el instanceof HTMLInputElement && el.type === 'checkbox') {
+                target[el.name] = el.checked ? '1' : '0';
+                return;
+            }
+            target[el.name] = el.value ?? '';
+        });
+        writeLocalState(state);
+        writeGlobalLayout(layoutState);
+    };
+
+    if (forceReset) {
+        writeLocalState({});
 
         const next = new URLSearchParams();
         const theme = params.get('theme');
@@ -9440,9 +9802,30 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
 
     if (!forceReset) {
         try {
-            const raw = localStorage.getItem(key);
-            if (raw) {
-                const state = JSON.parse(raw);
+            const localState = readLocalState();
+            const globalLayout = readGlobalLayout();
+            const state = {...globalLayout, ...localState};
+            if (Object.keys(state).length > 0) {
+                if (hasUserFilters && Object.keys(globalLayout).length > 0) {
+                    const next = new URLSearchParams(params.toString());
+                    let changed = false;
+                    Object.entries(globalLayout).forEach(([name, v]) => {
+                        if (!isLayoutParam(name) || params.has(name)) {
+                            return;
+                        }
+                        const values = Array.isArray(v) ? v.map(String) : [String(v ?? '')];
+                        values.forEach((val) => {
+                            if (val !== '') {
+                                next.append(name, val);
+                                changed = true;
+                            }
+                        });
+                    });
+                    if (changed) {
+                        window.location.replace(`?${next.toString()}`);
+                        return;
+                    }
+                }
                 if (state && typeof state === 'object' && !hasUserFilters) {
                     const next = new URLSearchParams();
                     const theme = params.get('theme');
@@ -10518,42 +10901,60 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
 (() => {
     const view = new URLSearchParams(window.location.search).get('view') || 'panel';
     const renameStorageKey = 'thc_table_header_labels_v1';
-    const widthStorageKey = 'thc_table_column_widths_v1';
     const orderStorageKey = 'thc_table_column_order_v1';
 
     const safeReadJson = (key) => {
         try {
-            return JSON.parse(localStorage.getItem(key) || '{}');
+            if (window.thcReadGlobalPref) {
+                return window.thcReadGlobalPref(key);
+            }
+            return {};
         } catch (_) {
             return {};
         }
     };
 
     const readRenameMap = () => safeReadJson(renameStorageKey);
-    const writeRenameMap = (data) => localStorage.setItem(renameStorageKey, JSON.stringify(data));
-    const readWidthMap = () => safeReadJson(widthStorageKey);
-    const writeWidthMap = (data) => localStorage.setItem(widthStorageKey, JSON.stringify(data));
+    const writeRenameMap = (data) => {
+        if (window.thcWriteGlobalPref) {
+            window.thcWriteGlobalPref(renameStorageKey, data);
+        }
+    };
     const readOrderMap = () => safeReadJson(orderStorageKey);
-    const writeOrderMap = (data) => localStorage.setItem(orderStorageKey, JSON.stringify(data));
+    const writeOrderMap = (data) => {
+        if (window.thcWriteGlobalPref) {
+            window.thcWriteGlobalPref(orderStorageKey, data);
+        }
+    };
 
     const normalizeText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
 
-    const tableSignature = (table) => {
-        if (!(table instanceof HTMLTableElement) || !(table.tHead instanceof HTMLTableSectionElement) || !table.tHead.rows.length) {
-            return 'table';
+    const stableHeaderKey = (th, fallbackIndex = 0) => {
+        if (!(th instanceof HTMLTableCellElement)) {
+            return `col_${fallbackIndex}`;
         }
-        const headerRow = table.tHead.rows[table.tHead.rows.length - 1];
-        if (!(headerRow instanceof HTMLTableRowElement)) {
-            return 'table';
+        const explicitKey = normalizeText(th.dataset.colKey || '');
+        if (explicitKey !== '') {
+            return explicitKey;
         }
-        const parts = Array.from(headerRow.cells)
-            .filter((cell) => cell instanceof HTMLTableCellElement && cell.colSpan === 1)
-            .map((th) => {
-                const colKey = normalizeText(th.dataset.colKey || '');
-                const text = normalizeText(th.dataset.defaultHeaderLabel || th.textContent || '');
-                return colKey || text || 'col';
-            });
-        return parts.join('|') || 'table';
+        const sortLink = th.querySelector(':scope .th-sort');
+        if (sortLink instanceof HTMLAnchorElement) {
+            try {
+                const url = new URL(sortLink.getAttribute('href') || '', window.location.href);
+                const sortKey = normalizeText(url.searchParams.get('sort') || '');
+                const killSortKey = normalizeText(url.searchParams.get('k_sort') || '');
+                const hitSortKey = normalizeText(url.searchParams.get('h_sort') || '');
+                const prefixedKey = killSortKey !== '' ? `k_${killSortKey}` : (hitSortKey !== '' ? `h_${hitSortKey}` : sortKey);
+                if (prefixedKey !== '') {
+                    return prefixedKey;
+                }
+            } catch (_) {}
+        }
+        const defaultLabel = normalizeText(th.dataset.defaultHeaderLabel || '');
+        const labelText = normalizeText(th.querySelector(':scope > .th-label-text')?.textContent || th.textContent || '')
+            .replace(/[↑↓↕]/g, '')
+            .trim();
+        return defaultLabel || labelText || `col_${fallbackIndex}`;
     };
 
     const tablePersistId = (table, tableIndex) => {
@@ -10562,22 +10963,48 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
         }
         const card = table.closest('.card');
         const cardTitle = normalizeText(card?.querySelector('h2')?.textContent || '');
-        const wrapperTitle = normalizeText(
-            table.closest('details')?.querySelector(':scope > summary')?.textContent ||
+        const details = table.closest('details');
+        const explicitScopeParts = [];
+        if (details instanceof HTMLElement) {
+            const expId = normalizeText(details.getAttribute('data-exp-id') || '');
+            const killId = normalizeText(details.getAttribute('data-kill-id') || '');
+            const userId = normalizeText(details.getAttribute('data-user-id') || '');
+            const medalType = normalizeText(details.getAttribute('data-medal-type') || '');
+            const scoreType = normalizeText(details.getAttribute('data-score-type') || '');
+            if (expId !== '') {
+                explicitScopeParts.push(`exp:${expId}`);
+            }
+            if (killId !== '') {
+                explicitScopeParts.push(`kill:${killId}`);
+            }
+            if (userId !== '') {
+                explicitScopeParts.push(`user:${userId}`);
+            }
+            if (medalType !== '') {
+                explicitScopeParts.push(`medal:${medalType}`);
+            }
+            if (scoreType !== '') {
+                explicitScopeParts.push(`score:${scoreType}`);
+            }
+        }
+        const wrapperTitle = explicitScopeParts.join('|') || normalizeText(
+            details?.querySelector(':scope > summary')?.textContent ||
             table.closest('.subtable-panels > details')?.querySelector(':scope > summary')?.textContent ||
             ''
+        ).replace(/\(\d+\)\s*$/u, '').trim();
+        const sectionHint = normalizeText(
+            table.closest('.exp-kills-details') ? 'exp-kills' :
+            table.closest('.kill-hits-details') ? 'kill-hits' :
+            table.closest('.subtable-panels') ? 'subtable' :
+            'main'
         );
-        const signature = tableSignature(table);
-        const id = [view, cardTitle || 'table', wrapperTitle || 'main', signature || `idx_${tableIndex}`].join('__');
+        const id = [view, cardTitle || 'table', wrapperTitle || 'main', sectionHint, `idx_${tableIndex}`].join('__');
         table.dataset.persistTableId = id;
         return id;
     };
 
     const headerPersistKey = (table, th, colIndex, tableIndex) => {
-        const colKey = normalizeText(th.dataset.colKey || '');
-        const defaultLabel = normalizeText(th.dataset.defaultHeaderLabel || '');
-        const currentLabel = normalizeText(th.textContent || '');
-        const stableKey = colKey || defaultLabel || currentLabel || `col_${colIndex}`;
+        const stableKey = stableHeaderKey(th, colIndex);
         return [tablePersistId(table, tableIndex), stableKey].join('::');
     };
 
@@ -10784,7 +11211,6 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
         }
 
         const renameMap = readRenameMap();
-        const widthMap = readWidthMap();
         const tableKey = tablePersistId(table, tableIndex);
 
         Array.from(headerRow.cells).forEach((th, colIndex) => {
@@ -10804,11 +11230,6 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
             if (renamedLabel !== '') {
                 setHeaderLabel(th, renamedLabel);
                 th.classList.add('is-renamed');
-            }
-
-            const savedWidth = widthMap[`${tableKey}::${colIndex}`];
-            if (Number.isFinite(savedWidth)) {
-                applyColumnWidth(table, colIndex, savedWidth);
             }
 
             if (!th.querySelector(':scope > .th-resize-handle')) {
@@ -10834,9 +11255,6 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
                     const onUp = (upEvent) => {
                         const finalWidth = startWidth + (upEvent.clientX - startX);
                         applyColumnWidth(table, colIndex, finalWidth);
-                        const nextMap = readWidthMap();
-                        nextMap[`${tableKey}::${colIndex}`] = Math.max(48, Math.round(finalWidth));
-                        writeWidthMap(nextMap);
                         th.classList.remove('is-resizing');
                         document.body.classList.remove('col-resize-active');
                         window.removeEventListener('mousemove', onMove);
@@ -10969,6 +11387,379 @@ $cssVersion = (string) @filemtime(__DIR__ . '/style.css');
 
     document.querySelectorAll('.content table').forEach((table, tableIndex) => {
         wireResizableAndRenameableTable(table, tableIndex);
+    });
+})();
+
+(() => {
+    const view = new URLSearchParams(window.location.search).get('view') || 'dashboard';
+    const storageKey = 'thc_button_labels_v2';
+    const sizeStorageKey = 'thc_button_sizes_v1';
+    const separatorStorageKey = 'thc_button_separators_v1';
+    try {
+        localStorage.removeItem('thc_button_labels_v1');
+    } catch (_) {}
+
+    const normalizeText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
+    const safeReadJson = () => {
+        try {
+            if (window.thcReadGlobalPref) {
+                return window.thcReadGlobalPref(storageKey);
+            }
+            return {};
+        } catch (_) {
+            return {};
+        }
+    };
+    const safeWriteJson = (data) => {
+        if (window.thcWriteGlobalPref) {
+            window.thcWriteGlobalPref(storageKey, data);
+        }
+    };
+    const readGlobalMap = (key) => {
+        try {
+            return window.thcReadGlobalPref ? window.thcReadGlobalPref(key) : {};
+        } catch (_) {
+            return {};
+        }
+    };
+    const writeGlobalMap = (key, data) => {
+        if (window.thcWriteGlobalPref) {
+            window.thcWriteGlobalPref(key, data);
+        }
+    };
+
+    const scopedButtonIndex = (el) => {
+        const scope = el.closest('.sidebar .nav, .card, form, .content') || document.body;
+        const peers = Array.from(scope.querySelectorAll('button, a.btn-link, .nav-link'));
+        return String(Math.max(0, peers.indexOf(el)));
+    };
+
+    const buttonKey = (el, idx) => {
+        if (el.classList.contains('nav-link')) {
+            const navKey = normalizeText(el.getAttribute('data-nav-key') || el.getAttribute('href') || `nav_${idx}`);
+            return ['sidebar-nav', navKey].join('::');
+        }
+
+        const form = el.closest('form');
+        const card = el.closest('.card');
+        const cardTitle = normalizeText(card?.querySelector('h2')?.textContent || '');
+        const formView = normalizeText(form?.querySelector('input[name="view"]')?.value || '');
+        const actionValue = normalizeText(form?.querySelector('input[name="action"]')?.value || '');
+        const presetActionValue = normalizeText(form?.querySelector('input[name="preset_action"]')?.value || '');
+        const taskIdValue = normalizeText(form?.querySelector('input[name="id"]')?.value || '');
+        const name = normalizeText(el.getAttribute('name') || '');
+        const value = normalizeText(el.getAttribute('value') || '');
+        const type = normalizeText(el.getAttribute('type') || '');
+        const href = el instanceof HTMLAnchorElement ? normalizeText(el.getAttribute('href') || '') : '';
+        let identity = '';
+        if (actionValue !== '') {
+            identity = `action:${actionValue}:${presetActionValue}:${taskIdValue}:${name}:${value}:${type}`;
+        } else if (taskIdValue !== '') {
+            identity = `task:${taskIdValue}:${name}:${value}:${type}`;
+        } else if (presetActionValue !== '') {
+            identity = `preset:${presetActionValue}:${name}:${value}:${type}`;
+        } else if (href !== '') {
+            identity = `href:${href}`;
+        } else if ([name, value, type].some((part) => part !== '')) {
+            identity = `control:${name}:${value}:${type}:${scopedButtonIndex(el)}`;
+        } else {
+            identity = `dom:${scopedButtonIndex(el)}:${idx}`;
+        }
+        return [view, formView || cardTitle || 'page', identity].join('::');
+    };
+
+    const applyButtonSize = (el, size) => {
+        if (!size || typeof size !== 'object') {
+            return;
+        }
+        const width = Number(size.w);
+        const height = Number(size.h);
+        if (Number.isFinite(width) && width >= 24) {
+            const value = `${Math.round(width)}px`;
+            el.style.width = value;
+            el.style.minWidth = value;
+            el.style.maxWidth = value;
+        }
+        if (Number.isFinite(height) && height >= 18) {
+            const value = `${Math.round(height)}px`;
+            el.style.height = value;
+            el.style.minHeight = value;
+        }
+    };
+
+    const buttonSizeGroup = (el, fallbackKey) => {
+        if (el.classList.contains('nav-link')) {
+            return 'group::sidebar-nav';
+        }
+        if (el.closest('.action-grid')) {
+            return 'group::action-grid';
+        }
+        return fallbackKey;
+    };
+
+    const groupButtons = (el) => {
+        if (el.classList.contains('nav-link')) {
+            return Array.from(document.querySelectorAll('.sidebar .nav-link'));
+        }
+        const actionGrid = el.closest('.action-grid');
+        if (actionGrid instanceof HTMLElement) {
+            return Array.from(actionGrid.querySelectorAll('button, a.btn-link'));
+        }
+        return [el];
+    };
+
+    const clearButtonSize = (button) => {
+        button.style.width = '';
+        button.style.minWidth = '';
+        button.style.maxWidth = '';
+        button.style.height = '';
+        button.style.minHeight = '';
+    };
+
+    const applyButtonSizeToGroup = (el, size) => {
+        groupButtons(el).forEach((button) => {
+            if (button instanceof HTMLElement) {
+                applyButtonSize(button, size);
+            }
+        });
+    };
+
+    const resetButtonSize = (el, sizeKey) => {
+        groupButtons(el).forEach((button) => {
+            if (button instanceof HTMLElement) {
+                clearButtonSize(button);
+            }
+        });
+        const sizes = readGlobalMap(sizeStorageKey);
+        delete sizes[sizeKey];
+        writeGlobalMap(sizeStorageKey, sizes);
+    };
+
+    const ensureResizeHandle = (el, key, sizeKey) => {
+        if (el.querySelector(':scope > .button-resize-handle')) {
+            return;
+        }
+        el.classList.add('button-resizable');
+        const handle = document.createElement('span');
+        handle.className = 'button-resize-handle';
+        handle.title = 'Arrastrar para redimensionar. Doble click para restaurar tamano';
+        el.appendChild(handle);
+
+        handle.addEventListener('dblclick', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            resetButtonSize(el, sizeKey);
+        });
+
+        handle.addEventListener('mousedown', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const rect = el.getBoundingClientRect();
+            const startX = event.clientX;
+            const startY = event.clientY;
+            const startWidth = rect.width;
+            const startHeight = rect.height;
+            document.body.classList.add('button-resize-active');
+            el.classList.add('is-button-resizing');
+
+            const onMove = (moveEvent) => {
+                const nextWidth = Math.max(24, startWidth + (moveEvent.clientX - startX));
+                const nextHeight = Math.max(18, startHeight + (moveEvent.clientY - startY));
+                applyButtonSizeToGroup(el, {w: nextWidth, h: nextHeight});
+            };
+
+            const onUp = (upEvent) => {
+                const nextWidth = Math.max(24, startWidth + (upEvent.clientX - startX));
+                const nextHeight = Math.max(18, startHeight + (upEvent.clientY - startY));
+                applyButtonSizeToGroup(el, {w: nextWidth, h: nextHeight});
+                const sizes = readGlobalMap(sizeStorageKey);
+                sizes[sizeKey] = {w: Math.round(nextWidth), h: Math.round(nextHeight)};
+                writeGlobalMap(sizeStorageKey, sizes);
+                document.body.classList.remove('button-resize-active');
+                el.classList.remove('is-button-resizing');
+                window.removeEventListener('mousemove', onMove);
+                window.removeEventListener('mouseup', onUp);
+            };
+
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('mouseup', onUp);
+        });
+    };
+
+    const renderSeparator = (el, key, text) => {
+        const normalized = normalizeText(text);
+        const existing = el.previousElementSibling;
+        if (existing instanceof HTMLElement && existing.classList.contains('button-separator-text') && existing.dataset.buttonSeparatorKey === key) {
+            if (normalized === '') {
+                existing.remove();
+            } else {
+                existing.textContent = normalized;
+            }
+            return;
+        }
+        if (normalized === '') {
+            return;
+        }
+        const sep = document.createElement(el.classList.contains('nav-link') ? 'div' : 'span');
+        sep.className = 'button-separator-text';
+        sep.dataset.buttonSeparatorKey = key;
+        sep.textContent = normalized;
+        el.insertAdjacentElement('beforebegin', sep);
+    };
+
+    const labels = safeReadJson();
+    const sizes = readGlobalMap(sizeStorageKey);
+    const separators = readGlobalMap(separatorStorageKey);
+    Array.from(document.querySelectorAll('.content button, .content a.btn-link, .sidebar .nav-link')).forEach((el, idx) => {
+        if (!(el instanceof HTMLElement)) {
+            return;
+        }
+        const text = normalizeText(el.textContent || '');
+        if (text === '') {
+            return;
+        }
+        if (!el.dataset.defaultButtonLabel) {
+            el.dataset.defaultButtonLabel = text;
+        }
+
+        const key = buttonKey(el, idx);
+        const sizeKey = buttonSizeGroup(el, key);
+        const saved = normalizeText(labels[key] || '');
+        if (saved !== '') {
+            el.textContent = saved;
+            el.classList.add('is-renamed-button');
+        }
+        applyButtonSize(el, sizes[sizeKey]);
+        renderSeparator(el, key, separators[key] || '');
+        ensureResizeHandle(el, key, sizeKey);
+
+        if (el.dataset.buttonRenameWired === '1') {
+            return;
+        }
+        el.dataset.buttonRenameWired = '1';
+        el.title = el.title || 'Ctrl+Shift+Click para cambiar texto. Shift+Alt+Click para texto antes. Ctrl+Alt+Click restaura tamano.';
+        el.addEventListener('click', (event) => {
+            const target = event.target;
+            if (target instanceof HTMLElement && target.closest('.button-resize-handle')) {
+                event.preventDefault();
+                event.stopPropagation();
+                return;
+            }
+            if (event.ctrlKey && event.altKey && !event.shiftKey) {
+                event.preventDefault();
+                event.stopPropagation();
+                resetButtonSize(el, sizeKey);
+                return;
+            }
+            if (event.altKey && event.shiftKey && !event.ctrlKey) {
+                event.preventDefault();
+                event.stopPropagation();
+                const currentSeparator = normalizeText(readGlobalMap(separatorStorageKey)[key] || '');
+                const nextRaw = window.prompt('Texto antes de este boton. Deja vacio para quitarlo.', currentSeparator);
+                if (nextRaw === null) {
+                    return;
+                }
+                const nextText = normalizeText(nextRaw);
+                const nextMap = readGlobalMap(separatorStorageKey);
+                if (nextText === '') {
+                    delete nextMap[key];
+                } else {
+                    nextMap[key] = nextText;
+                }
+                writeGlobalMap(separatorStorageKey, nextMap);
+                renderSeparator(el, key, nextText);
+                return;
+            }
+            if (!(event.ctrlKey && event.shiftKey)) {
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+
+            const currentLabel = normalizeText(el.textContent || '');
+            const defaultLabel = normalizeText(el.dataset.defaultButtonLabel || currentLabel);
+            const nextRaw = window.prompt('Nuevo texto del boton. Deja vacio para restaurar el original.', currentLabel);
+            if (nextRaw === null) {
+                return;
+            }
+            const nextLabel = normalizeText(nextRaw);
+            const nextMap = safeReadJson();
+            if (nextLabel === '' || nextLabel === defaultLabel) {
+                delete nextMap[key];
+                safeWriteJson(nextMap);
+                el.textContent = defaultLabel;
+                el.classList.remove('is-renamed-button');
+                ensureResizeHandle(el, key, sizeKey);
+                return;
+            }
+            nextMap[key] = nextLabel;
+            safeWriteJson(nextMap);
+            el.textContent = nextLabel;
+            el.classList.add('is-renamed-button');
+            ensureResizeHandle(el, key, sizeKey);
+        }, true);
+    });
+})();
+
+(() => {
+    const storageKey = 'thc_task_labels_v1';
+    const normalizeText = (value) => String(value || '').replace(/\s+/g, ' ').trim();
+    const readMap = () => {
+        try {
+            return window.thcReadGlobalPref ? window.thcReadGlobalPref(storageKey) : {};
+        } catch (_) {
+            return {};
+        }
+    };
+    const writeMap = (data) => {
+        if (window.thcWriteGlobalPref) {
+            window.thcWriteGlobalPref(storageKey, data);
+        }
+    };
+
+    const labels = readMap();
+    document.querySelectorAll('.task-label-editable[data-task-label-key]').forEach((cell) => {
+        if (!(cell instanceof HTMLElement)) {
+            return;
+        }
+        const key = normalizeText(cell.dataset.taskLabelKey || '');
+        if (key === '') {
+            return;
+        }
+        const defaultText = normalizeText(cell.textContent || '');
+        cell.dataset.defaultTaskLabel = defaultText;
+        const saved = normalizeText(labels[key] || '');
+        if (saved !== '') {
+            cell.textContent = saved;
+            cell.classList.add('is-renamed-task-label');
+        }
+        cell.title = cell.title || 'Ctrl+Shift+Click para cambiar texto de la tarea';
+        cell.addEventListener('click', (event) => {
+            if (!(event.ctrlKey && event.shiftKey)) {
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            const current = normalizeText(cell.textContent || '');
+            const original = normalizeText(cell.dataset.defaultTaskLabel || current);
+            const nextRaw = window.prompt('Nuevo texto de la tarea. Deja vacio para restaurar el original.', current);
+            if (nextRaw === null) {
+                return;
+            }
+            const next = normalizeText(nextRaw);
+            const nextMap = readMap();
+            if (next === '' || next === original) {
+                delete nextMap[key];
+                writeMap(nextMap);
+                cell.textContent = original;
+                cell.classList.remove('is-renamed-task-label');
+                return;
+            }
+            nextMap[key] = next;
+            writeMap(nextMap);
+            cell.textContent = next;
+            cell.classList.add('is-renamed-task-label');
+        }, true);
     });
 })();
 
