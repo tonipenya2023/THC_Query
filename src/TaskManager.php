@@ -11,6 +11,7 @@ final class TaskManager
     public static function create(string $action, string $label, ?array $command = null): string
     {
         $id = date('Ymd_His') . '_' . bin2hex(random_bytes(4));
+        $logFile = self::taskLogPath($id, $label, $action);
         $task = [
             'id' => $id,
             'action' => $action,
@@ -20,7 +21,7 @@ final class TaskManager
             'started_at' => null,
             'finished_at' => null,
             'exit_code' => null,
-            'log_file' => self::taskLogPath($id),
+            'log_file' => $logFile,
             'cancel_requested' => false,
             'cancel_requested_at' => null,
             'cancel_reason' => null,
@@ -53,7 +54,15 @@ final class TaskManager
             return null;
         }
 
-        $data['log_file'] = self::taskLogPath($id);
+        $label = (string) ($data['label'] ?? '');
+        $action = (string) ($data['action'] ?? '');
+        $expectedLogFile = self::taskLogPath($id, $label, $action);
+        $storedLogFile = is_string($data['log_file'] ?? null) ? (string) $data['log_file'] : '';
+        if ($storedLogFile !== '' && is_file($storedLogFile)) {
+            $data['log_file'] = $storedLogFile;
+        } else {
+            $data['log_file'] = $expectedLogFile;
+        }
         $data['cancel_requested'] = (bool) ($data['cancel_requested'] ?? false);
         $data['cancel_requested_at'] = $data['cancel_requested_at'] ?? null;
         $data['cancel_reason'] = $data['cancel_reason'] ?? null;
@@ -69,7 +78,11 @@ final class TaskManager
         }
 
         $task['id'] = $id;
-        $task['log_file'] = self::taskLogPath($id);
+        $task['log_file'] = self::taskLogPath(
+            $id,
+            (string) ($task['label'] ?? ''),
+            (string) ($task['action'] ?? '')
+        );
 
         $file = self::taskJsonPath($id);
         file_put_contents($file, json_encode($task, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
@@ -77,6 +90,8 @@ final class TaskManager
 
     public static function list(int $limit = 30): array
     {
+        self::recoverStaleTasks();
+
         $files = glob(tasks_dir() . DIRECTORY_SEPARATOR . '*.json') ?: [];
         rsort($files);
         $tasks = [];
@@ -137,13 +152,29 @@ final class TaskManager
         pclose(popen($cmd, 'r'));
     }
 
-    public static function taskLogPath(string $id): string
+    public static function taskLogPath(string $id, string $label = '', string $action = ''): string
     {
         if (!self::isValidTaskId($id)) {
             throw new InvalidArgumentException('Task ID invalido.');
         }
 
-        return task_logs_dir() . DIRECTORY_SEPARATOR . $id . '.log';
+        $base = self::taskLogBasename($label, $action);
+        return task_logs_dir() . DIRECTORY_SEPARATOR . $base . '__' . $id . '.log';
+    }
+
+    private static function taskLogBasename(string $label, string $action): string
+    {
+        $source = trim($label) !== '' ? $label : $action;
+        $source = trim(app_normalize_display_text($source));
+        if ($source === '') {
+            return 'task';
+        }
+
+        $source = mb_strtolower($source, 'UTF-8');
+        $source = preg_replace('/[^a-z0-9]+/i', '_', $source) ?? $source;
+        $source = trim($source, '_');
+
+        return $source !== '' ? $source : 'task';
     }
 
     private static function taskJsonPath(string $id): string
@@ -153,6 +184,87 @@ final class TaskManager
         }
 
         return tasks_dir() . DIRECTORY_SEPARATOR . $id . '.json';
+    }
+
+    /**
+     * Recorre todas las tareas en estado 'running' o 'queued' y marca como 'error'
+     * aquellas cuyo proceso ya no existe en el sistema o que llevan demasiado tiempo
+     * sin actualizar su estado (más de 2 horas).
+     */
+    public static function recoverStaleTasks(): void
+    {
+        $files = glob(tasks_dir() . DIRECTORY_SEPARATOR . '*.json') ?: [];
+        $staleThresholdSec = 7200; // 2 horas sin actualización → tarea zombi
+
+        foreach ($files as $file) {
+            $data = json_decode((string) file_get_contents($file), true);
+            if (!is_array($data)) {
+                continue;
+            }
+
+            $status = (string) ($data['status'] ?? '');
+            if (!in_array($status, ['running', 'queued'], true)) {
+                continue;
+            }
+
+            $isStale = false;
+
+            // Comprobar si el PID registrado sigue vivo
+            $pid = isset($data['process_pid']) ? (int) $data['process_pid'] : null;
+            if ($pid !== null && $pid > 0) {
+                if (!self::isProcessAlive($pid)) {
+                    $isStale = true;
+                }
+            }
+
+            // Comprobar antigüedad del archivo como red de seguridad
+            // (cubre tareas sin PID o cuyo runner nunca llegó a registrarlo)
+            if (!$isStale) {
+                $refTime = $data['started_at'] ?? $data['created_at'] ?? null;
+                if ($refTime !== null) {
+                    $ts = strtotime((string) $refTime);
+                    if ($ts !== false && (time() - $ts) > $staleThresholdSec) {
+                        $isStale = true;
+                    }
+                }
+            }
+
+            if (!$isStale) {
+                continue;
+            }
+
+            $data['status'] = 'error';
+            $data['finished_at'] = $data['finished_at'] ?? date(DATE_ATOM);
+            $data['exit_code'] = $data['exit_code'] ?? -1;
+            $data['cancel_reason'] = $data['cancel_reason'] ?? 'Proceso terminado inesperadamente (recuperación automática)';
+
+            $id = (string) ($data['id'] ?? '');
+            if (self::isValidTaskId($id)) {
+                self::write($data);
+            }
+        }
+    }
+
+    /**
+     * Comprueba si un PID sigue activo en Windows usando tasklist.
+     * Devuelve false si el proceso no existe o si no se puede determinar.
+     */
+    private static function isProcessAlive(int $pid): bool
+    {
+        if ($pid <= 0) {
+            return false;
+        }
+
+        // Windows: tasklist /FI filtra por PID; si devuelve el PID en la salida, el proceso existe
+        $output = [];
+        exec('tasklist /FI "PID eq ' . $pid . '" /NH /FO CSV 2>NUL', $output);
+        foreach ($output as $line) {
+            // tasklist devuelve líneas CSV como "php.exe","1234",...
+            if (str_contains($line, '"' . $pid . '"')) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static function isValidTaskId(string $id): bool

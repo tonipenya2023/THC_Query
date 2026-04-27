@@ -55,7 +55,9 @@ $command = array_map(
     array_map(static fn ($v): string => (string) $v, $commandRaw)
 );
 $cmd = implode(' ', $command);
-$logFile = TaskManager::taskLogPath($id);
+$logFile = is_string($task['log_file'] ?? null) && (string) $task['log_file'] !== ''
+    ? (string) $task['log_file']
+    : TaskManager::taskLogPath($id, (string) ($task['label'] ?? ''), (string) ($task['action'] ?? ''));
 $descriptors = [
     0 => ['pipe', 'r'],
     1 => ['file', $logFile, 'a'],

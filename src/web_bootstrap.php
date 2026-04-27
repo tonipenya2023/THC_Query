@@ -58,11 +58,7 @@ function logs_dir(): string
 
 function task_logs_dir(): string
 {
-    $dir = logs_dir() . DIRECTORY_SEPARATOR . 'tasks';
-    if (!is_dir($dir)) {
-        mkdir($dir, 0777, true);
-    }
-    return $dir;
+    return logs_dir();
 }
 
 function sessions_dir(): string
@@ -93,8 +89,9 @@ function app_migrate_runtime_artifacts(): void
 
     $moves = [
         [$legacyVarDir . DIRECTORY_SEPARATOR . '*.log', logs_dir()],
-        [$legacyVarDir . DIRECTORY_SEPARATOR . 'tasks' . DIRECTORY_SEPARATOR . '*.log', task_logs_dir()],
+        [$legacyVarDir . DIRECTORY_SEPARATOR . 'tasks' . DIRECTORY_SEPARATOR . '*.log', logs_dir()],
         [$legacyVarDir . DIRECTORY_SEPARATOR . 'sess_*', sessions_dir()],
+        [logs_dir() . DIRECTORY_SEPARATOR . 'tasks' . DIRECTORY_SEPARATOR . '*.log', logs_dir()],
     ];
 
     foreach ($moves as [$pattern, $targetDir]) {
@@ -422,14 +419,14 @@ function app_require_panel_auth(): void
 {
     $expectedUser = app_env('THC_PANEL_USER');
     $expectedPass = app_env('THC_PANEL_PASS');
-    $defaultUsersPass = app_env('THC_PANEL_DEFAULT_PASS') ?? 'thcgpt';
+    $defaultUsersPass = app_env('THC_PANEL_DEFAULT_PASS') ?? 'thc-query';
 
     $providedUser = $_SERVER['PHP_AUTH_USER'] ?? null;
     $providedPass = $_SERVER['PHP_AUTH_PW'] ?? null;
 
     if (!is_string($providedUser) || !is_string($providedPass)) {
         header('WWW-Authenticate: Basic realm="THC Query Panel"');
-        http_response_code(401);
+        http_response_code(401);    
         echo 'Acceso no autorizado';
         exit;
     }
@@ -639,7 +636,7 @@ function app_verify_login_password(string $username, string $password): bool
         return true;
     }
 
-    $defaultUsersPass = app_env('THC_PANEL_DEFAULT_PASS') ?? 'thcgpt';
+    $defaultUsersPass = app_env('THC_PANEL_DEFAULT_PASS') ?? 'thc-query';
     if (app_panel_player_exists($username) && hash_equals($defaultUsersPass, $password)) {
         return true;
     }

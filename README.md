@@ -230,7 +230,7 @@ Valores por defecto actuales:
 - `THC_PANEL_PASS`
 - `THC_PANEL_DEFAULT_PASS`
 
-Si `THC_PANEL_DEFAULT_PASS` no esta definido, el valor por defecto es `thcgpt`.
+Si `THC_PANEL_DEFAULT_PASS` no esta definido, el valor por defecto es `thc-query`.
 
 ### API
 

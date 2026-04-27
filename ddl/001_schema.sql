@@ -421,6 +421,25 @@ CREATE TABLE IF NOT EXISTS gpt.kill_detail_scrapes (
     kill_data_json JSONB NULL
 );
 
+CREATE TABLE IF NOT EXISTS gpt.tab_weapons (
+    weapon_id INTEGER PRIMARY KEY,
+    weapon_text TEXT NOT NULL,
+    sample_count INTEGER NOT NULL DEFAULT 0,
+    first_seen_at TIMESTAMPTZ NULL,
+    last_seen_at TIMESTAMPTZ NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS gpt.tab_ammo (
+    ammo_id INTEGER PRIMARY KEY,
+    ammo_text TEXT NOT NULL,
+    weapon_id INTEGER NULL,
+    sample_count INTEGER NOT NULL DEFAULT 0,
+    first_seen_at TIMESTAMPTZ NULL,
+    last_seen_at TIMESTAMPTZ NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE INDEX IF NOT EXISTS idx_exp_expeditions_user_id ON gpt.exp_expeditions(user_id);
 CREATE INDEX IF NOT EXISTS idx_exp_kills_expedition_id ON gpt.exp_kills(expedition_id);
 CREATE INDEX IF NOT EXISTS idx_exp_hits_expedition_id ON gpt.exp_hits(expedition_id);
@@ -436,6 +455,9 @@ CREATE INDEX IF NOT EXISTS idx_scrape_kill_urls_url ON gpt.scrape_kill_urls(url)
 CREATE INDEX IF NOT EXISTS idx_scrape_kill_urls_ok_run ON gpt.scrape_kill_urls(ok, run_at DESC);
 CREATE INDEX IF NOT EXISTS idx_kill_detail_scrapes_kill ON gpt.kill_detail_scrapes(kill_id, scraped_at DESC);
 CREATE INDEX IF NOT EXISTS idx_kill_detail_scrapes_player ON gpt.kill_detail_scrapes(player_name, scraped_at DESC);
+CREATE INDEX IF NOT EXISTS idx_tab_weapons_text ON gpt.tab_weapons(weapon_text);
+CREATE INDEX IF NOT EXISTS idx_tab_ammo_text ON gpt.tab_ammo(ammo_text);
+CREATE INDEX IF NOT EXISTS idx_tab_ammo_weapon_id ON gpt.tab_ammo(weapon_id);
 
 ALTER TABLE gpt.exp_expeditions
     ALTER COLUMN x TYPE NUMERIC(18,6) USING x::NUMERIC,

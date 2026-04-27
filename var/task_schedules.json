@@ -1,16 +1,16 @@
 {
     "join_all_competitions": {
-        "enabled": true,
+        "enabled": false,
         "interval_min": 240,
         "player": ""
     },
     "refresh_best_all": {
-        "enabled": true,
+        "enabled": false,
         "interval_min": 240,
         "player": ""
     },
     "refresh_competitions": {
-        "enabled": true,
+        "enabled": false,
         "interval_min": 240,
         "player": ""
     },
@@ -25,7 +25,7 @@
         "player": ""
     },
     "refresh_leaderboards": {
-        "enabled": true,
+        "enabled": false,
         "interval_min": 120,
         "player": ""
     },
@@ -45,7 +45,7 @@
         "player": ""
     },
     "scrape_kill_details": {
-        "enabled": true,
+        "enabled": false,
         "interval_min": 60,
         "player": "Nefastix13"
     }

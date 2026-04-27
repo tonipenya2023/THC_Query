@@ -55,12 +55,14 @@ if ($cookiePlayer === null || trim((string) $cookiePlayer) === '') {
     exit(1);
 }
 
+const COOKIE_FILE = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'thehunter_cookies.json';
+
 $cookie = loadTheHunterCookie((string) $cookiePlayer);
 if ($cookie === '') {
     log_err("Error: No hay cookie guardada para {$cookiePlayer}");
     exit(1);
 }
-$cookieFile = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'thehunter_cookies.json';
+$cookieFile = COOKIE_FILE;
 $cookieKey = mb_strtolower((string) $cookiePlayer, 'UTF-8');
 
 $where = [];
@@ -106,14 +108,18 @@ $rows = $pdo->prepare($sql);
 $rows->execute($params);
 $candidates = $rows->fetchAll();
 
-if ($pendingOnly) {
-    $seenStmt = $pdo->prepare('SELECT 1 FROM gpt.v_kill_detail_scrapes_latest WHERE player_name = :player_name AND kill_id = :kill_id LIMIT 1');
-    $candidates = array_values(array_filter($candidates, static function (array $row) use ($seenStmt): bool {
-        $seenStmt->execute([
-            ':player_name' => (string) ($row['player_name'] ?? ''),
-            ':kill_id' => (int) ($row['kill_id'] ?? 0),
-        ]);
-        return $seenStmt->fetchColumn() === false;
+if ($pendingOnly && $candidates !== []) {
+    // Una sola consulta para obtener todos los kill_id ya procesados,
+    // evitando el patrón N+1 de consultas individuales por candidato.
+    $seenStmt = $pdo->query(
+        'SELECT LOWER(player_name) || \'#\' || kill_id AS seen_key
+         FROM gpt.v_kill_detail_scrapes_latest
+         WHERE player_name IS NOT NULL AND kill_id IS NOT NULL'
+    );
+    $seenKeys = array_flip($seenStmt->fetchAll(PDO::FETCH_COLUMN) ?: []);
+    $candidates = array_values(array_filter($candidates, static function (array $row) use ($seenKeys): bool {
+        $key = mb_strtolower((string) ($row['player_name'] ?? ''), 'UTF-8') . '#' . (int) ($row['kill_id'] ?? 0);
+        return !isset($seenKeys[$key]);
     }));
 }
 
@@ -138,11 +144,19 @@ $insert = $pdo->prepare(
 $tmpDir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'kill_detail_tmp';
 if (!is_dir($tmpDir)) {
     mkdir($tmpDir, 0777, true);
+} else {
+    // Limpiar archivos temporales huérfanos de ejecuciones anteriores (más de 1 hora)
+    $staleThreshold = time() - 3600;
+    foreach (glob($tmpDir . DIRECTORY_SEPARATOR . 'batch_*') ?: [] as $staleFile) {
+        if (is_file($staleFile) && filemtime($staleFile) < $staleThreshold) {
+            @unlink($staleFile);
+        }
+    }
 }
 
 $processed = 0;
 $errors = 0;
-$batchSize = 20;
+$batchSize = 100;
 
 for ($offset = 0, $totalCandidates = count($candidates); $offset < $totalCandidates; $offset += $batchSize) {
     $slice = array_slice($candidates, $offset, $batchSize);
@@ -155,7 +169,7 @@ for ($offset = 0, $totalCandidates = count($candidates); $offset < $totalCandida
         if ($killId <= 0 || $playerName === '') {
             continue;
         }
-        $url = 'https://www.thehunter.com/#profile/' . rawurlencode(strtolower($playerName)) . '/score/' . rawurlencode((string) $killId);
+        $url = buildKillUrl($playerName, $killId);
         $job = [
             'kill_id' => $killId,
             'player_name' => $playerName,
@@ -173,20 +187,25 @@ for ($offset = 0, $totalCandidates = count($candidates); $offset < $totalCandida
     $batchOutput = $tmpDir . DIRECTORY_SEPARATOR . 'batch_' . $offset . '_' . bin2hex(random_bytes(4)) . '_out.json';
     file_put_contents($batchInput, json_encode($jobs, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 
+    $batchStderr = $tmpDir . DIRECTORY_SEPARATOR . 'batch_' . $offset . '_stderr.log';
     $cmd = 'node ' . escapeshellarg(__DIR__ . DIRECTORY_SEPARATOR . 'scrape_kill_detail_browser.mjs')
         . ' --input=' . escapeshellarg($batchInput)
         . ' --cookieFile=' . escapeshellarg($cookieFile)
         . ' --cookieKey=' . escapeshellarg($cookieKey)
-        . ' --output=' . escapeshellarg($batchOutput);
+        . ' --output=' . escapeshellarg($batchOutput)
+        . ' 2>' . escapeshellarg($batchStderr);
 
     exec($cmd, $out, $exitCode);
     @unlink($batchInput);
     if ($exitCode !== 0 || !is_file($batchOutput)) {
-        log_err("[ERROR] Lote {$offset} browser scrape failed");
+        $nodeErr = is_file($batchStderr) ? trim((string) file_get_contents($batchStderr)) : '';
+        log_err("[ERROR] Lote {$offset} browser scrape failed" . ($nodeErr !== '' ? ": {$nodeErr}" : ''));
         $errors += count($jobs);
         @unlink($batchOutput);
+        @unlink($batchStderr);
         continue;
     }
+    @unlink($batchStderr);
 
     $results = json_decode((string) file_get_contents($batchOutput), true);
     @unlink($batchOutput);
@@ -206,7 +225,7 @@ for ($offset = 0, $totalCandidates = count($candidates); $offset < $totalCandida
             continue;
         }
 
-        $url = 'https://www.thehunter.com/#profile/' . rawurlencode(strtolower($playerName)) . '/score/' . rawurlencode((string) $killId);
+        $url = buildKillUrl($playerName, $killId);
         if (!($result['ok'] ?? false) || !is_array($result['payload'] ?? null)) {
             log_err("[ERROR] {$playerName} {$killId} browser scrape failed");
             $errors++;
@@ -255,6 +274,14 @@ log_out('Resumen');
 log_out("Procesadas: {$processed}");
 log_out("Errores: {$errors}");
 
+function buildKillUrl(string $playerName, int $killId): string
+{
+    return 'https://www.thehunter.com/#profile/'
+        . rawurlencode(strtolower($playerName))
+        . '/score/'
+        . rawurlencode((string) $killId);
+}
+
 function log_out(string $message): void
 {
     if (defined('STDOUT') && is_resource(STDOUT)) {
@@ -273,7 +300,7 @@ function log_err(string $message): void
 
 function loadTheHunterCookie(string $playerName): string
 {
-    $file = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'thehunter_cookies.json';
+    $file = COOKIE_FILE;
     if (!is_file($file)) {
         return '';
     }
@@ -474,6 +501,7 @@ function parseShotsTableRows(string $html): array
         preg_match_all('~<td[^>]*>(.*?)</td>~is', $rowHtml, $cells);
         $vals = array_map('cleanHtmlText', $cells[1] ?? []);
         if (count($vals) < 10) {
+            log_err("[WARN] parseShotsTableRows: fila descartada con " . count($vals) . " columnas (se esperan >=10); puede que haya cambiado el formato de la página");
             continue;
         }
 
