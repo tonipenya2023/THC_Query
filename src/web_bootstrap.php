@@ -320,6 +320,32 @@ function app_query_one(string $sql, array $params = []): ?array
     return $row === false ? null : $row;
 }
 
+function app_relation_has_column(string $schemaName, string $relationName, string $columnName): bool
+{
+    static $cache = [];
+    $key = strtolower(trim($schemaName) . '.' . trim($relationName) . '.' . trim($columnName));
+    if (array_key_exists($key, $cache)) {
+        return $cache[$key];
+    }
+
+    $row = app_query_one(
+        'SELECT 1
+         FROM information_schema.columns
+         WHERE table_schema = :schema_name
+           AND table_name = :relation_name
+           AND column_name = :column_name
+         LIMIT 1',
+        [
+            ':schema_name' => $schemaName,
+            ':relation_name' => $relationName,
+            ':column_name' => $columnName,
+        ]
+    );
+
+    $cache[$key] = $row !== null;
+    return $cache[$key];
+}
+
 function app_ensure_ui_preferences_table(): void
 {
     static $done = false;
@@ -604,6 +630,64 @@ function app_thehunter_cookie_for_user(string $username): ?string
         return trim($genericEnv);
     }
 
+    $imported = app_import_thehunter_cookie_from_local_browser($username);
+    if (is_string($imported) && trim($imported) !== '') {
+        return trim($imported);
+    }
+
+    return null;
+}
+
+function app_import_thehunter_cookie_from_local_browser(string $username): ?string
+{
+    $username = trim($username);
+    if ($username === '') {
+        return null;
+    }
+
+    static $cache = [];
+    $cacheKey = mb_strtolower($username, 'UTF-8');
+    if (array_key_exists($cacheKey, $cache)) {
+        return $cache[$cacheKey];
+    }
+
+    $node = 'node';
+    $script = app_root() . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'import_thehunter_cookie_browser.mjs';
+    if (!is_file($script)) {
+        $cache[$cacheKey] = null;
+        return null;
+    }
+
+    $tmpDir = app_root() . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'cookie_tmp';
+    if (!is_dir($tmpDir)) {
+        mkdir($tmpDir, 0777, true);
+    }
+
+    foreach (['edge', 'chrome'] as $browser) {
+        $outputFile = $tmpDir . DIRECTORY_SEPARATOR . 'cookie_' . $browser . '_' . bin2hex(random_bytes(4)) . '.json';
+        $stderrFile = $tmpDir . DIRECTORY_SEPARATOR . 'cookie_' . $browser . '_' . bin2hex(random_bytes(4)) . '.log';
+        $cmd = $node . ' ' . escapeshellarg($script)
+            . ' --browser=' . escapeshellarg($browser)
+            . ' --output=' . escapeshellarg($outputFile)
+            . ' 2>' . escapeshellarg($stderrFile);
+        exec($cmd, $unused, $exitCode);
+        $raw = is_file($outputFile) ? @file_get_contents($outputFile) : false;
+        @unlink($outputFile);
+        @unlink($stderrFile);
+        if (!is_string($raw) || trim($raw) === '') {
+            continue;
+        }
+        $data = json_decode($raw, true);
+        $cookie = is_array($data) && is_string($data['cookie'] ?? null) ? trim((string) $data['cookie']) : '';
+        $ok = is_array($data) && ($data['ok'] ?? false) === true;
+        if ($exitCode === 0 && $ok && $cookie !== '' && str_contains($cookie, 'hunter=')) {
+            app_set_thehunter_cookie($username, $cookie);
+            $cache[$cacheKey] = $cookie;
+            return $cookie;
+        }
+    }
+
+    $cache[$cacheKey] = null;
     return null;
 }
 
@@ -794,4 +878,3 @@ function app_font(): string
     $font = 'system';
     return $font;
 }
-

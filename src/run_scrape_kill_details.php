@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/web_bootstrap.php';
+
 $config = require __DIR__ . '/config.php';
 
 if (defined('STDOUT') && is_resource(STDOUT)) {
@@ -57,7 +59,7 @@ if ($cookiePlayer === null || trim((string) $cookiePlayer) === '') {
 
 const COOKIE_FILE = __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'thehunter_cookies.json';
 
-$cookie = loadTheHunterCookie((string) $cookiePlayer);
+$cookie = app_thehunter_cookie_for_user((string) $cookiePlayer) ?? '';
 if ($cookie === '') {
     log_err("Error: No hay cookie guardada para {$cookiePlayer}");
     exit(1);
@@ -84,6 +86,7 @@ if ($existingOnly) {
     $where[] = "kd.kill_id IS NOT NULL";
     $where[] = "COALESCE(NULLIF(kd.player_name, ''), '') <> ''";
     $sql = "SELECT
+                kd.expedition_id,
                 kd.kill_id,
                 kd.player_name,
                 kd.species_name
@@ -94,6 +97,7 @@ if ($existingOnly) {
     $where[] = "k.kill_id IS NOT NULL";
     $where[] = "COALESCE(NULLIF(k.player_name, ''), NULLIF(e.player_name, '')) <> ''";
     $sql = "SELECT
+                k.expedition_id,
                 k.kill_id,
                 COALESCE(NULLIF(k.player_name, ''), NULLIF(e.player_name, '')) AS player_name,
                 COALESCE(NULLIF(sp.especie_es, ''), NULLIF(sp.especie, ''), NULLIF(k.species_name, '')) AS species_name
@@ -112,13 +116,13 @@ if ($pendingOnly && $candidates !== []) {
     // Una sola consulta para obtener todos los kill_id ya procesados,
     // evitando el patrón N+1 de consultas individuales por candidato.
     $seenStmt = $pdo->query(
-        'SELECT LOWER(player_name) || \'#\' || kill_id AS seen_key
+        'SELECT COALESCE(expedition_id, -1)::text || \'#\' || LOWER(player_name) || \'#\' || kill_id AS seen_key
          FROM gpt.v_kill_detail_scrapes_latest
          WHERE player_name IS NOT NULL AND kill_id IS NOT NULL'
     );
     $seenKeys = array_flip($seenStmt->fetchAll(PDO::FETCH_COLUMN) ?: []);
     $candidates = array_values(array_filter($candidates, static function (array $row) use ($seenKeys): bool {
-        $key = mb_strtolower((string) ($row['player_name'] ?? ''), 'UTF-8') . '#' . (int) ($row['kill_id'] ?? 0);
+        $key = (int) ($row['expedition_id'] ?? -1) . '#' . mb_strtolower((string) ($row['player_name'] ?? ''), 'UTF-8') . '#' . (int) ($row['kill_id'] ?? 0);
         return !isset($seenKeys[$key]);
     }));
 }
@@ -129,12 +133,12 @@ if ($limit > 0) {
 
 $insert = $pdo->prepare(
     'INSERT INTO gpt.kill_detail_scrapes (
-        kill_id, player_name, url, scraped_at, species_name, hunter_name, weapon_text, scope_text, ammo_text,
+        expedition_id, kill_id, player_name, url, scraped_at, species_name, hunter_name, weapon_text, scope_text, ammo_text,
         shot_distance_text, animal_state_text, body_part_text, posture_text, platform_text, shot_location_text,
         weight_text, type_text, wound_time_text, trophy_integrity_text, shot_count_text, capture_time_text,
         trophy_score_text, harvest_value_text, page_title, render_url, raw_body_text, raw_html, kill_data_json
      ) VALUES (
-        :kill_id, :player_name, :url, NOW(), :species_name, :hunter_name, :weapon_text, :scope_text, :ammo_text,
+        :expedition_id, :kill_id, :player_name, :url, NOW(), :species_name, :hunter_name, :weapon_text, :scope_text, :ammo_text,
         :shot_distance_text, :animal_state_text, :body_part_text, :posture_text, :platform_text, :shot_location_text,
         :weight_text, :type_text, :wound_time_text, :trophy_integrity_text, :shot_count_text, :capture_time_text,
         :trophy_score_text, :harvest_value_text, :page_title, :render_url, :raw_body_text, :raw_html, CAST(:kill_data_json AS JSONB)
@@ -164,6 +168,7 @@ for ($offset = 0, $totalCandidates = count($candidates); $offset < $totalCandida
     $rowsByKey = [];
 
     foreach ($slice as $row) {
+        $expeditionId = (int) ($row['expedition_id'] ?? 0);
         $killId = (int) ($row['kill_id'] ?? 0);
         $playerName = trim((string) ($row['player_name'] ?? ''));
         if ($killId <= 0 || $playerName === '') {
@@ -171,12 +176,13 @@ for ($offset = 0, $totalCandidates = count($candidates); $offset < $totalCandida
         }
         $url = buildKillUrl($playerName, $killId);
         $job = [
+            'expedition_id' => $expeditionId > 0 ? $expeditionId : null,
             'kill_id' => $killId,
             'player_name' => $playerName,
             'url' => $url,
         ];
         $jobs[] = $job;
-        $rowsByKey[$playerName . '#' . $killId] = $row;
+        $rowsByKey[$expeditionId . '#' . $playerName . '#' . $killId] = $row;
     }
 
     if ($jobs === []) {
@@ -218,7 +224,8 @@ for ($offset = 0, $totalCandidates = count($candidates); $offset < $totalCandida
     foreach ($results as $result) {
         $killId = (int) ($result['kill_id'] ?? 0);
         $playerName = trim((string) ($result['player_name'] ?? ''));
-        $key = $playerName . '#' . $killId;
+        $expeditionId = (int) (($result['expedition_id'] ?? null) ?? 0);
+        $key = $expeditionId . '#' . $playerName . '#' . $killId;
         $row = $rowsByKey[$key] ?? null;
         if (!is_array($row) || $killId <= 0 || $playerName === '') {
             $errors++;
@@ -235,6 +242,7 @@ for ($offset = 0, $totalCandidates = count($candidates); $offset < $totalCandida
         $payload = $result['payload'];
         $parsed = parseKillDetailPayload($payload);
         $insert->execute([
+            ':expedition_id' => ((int) ($row['expedition_id'] ?? 0)) > 0 ? (int) $row['expedition_id'] : null,
             ':kill_id' => $killId,
             ':player_name' => $playerName,
             ':url' => $url,
@@ -298,20 +306,6 @@ function log_err(string $message): void
     }
 }
 
-function loadTheHunterCookie(string $playerName): string
-{
-    $file = COOKIE_FILE;
-    if (!is_file($file)) {
-        return '';
-    }
-    $data = json_decode((string) file_get_contents($file), true);
-    if (!is_array($data)) {
-        return '';
-    }
-    $key = mb_strtolower($playerName, 'UTF-8');
-    $value = $data[$key] ?? null;
-    return is_string($value) ? trim($value) : '';
-}
 
 /**
  * @param array<string,mixed> $payload

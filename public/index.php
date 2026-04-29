@@ -1028,6 +1028,52 @@ function expedition_join_column_defs(): array
         ];
     }
 
+    $defs['e_weapon_hits_total'] = [
+        'expr' => '(SELECT COALESCE(SUM(COALESCE(w.hits, 0)), 0) FROM gpt.exp_weapon_stats w WHERE w.expedition_id = e.expedition_id)',
+        'sort' => '(SELECT COALESCE(SUM(COALESCE(w.hits, 0)), 0) FROM gpt.exp_weapon_stats w WHERE w.expedition_id = e.expedition_id)',
+        'label' => 'Aciertos arma',
+    ];
+    $defs['e_weapon_misses_total'] = [
+        'expr' => '(SELECT COALESCE(SUM(COALESCE(w.misses, 0)), 0) FROM gpt.exp_weapon_stats w WHERE w.expedition_id = e.expedition_id)',
+        'sort' => '(SELECT COALESCE(SUM(COALESCE(w.misses, 0)), 0) FROM gpt.exp_weapon_stats w WHERE w.expedition_id = e.expedition_id)',
+        'label' => 'Fallos arma',
+    ];
+    $defs['e_weapon_kills_total'] = [
+        'expr' => '(SELECT COALESCE(SUM(COALESCE(w.kills, 0)), 0) FROM gpt.exp_weapon_stats w WHERE w.expedition_id = e.expedition_id)',
+        'sort' => '(SELECT COALESCE(SUM(COALESCE(w.kills, 0)), 0) FROM gpt.exp_weapon_stats w WHERE w.expedition_id = e.expedition_id)',
+        'label' => 'Muertes arma',
+    ];
+    $defs['e_weapon_ethical_kills_total'] = [
+        'expr' => '(SELECT COALESCE(SUM(COALESCE(w.ethical_kills, 0)), 0) FROM gpt.exp_weapon_stats w WHERE w.expedition_id = e.expedition_id)',
+        'sort' => '(SELECT COALESCE(SUM(COALESCE(w.ethical_kills, 0)), 0) FROM gpt.exp_weapon_stats w WHERE w.expedition_id = e.expedition_id)',
+        'label' => 'Eticos arma',
+    ];
+    $defs['e_animal_kills_total'] = [
+        'expr' => '(SELECT COALESCE(SUM(COALESCE(a.kills, 0)), 0) FROM gpt.exp_animal_stats a WHERE a.expedition_id = e.expedition_id)',
+        'sort' => '(SELECT COALESCE(SUM(COALESCE(a.kills, 0)), 0) FROM gpt.exp_animal_stats a WHERE a.expedition_id = e.expedition_id)',
+        'label' => 'Muertes animal',
+    ];
+    $defs['e_animal_spots_total'] = [
+        'expr' => '(SELECT COALESCE(SUM(COALESCE(a.spots, 0)), 0) FROM gpt.exp_animal_stats a WHERE a.expedition_id = e.expedition_id)',
+        'sort' => '(SELECT COALESCE(SUM(COALESCE(a.spots, 0)), 0) FROM gpt.exp_animal_stats a WHERE a.expedition_id = e.expedition_id)',
+        'label' => 'Spots animal',
+    ];
+    $defs['e_animal_tracks_total'] = [
+        'expr' => '(SELECT COALESCE(SUM(COALESCE(a.tracks, 0)), 0) FROM gpt.exp_animal_stats a WHERE a.expedition_id = e.expedition_id)',
+        'sort' => '(SELECT COALESCE(SUM(COALESCE(a.tracks, 0)), 0) FROM gpt.exp_animal_stats a WHERE a.expedition_id = e.expedition_id)',
+        'label' => 'Tracks animal',
+    ];
+    $defs['e_animal_ethical_kills_total'] = [
+        'expr' => '(SELECT COALESCE(SUM(COALESCE(a.ethical_kills, 0)), 0) FROM gpt.exp_animal_stats a WHERE a.expedition_id = e.expedition_id)',
+        'sort' => '(SELECT COALESCE(SUM(COALESCE(a.ethical_kills, 0)), 0) FROM gpt.exp_animal_stats a WHERE a.expedition_id = e.expedition_id)',
+        'label' => 'Eticos animal',
+    ];
+    $defs['e_collectables_collected_total'] = [
+        'expr' => '(SELECT COALESCE(SUM(COALESCE(c.collected, 0)), 0) FROM gpt.exp_collectables c WHERE c.expedition_id = e.expedition_id)',
+        'sort' => '(SELECT COALESCE(SUM(COALESCE(c.collected, 0)), 0) FROM gpt.exp_collectables c WHERE c.expedition_id = e.expedition_id)',
+        'label' => 'Collected',
+    ];
+
     return $defs;
 }
 
@@ -1411,7 +1457,7 @@ function render_dashboard(): void
     $hasTheHunterCookie = $authUser !== '' && app_thehunter_cookie_for_user($authUser) !== null;
     echo '<section class="card">';
     echo '<h2>Sesion theHunter</h2>';
-    echo '<p class="muted">Usuario actual: ' . h($authUser !== '' ? $authUser : '-') . ' | Cookie guardada: ' . ($hasTheHunterCookie ? 'Si' : 'No') . '</p>';
+    echo '<p class="muted">Usuario actual: ' . h($authUser !== '' ? $authUser : '-') . ' | Cookie guardada: ' . ($hasTheHunterCookie ? 'Si' : 'No') . ' | Si no existe, el sistema intentara importarla automaticamente desde Edge/Chrome local antes de pedirla manualmente.</p>';
     echo '<form class="table-filters" method="post" action="save_thehunter_cookie.php">';
     echo '<input type="hidden" name="csrf_token" value="' . h(app_csrf_token()) . '">';
     echo '<textarea name="thehunter_cookie" rows="3" placeholder="Pega aqui la cabecera Cookie completa de una sesion valida de theHunter" title="Cookie completa de sesion de theHunter para inscribirse automaticamente en competiciones"></textarea>';
@@ -1581,6 +1627,7 @@ function render_table_styles_preview(): void
 
 function render_expeditions(): void
 {
+    $hasKillDetailExpeditionId = app_relation_has_column('gpt', 'v_kill_detail_scrapes_latest', 'expedition_id');
     $page = query_page();
     $pageSize = query_page_size(100);
     $isReset = is_reset_requested();
@@ -1788,6 +1835,15 @@ function render_expeditions(): void
         'e_hits' => true,
         'e_harvest_total' => true,
         'e_integrity_avg' => true,
+        'e_weapon_hits_total' => true,
+        'e_weapon_misses_total' => true,
+        'e_weapon_kills_total' => true,
+        'e_weapon_ethical_kills_total' => true,
+        'e_animal_kills_total' => true,
+        'e_animal_spots_total' => true,
+        'e_animal_tracks_total' => true,
+        'e_animal_ethical_kills_total' => true,
+        'e_collectables_collected_total' => true,
     ];
     $killNumericCols = [
         'species_id' => true,
@@ -2604,11 +2660,23 @@ function render_expeditions(): void
             $killParams[':kill_harvest_max'] = $killHarvestMax;
         }
         if ($killWoundTime !== null) {
-            $killSql .= ' AND EXISTS (SELECT 1 FROM gpt.v_kill_detail_scrapes_latest kd1 WHERE kd1.kill_id = k.kill_id AND kd1.wound_time_text ILIKE :kill_wound_time)';
+            $killSql .= ' AND EXISTS (
+                SELECT 1
+                FROM gpt.v_kill_detail_scrapes_latest kd1
+                WHERE kd1.kill_id = k.kill_id
+                  ' . ($hasKillDetailExpeditionId ? 'AND COALESCE(kd1.expedition_id, -1) = COALESCE(k.expedition_id, -1)' : '') . '
+                  AND kd1.wound_time_text ILIKE :kill_wound_time
+            )';
             $killParams[':kill_wound_time'] = '%' . $killWoundTime . '%';
         }
         if ($killShotLocation !== null) {
-            $killSql .= ' AND EXISTS (SELECT 1 FROM gpt.v_kill_detail_scrapes_latest kd1 WHERE kd1.kill_id = k.kill_id AND kd1.shot_location_text ILIKE :kill_shot_location)';
+            $killSql .= ' AND EXISTS (
+                SELECT 1
+                FROM gpt.v_kill_detail_scrapes_latest kd1
+                WHERE kd1.kill_id = k.kill_id
+                  ' . ($hasKillDetailExpeditionId ? 'AND COALESCE(kd1.expedition_id, -1) = COALESCE(k.expedition_id, -1)' : '') . '
+                  AND kd1.shot_location_text ILIKE :kill_shot_location
+            )';
             $killParams[':kill_shot_location'] = '%' . $killShotLocation . '%';
         }
         if ($markFilter !== '') {
@@ -2649,7 +2717,10 @@ function render_expeditions(): void
 
         $killSql = str_replace(
             'WHERE k.expedition_id IN (' . implode(', ', $inParts) . ')',
-            'LEFT JOIN gpt.v_kill_detail_scrapes_latest kd ON kd.kill_id = k.kill_id WHERE k.expedition_id IN (' . implode(', ', $inParts) . ')',
+            'LEFT JOIN gpt.v_kill_detail_scrapes_latest kd
+                    ON kd.kill_id = k.kill_id
+                   ' . ($hasKillDetailExpeditionId ? 'AND COALESCE(kd.expedition_id, -1) = COALESCE(k.expedition_id, -1)' : '') . '
+             WHERE k.expedition_id IN (' . implode(', ', $inParts) . ')',
             $killSql
         );
 
@@ -2744,17 +2815,18 @@ function render_expeditions(): void
             }
             try {
                 $detailRows = app_query_all(
-                    'SELECT kill_id, player_name, scraped_at
+                    'SELECT ' . ($hasKillDetailExpeditionId ? 'expedition_id' : 'NULL::bigint AS expedition_id') . ', kill_id, player_name, scraped_at
                      FROM gpt.v_kill_detail_scrapes_latest
                      WHERE kill_id IN (' . implode(', ', $detailInParts) . ')',
                     $detailParams
                 );
                 foreach ($detailRows as $drow) {
+                    $detailExpeditionId = (int) ($drow['expedition_id'] ?? 0);
                     $detailKillId = (int) ($drow['kill_id'] ?? 0);
                     if ($detailKillId <= 0) {
                         continue;
                     }
-                    $scrapedKillMap[$detailKillId] = [
+                    $scrapedKillMap[$detailExpeditionId . '#' . $detailKillId] = [
                         'player_name' => (string) ($drow['player_name'] ?? ''),
                         'scraped_at' => (string) ($drow['scraped_at'] ?? ''),
                     ];
@@ -2772,10 +2844,17 @@ function render_expeditions(): void
             }
 
             $hitSql = 'SELECT h.kill_id, h.hit_index, h.user_id, h.player_name, h.distance, h.weapon_id, h.ammo_id, h.organ,
-                              kd.hunter_name, kd.weapon_text, kd.scope_text, kd.ammo_text, kd.shot_distance_text,
+                              CASE
+                                  WHEN NULLIF(BTRIM(kd.hunter_name), \'\') IS NULL THEN h.player_name
+                                  WHEN LOWER(BTRIM(kd.hunter_name)) = LOWER(BTRIM(COALESCE(h.player_name, \'\'))) THEN h.player_name
+                                  ELSE h.player_name
+                              END AS hunter_name,
+                              kd.weapon_text, kd.scope_text, kd.ammo_text, kd.shot_distance_text,
                               kd.animal_state_text, kd.body_part_text, kd.posture_text, kd.platform_text, kd.kill_data_json
                        FROM gpt.exp_hits h
-                       LEFT JOIN gpt.v_kill_detail_scrapes_latest kd ON kd.kill_id = h.kill_id
+                       LEFT JOIN gpt.v_kill_detail_scrapes_latest kd
+                              ON kd.kill_id = h.kill_id
+                             ' . ($hasKillDetailExpeditionId ? 'AND COALESCE(kd.expedition_id, -1) = COALESCE(h.expedition_id, -1)' : '') . '
                        WHERE h.kill_id IN (' . implode(', ', $hitInParts) . ')';
             if ($hitIndex !== null) {
                 $hitSql .= ' AND h.hit_index = :hit_index_exact';
@@ -2794,7 +2873,13 @@ function render_expeditions(): void
                 $hitParams[':hit_organ_exact'] = $hitOrgan;
             }
             if ($hitHunterText !== null) {
-                $hitSql .= ' AND kd.hunter_name ILIKE :hit_hunter_name';
+                $hitSql .= ' AND (
+                    CASE
+                        WHEN NULLIF(BTRIM(kd.hunter_name), \'\') IS NULL THEN h.player_name
+                        WHEN LOWER(BTRIM(kd.hunter_name)) = LOWER(BTRIM(COALESCE(h.player_name, \'\'))) THEN h.player_name
+                        ELSE h.player_name
+                    END
+                ) ILIKE :hit_hunter_name';
                 $hitParams[':hit_hunter_name'] = '%' . $hitHunterText . '%';
             }
             if ($hitWeaponText !== null) {
@@ -3231,7 +3316,7 @@ function render_expeditions(): void
         if ($killRows === []) {
             echo '<span class="muted">Sin muertes</span>';
         } else {
-            $expOpenAttr = (isset($openExpSet[$expId]) || $expHasPhotoOrTax || $expHasMmp || $expHasMmd) ? ' open' : '';
+            $expOpenAttr = '';
             echo '<details class="exp-kills-details" data-exp-id="' . h((string) $expId) . '"' . $expOpenAttr . '><summary>Ver muertes (' . h((string) count($killRows)) . ')</summary>';
             echo '<table><thead><tr>';
             foreach ($selectedKillCols as $colKey) {
@@ -5125,7 +5210,7 @@ function render_competitions(): void
     foreach ($rows as $row) {
         $tid = (int) ($row['competition_type_id'] ?? $row['__type_id'] ?? 0);
         echo '<section class="competition-entry">';
-        echo '<table class="competition-entry-main"><thead><tr>';
+        echo '<table class="competition-entry-main" data-static-table="1"><thead><tr>';
         foreach ($selectedCols as $key) {
             echo '<th>' . sort_link($key, $columnDefs[$key]['label'], $sortKey, $sortDir) . '</th>';
         }
@@ -5166,7 +5251,7 @@ function render_competitions(): void
                 'attempts' => (string) ($typeRow['attempts'] ?? ''),
                 'point_type' => (string) ($typeRow['point_type'] ?? ''),
             ];
-            echo '<table><colgroup>';
+            echo '<table data-static-table="1"><colgroup>';
             foreach ($selectedTypeCols as $colKey) {
                 $colClass = match ($colKey) {
                     'competition_type_id' => 'comp-type-col-id',
@@ -5198,7 +5283,7 @@ function render_competitions(): void
         if (($speciesByType[$tid] ?? []) === []) {
             echo '<span class="muted">Sin filas</span>';
         } else {
-            echo '<table><thead><tr>';
+            echo '<table data-static-table="1"><thead><tr>';
             foreach ($selectedSpeciesCols as $colKey) {
                 if (!isset($speciesSortDefs[$colKey])) {
                     echo '<th>' . h($speciesColumnDefs[$colKey] ?? $colKey) . '</th>';
@@ -5227,7 +5312,7 @@ function render_competitions(): void
         if (($rewardsByType[$tid] ?? []) === []) {
             echo '<span class="muted">Sin filas</span>';
         } else {
-            echo '<table><thead><tr>';
+            echo '<table data-static-table="1"><thead><tr>';
             foreach ($selectedRewardCols as $colKey) {
                 if (!isset($rewardSortDefs[$colKey])) {
                     echo '<th>' . h($rewardColumnDefs[$colKey] ?? $colKey) . '</th>';
@@ -8393,7 +8478,7 @@ if (is_array($savedSidebarOrder) && $savedSidebarOrder !== []) {
     <title>THC GPT Panel</title>
     <link rel="stylesheet" href="style.css?v=<?= h($cssVersion) ?>">
 </head>
-<body class="theme-<?= h($theme) ?> font-<?= h($font) ?>">
+<body class="theme-<?= h($theme) ?> font-<?= h($font) ?><?= $view === 'expeditions' ? ' view-expeditions-initializing' : '' ?>">
 <div class="layout">
     <aside class="sidebar">
         <h1 class="sidebar-logo-wrap">
@@ -9101,12 +9186,18 @@ window.thcWriteGlobalPref = (key, value) => {
     openBtn.className = 'subtables-mini-btn';
     openBtn.innerHTML = '&#8595;';
     openBtn.title = 'Desplegar subtablas';
+    openBtn.style.display = 'flex';
+openBtn.style.alignItems = 'center';
+openBtn.style.justifyContent = 'center';
 
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 'subtables-mini-btn';
     closeBtn.innerHTML = '&#8593;';
     closeBtn.title = 'Plegar subtablas';
+    closeBtn.style.display = 'flex';
+closeBtn.style.alignItems = 'center';
+closeBtn.style.justifyContent = 'center';
 
     const syncOpen = (open) => {
         allDetails.forEach((d) => {
@@ -9126,6 +9217,9 @@ window.thcWriteGlobalPref = (key, value) => {
 (() => {
     const isNumericText = (text) => /^-?\d+(?:[.,]\d+)?$/.test(text.trim());
     document.querySelectorAll('.content table').forEach((table) => {
+        if (table instanceof HTMLTableElement && table.dataset.staticTable === '1') {
+            return;
+        }
         const bodyRows = Array.from(table.querySelectorAll('tbody tr'));
         if (bodyRows.length === 0) {
             return;
@@ -9306,6 +9400,9 @@ window.thcWriteGlobalPref = (key, value) => {
     };
 
     document.querySelectorAll('.content table').forEach((table) => {
+        if (table instanceof HTMLTableElement && table.dataset.staticTable === '1') {
+            return;
+        }
         applyColumnAlignment(table);
     });
 })();
@@ -9316,6 +9413,8 @@ window.thcWriteGlobalPref = (key, value) => {
     if (view !== 'expeditions') {
         return;
     }
+
+    document.body.classList.add('view-expeditions-initializing');
 
     const collectOpenState = (url) => {
         url.searchParams.delete('open_exp');
@@ -9515,9 +9614,11 @@ window.thcWriteGlobalPref = (key, value) => {
 
         const sync = () => {
             subRow.style.display = details.open ? '' : 'none';
+            subRow.classList.toggle('is-subtable-open', details.open);
             if (repeatedHeaderRow) {
                 repeatedHeaderRow.style.display = details.open ? '' : 'none';
             }
+            details.dispatchEvent(new CustomEvent('thc:subtable-toggle', { bubbles: true }));
         };
         details.addEventListener('toggle', sync);
         sync();
@@ -9557,13 +9658,17 @@ window.thcWriteGlobalPref = (key, value) => {
     document.querySelectorAll('.content details').forEach(wireDetailsToSubRow);
     syncCompetitionSubtableShift();
     window.addEventListener('resize', syncCompetitionSubtableShift);
-
     const isInteractiveTarget = (el) => {
         if (!(el instanceof Element)) {
             return false;
         }
         return !!el.closest('a,button,input,select,textarea,label,summary');
     };
+
+    if (view === 'competitions') {
+        window.thcExpeditionsSubtablesReady = true;
+        return;
+    }
 
     document.querySelectorAll('.content table tbody tr').forEach((row) => {
         if (!(row instanceof HTMLTableRowElement) || row.classList.contains('subtable-row-js') || row.classList.contains('repeated-exp-header')) {
@@ -9584,9 +9689,13 @@ window.thcWriteGlobalPref = (key, value) => {
             if (isInteractiveTarget(ev.target)) {
                 return;
             }
-            summary.click();
+            ev.preventDefault();
+            details.open = !details.open;
         });
     });
+
+    window.thcExpeditionsSubtablesReady = true;
+    document.dispatchEvent(new CustomEvent('thc:expeditions-subtables-ready'));
 })();
 </script>
 <script>
@@ -10894,6 +11003,9 @@ window.thcWriteGlobalPref = (key, value) => {
     };
 
     document.querySelectorAll('.content table').forEach((table) => {
+        if (table instanceof HTMLTableElement && table.dataset.staticTable === '1') {
+            return;
+        }
         wireClientSortableTable(table);
     });
 })();
@@ -10902,6 +11014,7 @@ window.thcWriteGlobalPref = (key, value) => {
     const view = new URLSearchParams(window.location.search).get('view') || 'panel';
     const renameStorageKey = 'thc_table_header_labels_v1';
     const orderStorageKey = 'thc_table_column_order_v1';
+    const widthStorageKey = 'thc_table_column_widths_v1';
 
     const safeReadJson = (key) => {
         try {
@@ -10924,6 +11037,12 @@ window.thcWriteGlobalPref = (key, value) => {
     const writeOrderMap = (data) => {
         if (window.thcWriteGlobalPref) {
             window.thcWriteGlobalPref(orderStorageKey, data);
+        }
+    };
+    const readWidthMap = () => safeReadJson(widthStorageKey);
+    const writeWidthMap = (data) => {
+        if (window.thcWriteGlobalPref) {
+            window.thcWriteGlobalPref(widthStorageKey, data);
         }
     };
 
@@ -11031,19 +11150,116 @@ window.thcWriteGlobalPref = (key, value) => {
         th.dataset.headerLabel = label;
     };
 
+    const getHeaderCells = (table) => {
+        if (!(table.tHead instanceof HTMLTableSectionElement) || table.tHead.rows.length === 0) {
+            return [];
+        }
+        return Array.from(table.tHead.rows[table.tHead.rows.length - 1].cells)
+            .filter((cell) => cell instanceof HTMLTableCellElement && cell.colSpan === 1);
+    };
+
+    const getColumnCells = (table, colIndex) => {
+        const cells = [];
+        const headerCells = getHeaderCells(table);
+        const headerCell = headerCells[colIndex];
+        if (headerCell instanceof HTMLTableCellElement) {
+            cells.push(headerCell);
+        }
+        Array.from(table.tBodies).forEach((tbody) => {
+            Array.from(tbody.rows).forEach((row) => {
+                if (!(row instanceof HTMLTableRowElement)) {
+                    return;
+                }
+                if (row.classList.contains('subtable-row-js') || row.classList.contains('repeated-exp-header')) {
+                    return;
+                }
+                const cell = row.cells[colIndex];
+                if (!(cell instanceof HTMLTableCellElement) || cell.colSpan !== 1) {
+                    return;
+                }
+                cells.push(cell);
+            });
+        });
+        return cells;
+    };
+
+    const clearColumnWidth = (table, colIndex) => {
+        getColumnCells(table, colIndex).forEach((cell) => {
+            cell.style.width = '';
+            cell.style.minWidth = '';
+            cell.style.maxWidth = '';
+        });
+    };
+
+    const shouldSkipAutoWidths = (table) => {
+        if (!(table instanceof HTMLTableElement)) {
+            return false;
+        }
+        return table.dataset.staticTable === '1' || (view === 'competitions' && !!table.closest('.competition-results'));
+    };
+
     const applyColumnWidth = (table, colIndex, widthPx) => {
         const width = `${Math.max(48, Math.round(widthPx))}px`;
-        Array.from(table.rows).forEach((row) => {
-            if (!(row instanceof HTMLTableRowElement)) {
-                return;
-            }
-            const cell = row.cells[colIndex];
-            if (!(cell instanceof HTMLTableCellElement)) {
-                return;
-            }
+        getColumnCells(table, colIndex).forEach((cell) => {
             cell.style.width = width;
             cell.style.minWidth = width;
             cell.style.maxWidth = width;
+        });
+    };
+
+    const measureAutoColumnWidth = (table, colIndex) => {
+        const cells = getColumnCells(table, colIndex);
+        if (cells.length === 0) {
+            return 48;
+        }
+        let maxWidth = 48;
+        cells.forEach((cell) => {
+            const prevWidth = cell.style.width;
+            const prevMinWidth = cell.style.minWidth;
+            const prevMaxWidth = cell.style.maxWidth;
+            cell.style.width = 'auto';
+            cell.style.minWidth = '0';
+            cell.style.maxWidth = 'none';
+            const rectWidth = cell.getBoundingClientRect().width;
+            const scrollWidth = cell.scrollWidth;
+            maxWidth = Math.max(maxWidth, rectWidth, scrollWidth + 8);
+            cell.style.width = prevWidth;
+            cell.style.minWidth = prevMinWidth;
+            cell.style.maxWidth = prevMaxWidth;
+        });
+        return Math.ceil(maxWidth);
+    };
+
+    const applyAutoWidths = (table, tableIndex) => {
+        if (shouldSkipAutoWidths(table)) {
+            return;
+        }
+        const widthMap = readWidthMap();
+        const headers = getHeaderCells(table);
+        headers.forEach((th, colIndex) => {
+            const persistKey = headerPersistKey(table, th, colIndex, tableIndex);
+            const savedWidth = Number(widthMap[persistKey]);
+            if (Number.isFinite(savedWidth) && savedWidth >= 48) {
+                applyColumnWidth(table, colIndex, savedWidth);
+                return;
+            }
+            clearColumnWidth(table, colIndex);
+            applyColumnWidth(table, colIndex, measureAutoColumnWidth(table, colIndex));
+        });
+    };
+
+    const recalcVisibleTableTree = (rootTable) => {
+        if (!(rootTable instanceof HTMLTableElement)) {
+            return;
+        }
+        const tables = [rootTable, ...Array.from(rootTable.querySelectorAll('table'))]
+            .filter((table, idx, arr) => table instanceof HTMLTableElement && arr.indexOf(table) === idx);
+        tables.forEach((table) => {
+            if (shouldSkipAutoWidths(table)) {
+                return;
+            }
+            const idx = Number(table.dataset.tableIndex || '0');
+            applyAutoWidths(table, Number.isFinite(idx) ? idx : 0);
         });
     };
 
@@ -11205,6 +11421,9 @@ window.thcWriteGlobalPref = (key, value) => {
             return;
         }
         applySavedOrder(table, tableIndex);
+        if (!shouldSkipAutoWidths(table)) {
+            applyAutoWidths(table, tableIndex);
+        }
         const headerRow = table.tHead.rows[table.tHead.rows.length - 1];
         if (!(headerRow instanceof HTMLTableRowElement)) {
             return;
@@ -11255,6 +11474,9 @@ window.thcWriteGlobalPref = (key, value) => {
                     const onUp = (upEvent) => {
                         const finalWidth = startWidth + (upEvent.clientX - startX);
                         applyColumnWidth(table, colIndex, finalWidth);
+                        const widthMap = readWidthMap();
+                        widthMap[persistKey] = Math.max(48, Math.round(finalWidth));
+                        writeWidthMap(widthMap);
                         th.classList.remove('is-resizing');
                         document.body.classList.remove('col-resize-active');
                         window.removeEventListener('mousemove', onMove);
@@ -11386,8 +11608,50 @@ window.thcWriteGlobalPref = (key, value) => {
     };
 
     document.querySelectorAll('.content table').forEach((table, tableIndex) => {
+        if (table instanceof HTMLTableElement) {
+            table.dataset.tableIndex = String(tableIndex);
+        }
         wireResizableAndRenameableTable(table, tableIndex);
     });
+
+    document.addEventListener('thc:subtable-toggle', (event) => {
+        const detail = event.target;
+        if (!(detail instanceof HTMLDetailsElement)) {
+            return;
+        }
+        const parentTable = detail.closest('table');
+        if (parentTable instanceof HTMLTableElement) {
+            window.requestAnimationFrame(() => recalcVisibleTableTree(parentTable));
+        }
+    });
+
+    if (view === 'expeditions') {
+        const finishExpeditionsInit = () => {
+            window.requestAnimationFrame(() => {
+                window.requestAnimationFrame(() => {
+                    document.body.classList.remove('view-expeditions-initializing');
+                });
+            });
+        };
+
+        let done = false;
+        const onceFinish = () => {
+            if (done) {
+                return;
+            }
+            done = true;
+            finishExpeditionsInit();
+        };
+
+        if (window.thcExpeditionsSubtablesReady === true) {
+            onceFinish();
+            return;
+        }
+
+        document.addEventListener('thc:expeditions-subtables-ready', onceFinish, { once: true });
+        window.addEventListener('load', onceFinish, { once: true });
+        window.setTimeout(onceFinish, 1200);
+    }
 })();
 
 (() => {

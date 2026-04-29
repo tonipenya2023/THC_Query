@@ -108,6 +108,7 @@ function loadJobs() {
     return parsed
       .filter((item) => item && typeof item === 'object')
       .map((item) => ({
+        expedition_id: item.expedition_id == null ? null : Number(item.expedition_id || 0),
         kill_id: Number(item.kill_id || 0),
         player_name: String(item.player_name || ''),
         url: String(item.url || ''),
@@ -205,6 +206,7 @@ async function main() {
         try {
           const payload = await navigateAndExtract(client, job.url);
           results.push({
+            expedition_id: job.expedition_id,
             kill_id: job.kill_id,
             player_name: job.player_name,
             ok: Boolean(payload && payload.ready),
@@ -212,6 +214,7 @@ async function main() {
           });
         } catch (error) {
           results.push({
+            expedition_id: job.expedition_id,
             kill_id: job.kill_id,
             player_name: job.player_name,
             ok: false,

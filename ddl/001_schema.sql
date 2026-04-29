@@ -391,6 +391,7 @@ CREATE TABLE IF NOT EXISTS gpt.scrape_kill_urls (
 
 CREATE TABLE IF NOT EXISTS gpt.kill_detail_scrapes (
     scrape_id BIGSERIAL PRIMARY KEY,
+    expedition_id BIGINT NULL,
     kill_id BIGINT NOT NULL,
     player_name TEXT NOT NULL,
     url TEXT NOT NULL,
@@ -636,6 +637,7 @@ ALTER TABLE gpt.scrape_kill_urls
     ADD COLUMN IF NOT EXISTS parsed_summary TEXT NULL;
 
 ALTER TABLE gpt.kill_detail_scrapes
+    ADD COLUMN IF NOT EXISTS expedition_id BIGINT NULL,
     ADD COLUMN IF NOT EXISTS species_name TEXT NULL,
     ADD COLUMN IF NOT EXISTS hunter_name TEXT NULL,
     ADD COLUMN IF NOT EXISTS weapon_text TEXT NULL,

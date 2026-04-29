@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/web_bootstrap.php';
+
 final class CompetitionJoiner
 {
     private array $config;
@@ -352,22 +354,7 @@ final class CompetitionJoiner
 
     private function resolveCookieForPlayer(string $playerName): string
     {
-        $specific = getenv('THC_THEHUNTER_COOKIE_' . $this->envSuffix($playerName));
-        if (is_string($specific) && trim($specific) !== '') {
-            return trim($specific);
-        }
-
-        $stored = $this->loadStoredCookieForPlayer($playerName);
-        if ($stored !== '') {
-            return $stored;
-        }
-
-        $generic = getenv('THC_THEHUNTER_COOKIE');
-        if (is_string($generic) && trim($generic) !== '') {
-            return trim($generic);
-        }
-
-        return '';
+        return app_thehunter_cookie_for_user($playerName) ?? '';
     }
 
     private function envSuffix(string $playerName): string
@@ -393,28 +380,6 @@ final class CompetitionJoiner
         }
 
         return '';
-    }
-
-    private function loadStoredCookieForPlayer(string $playerName): string
-    {
-        $file = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'thehunter_cookies.json';
-        if (!is_file($file)) {
-            return '';
-        }
-
-        $raw = @file_get_contents($file);
-        if (!is_string($raw) || trim($raw) === '') {
-            return '';
-        }
-
-        $data = json_decode($raw, true);
-        if (!is_array($data)) {
-            return '';
-        }
-
-        $key = mb_strtolower($playerName, 'UTF-8');
-        $value = $data[$key] ?? null;
-        return is_string($value) ? trim($value) : '';
     }
 
     /**

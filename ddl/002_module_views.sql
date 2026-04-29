@@ -11,6 +11,51 @@ SELECT
     e.reserve_name,
     e.start_at,
     e.end_at,
+    COALESCE((
+        SELECT SUM(COALESCE(w.hits, 0))
+        FROM gpt.exp_weapon_stats w
+        WHERE w.expedition_id = e.expedition_id
+    ), 0) AS weapon_hits_total,
+    COALESCE((
+        SELECT SUM(COALESCE(w.misses, 0))
+        FROM gpt.exp_weapon_stats w
+        WHERE w.expedition_id = e.expedition_id
+    ), 0) AS weapon_misses_total,
+    COALESCE((
+        SELECT SUM(COALESCE(w.kills, 0))
+        FROM gpt.exp_weapon_stats w
+        WHERE w.expedition_id = e.expedition_id
+    ), 0) AS weapon_kills_total,
+    COALESCE((
+        SELECT SUM(COALESCE(w.ethical_kills, 0))
+        FROM gpt.exp_weapon_stats w
+        WHERE w.expedition_id = e.expedition_id
+    ), 0) AS weapon_ethical_kills_total,
+    COALESCE((
+        SELECT SUM(COALESCE(a.kills, 0))
+        FROM gpt.exp_animal_stats a
+        WHERE a.expedition_id = e.expedition_id
+    ), 0) AS animal_kills_total,
+    COALESCE((
+        SELECT SUM(COALESCE(a.spots, 0))
+        FROM gpt.exp_animal_stats a
+        WHERE a.expedition_id = e.expedition_id
+    ), 0) AS animal_spots_total,
+    COALESCE((
+        SELECT SUM(COALESCE(a.tracks, 0))
+        FROM gpt.exp_animal_stats a
+        WHERE a.expedition_id = e.expedition_id
+    ), 0) AS animal_tracks_total,
+    COALESCE((
+        SELECT SUM(COALESCE(a.ethical_kills, 0))
+        FROM gpt.exp_animal_stats a
+        WHERE a.expedition_id = e.expedition_id
+    ), 0) AS animal_ethical_kills_total,
+    COALESCE((
+        SELECT SUM(COALESCE(c.collected, 0))
+        FROM gpt.exp_collectables c
+        WHERE c.expedition_id = e.expedition_id
+    ), 0) AS collectables_collected_total,
     to_jsonb(e) AS expedition_row,
     to_jsonb(ep) AS expedition_payload_row,
     COALESCE(
@@ -598,8 +643,9 @@ ORDER BY s.url, s.run_at DESC, s.id DESC;
 
 
 CREATE OR REPLACE VIEW gpt.v_kill_detail_scrapes_latest AS
-SELECT DISTINCT ON (k.player_name, k.kill_id)
+SELECT DISTINCT ON (COALESCE(k.expedition_id, -1), k.player_name, k.kill_id)
     k.scrape_id,
+    k.expedition_id,
     k.kill_id,
     k.player_name,
     k.url,
@@ -629,5 +675,5 @@ SELECT DISTINCT ON (k.player_name, k.kill_id)
     k.raw_html,
     k.kill_data_json
 FROM gpt.kill_detail_scrapes k
-ORDER BY k.player_name, k.kill_id, k.scraped_at DESC, k.scrape_id DESC;
+ORDER BY COALESCE(k.expedition_id, -1), k.player_name, k.kill_id, k.scraped_at DESC, k.scrape_id DESC;
 
