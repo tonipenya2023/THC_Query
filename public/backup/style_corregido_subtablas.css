@@ -1771,11 +1771,40 @@ td > details[open] > table td > details[open] > table {
 }
 
 .subtable-panels.stats-parallel {
-    grid-template-columns: repeat(3, minmax(280px, 1fr));
+    /*
+       Layout dinámico de subtablas:
+       Animal stats | espacio vacío | Weapon stats | espacio vacío | Misiones diarias
+       Las columnas usan max-content para que la tabla principal pueda crecer según
+       el ancho real de las subtablas visibles.
+    */
+    grid-template-columns:
+        max-content
+        var(--stats-subtable-gap, 40px)
+        max-content
+        var(--stats-subtable-gap, 40px)
+        max-content;
     grid-template-areas:
-        "animal weapon collect"
-        "animal mission mission";
+        "animal gap-animal-weapon weapon gap-weapon-mission collect"
+        "animal gap-animal-weapon weapon gap-weapon-mission mission";
     align-items: start;
+    justify-content: start;
+    width: max-content;
+    max-width: none;
+    gap: 0;
+}
+
+
+/* Ajustes para que las subtablas de estadísticas no se compriman */
+.subtable-panels.stats-parallel > details {
+    width: max-content;
+    max-width: none;
+}
+
+.subtable-panels.stats-parallel > details > table,
+.subtable-panels.stats-parallel > details[open] > table {
+    width: max-content !important;
+    max-width: none !important;
+    table-layout: auto;
 }
 
 .subtable-panels.stats-parallel > details.stats-animal {
@@ -3156,360 +3185,5 @@ body.theme-aurora .raw-response-block {
 
 .table-style-minimal tr:nth-child(even) td {
     background: #f3f4f6;
-}
-
-
-/* ============================================================
-   Remodelado filtros / visibles expediciones
-   ============================================================ */
-.table-filters-remodel {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
-}
-
-.table-filters-remodel .filter-box {
-    width: 100%;
-    border: 1px solid var(--panel-border);
-    border-radius: 14px;
-    background: color-mix(in srgb, var(--panel) 94%, var(--bg-soft) 6%);
-    padding: 10px 12px;
-    box-shadow: 0 6px 16px rgba(12, 44, 36, 0.06);
-}
-
-.table-filters-remodel .filter-box > summary,
-.table-filters-remodel .filter-line-group > summary,
-.table-filters-remodel .visible-line-group > summary {
-    cursor: pointer;
-    font-weight: 900;
-    color: var(--text-main);
-    list-style: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    user-select: none;
-}
-
-.table-filters-remodel .filter-line-group > summary,
-.table-filters-remodel .visible-line-group > summary {
-    font-weight: 800;
-}
-
-.table-filters-remodel .filter-box > summary::-webkit-details-marker,
-.table-filters-remodel .filter-line-group > summary::-webkit-details-marker,
-.table-filters-remodel .visible-line-group > summary::-webkit-details-marker {
-    display: none;
-}
-
-.table-filters-remodel .filter-box > summary::before,
-.table-filters-remodel .filter-line-group > summary::before,
-.table-filters-remodel .visible-line-group > summary::before {
-    content: "▸";
-    font-size: 12px;
-    line-height: 1;
-    transition: transform 0.16s ease;
-}
-
-.table-filters-remodel .filter-box[open] > summary::before,
-.table-filters-remodel .filter-line-group[open] > summary::before,
-.table-filters-remodel .visible-line-group[open] > summary::before {
-    transform: rotate(90deg);
-}
-
-.table-filters-remodel .filter-box-content {
-    margin-top: 10px;
-    display: grid;
-    gap: 10px;
-}
-
-.table-filters-remodel .filter-line-group,
-.table-filters-remodel .visible-line-group {
-    width: 100%;
-    border: 1px dashed color-mix(in srgb, var(--panel-border) 72%, var(--accent-2) 28%);
-    border-radius: 12px;
-    padding: 8px 10px;
-    background: color-mix(in srgb, var(--panel) 88%, var(--bg-soft) 12%);
-}
-
-.table-filters-remodel .filter-line-content,
-.table-filters-remodel .filter-actions-row {
-    margin-top: 8px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: flex-start;
-}
-
-.table-filters-remodel .filter-actions-row {
-    margin-top: 0;
-}
-
-
-/* ============================================================
-   ORDEN DEFINITIVO EXPEDICIONES
-   Fuerza el orden real:
-   1) Filtros
-   2) Visibles
-   3) Flechas + 50 filas + Filtrar + Exportar CSV + Limpiar
-   ============================================================ */
-
-.table-filters-remodel {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 8px !important;
-}
-
-/* Primero */
-.table-filters-remodel > .filter-box-main {
-    order: 1 !important;
-}
-
-/* Segundo */
-.table-filters-remodel > .visible-box-main {
-    order: 2 !important;
-}
-
-/* Tercero */
-.table-filters-remodel > .filter-actions-row {
-    order: 3 !important;
-    position: static !important;
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: wrap !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    gap: 10px !important;
-    margin: 0 !important;
-    width: auto !important;
-    grid-area: auto !important;
-}
-
-/* Cajas compactas cerradas */
-.table-filters-remodel > .filter-box {
-    width: max-content !important;
-    min-width: 180px !important;
-}
-
-/* Abiertas ocupan ancho completo */
-.table-filters-remodel > .filter-box[open] {
-    width: 100% !important;
-}
-
-
-/* ============================================================
-   Botones ↓ ↑ dentro del cuadro de totales, a la derecha
-   ============================================================ */
-
-.totals-inline-right {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 14px !important;
-    flex-wrap: wrap;
-}
-
-.totals-inline-right .totals-arrow-buttons {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-left: auto;
-}
-
-.totals-inline-right .totals-arrow-buttons button,
-.totals-inline-right .totals-arrow-buttons a,
-.totals-inline-right .totals-arrow-button {
-    flex: 0 0 auto;
-}
-
-/* Mantener colores de Filtros y Visibles */
-.table-filters-remodel > .filter-box-main {
-    background: linear-gradient(180deg, #fff7dd 0%, #f7e7b6 100%);
-    border: 1px solid #d8b262;
-}
-
-.table-filters-remodel > .visible-box-main {
-    background: linear-gradient(180deg, #eaf7ff 0%, #d7ecfb 100%);
-    border: 1px solid #7fb7dc;
-}
-
-
-/* ============================================================
-   Colores internos Filtros / Visibles
-   ============================================================ */
-
-/* Cuadros internos de Filtros: color claramente distinto, NO blanco */
-.table-filters-remodel .filter-box-main .filter-line-group {
-    background: #f3d37a !important;
-    border: 1px solid #b88a1d !important;
-}
-
-/* Cuadros internos de Visibles: color claramente distinto, NO blanco */
-.table-filters-remodel .visible-box-main .visible-line-group {
-    background: #9fd3f2 !important;
-    border: 1px solid #3f8fc0 !important;
-}
-
-
-/* ============================================================
-   Ajuste correcto: checks y nombres compactos en Visibles
-   ============================================================ */
-
-/* Anula el grid anterior que separaba checkbox y texto en columnas amplias */
-.table-filters-remodel .visible-columns .visible-row,
-.table-filters .visible-columns.visible-line-group .visible-row {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    gap: 8px 16px !important;
-    width: auto !important;
-    max-width: 100% !important;
-}
-
-/* Cada item ocupa solo lo que mide su checkbox + texto */
-.table-filters-remodel .visible-columns .visible-item,
-.table-filters .visible-columns.visible-line-group .visible-item {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    gap: 6px !important;
-    width: auto !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    flex: 0 0 auto !important;
-    white-space: nowrap !important;
-    padding: 2px 4px !important;
-}
-
-/* Checkbox fijo, no se estira */
-.table-filters-remodel .visible-columns .visible-item input[type="checkbox"],
-.table-filters .visible-columns.visible-line-group .visible-item input[type="checkbox"],
-.table-filters-remodel .visible-columns .visible-item input.col-check,
-.table-filters .visible-columns.visible-line-group .visible-item input.col-check {
-    flex: 0 0 auto !important;
-    width: 14px !important;
-    height: 14px !important;
-    min-width: 14px !important;
-    max-width: 14px !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-/* Texto compacto junto al check */
-.table-filters-remodel .visible-columns .visible-item span,
-.table-filters .visible-columns.visible-line-group .visible-item span {
-    display: inline !important;
-    flex: 0 0 auto !important;
-    width: auto !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    overflow: visible !important;
-    text-overflow: clip !important;
-    white-space: nowrap !important;
-}
-
-
-/* ============================================================
-   Botones de abrir/cerrar subtablas dentro del cuadro de totales
-   ============================================================ */
-
-.totals-inline-right {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 14px !important;
-    flex-wrap: wrap;
-}
-
-.totals-inline-right .totals-arrow-buttons {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    margin-left: auto !important;
-}
-
-.totals-inline-right .subtables-mini-btn {
-    flex: 0 0 auto;
-}
-
-
-/* ============================================================
-   Click en todo el cuadro Filtros / Visibles
-   ============================================================ */
-
-.table-filters-remodel details.filter-box,
-.table-filters-remodel details.filter-line-group,
-.table-filters-remodel details.visible-line-group {
-    cursor: pointer;
-}
-
-.table-filters-remodel details.filter-box > summary,
-.table-filters-remodel details.filter-line-group > summary,
-.table-filters-remodel details.visible-line-group > summary {
-    display: flex !important;
-    width: 100% !important;
-    box-sizing: border-box;
-    cursor: pointer;
-}
-
-.table-filters-remodel details.filter-box input,
-.table-filters-remodel details.filter-box select,
-.table-filters-remodel details.filter-box textarea,
-.table-filters-remodel details.filter-box button,
-.table-filters-remodel details.filter-box a,
-.table-filters-remodel details.filter-box label,
-.table-filters-remodel details.filter-line-group input,
-.table-filters-remodel details.filter-line-group select,
-.table-filters-remodel details.filter-line-group textarea,
-.table-filters-remodel details.filter-line-group button,
-.table-filters-remodel details.filter-line-group a,
-.table-filters-remodel details.filter-line-group label,
-.table-filters-remodel details.visible-line-group input,
-.table-filters-remodel details.visible-line-group select,
-.table-filters-remodel details.visible-line-group textarea,
-.table-filters-remodel details.visible-line-group button,
-.table-filters-remodel details.visible-line-group a,
-.table-filters-remodel details.visible-line-group label {
-    cursor: auto;
-}
-
-
-/* ============================================================
-   Botones Filtrar / Exportar CSV / Limpiar centrados y misma altura
-   ============================================================ */
-
-.table-filters-remodel .filter-actions-row {
-    display: flex !important;
-    align-items: center !important;
-    gap: 10px !important;
-}
-
-/* Botones reales de la fila de acciones */
-.table-filters-remodel .filter-actions-row > button,
-.table-filters-remodel .filter-actions-row > .btn-link {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    height: 38px !important;
-    min-height: 38px !important;
-    box-sizing: border-box !important;
-    padding: 0 16px !important;
-    line-height: 1 !important;
-    vertical-align: middle !important;
-    text-align: center !important;
-    white-space: nowrap !important;
-}
-
-/* El enlace Limpiar debe comportarse igual que los botones */
-.table-filters-remodel .filter-actions-row > .btn-link {
-    text-decoration: none !important;
-}
-
-/* Mantener el select alineado con los botones, aunque no tenga la misma altura si ya se ocultó */
-.table-filters-remodel .filter-actions-row > select {
-    height: 38px !important;
-    min-height: 38px !important;
-    box-sizing: border-box !important;
-    align-self: center !important;
 }
 

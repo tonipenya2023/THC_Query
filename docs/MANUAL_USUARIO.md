@@ -331,7 +331,7 @@ Segun las columnas visibles, se pueden consultar campos como:
 - reserva
 - muertes
 
-### 7.4 Ver muertes de una expedicion
+### 7.4 Expandir de una expedicion
 
 Cada fila puede desplegar el detalle de muertes asociadas.
 

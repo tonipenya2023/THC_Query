@@ -1561,7 +1561,7 @@ function render_dashboard(): void
         echo '<td class="task-label-editable" data-task-label-key="' . h($recentTaskKey) . '">' . h((string) ($task['label'] ?? '')) . '</td>';
         echo '<td>' . h($taskStatus) . '</td>';
         echo '<td>' . h((string) ($task['created_at'] ?? '')) . '</td>';
-        echo '<td><a href="task_view.php?id=' . urlencode($taskId) . '">ver</a></td>';
+        echo '<td><a href="?view=logs&log=' . urlencode($taskId . '.log') . '">ver</a></td>';
         echo '<td>';
         if (in_array($taskStatus, ['queued', 'running'], true)) {
             echo '<form method="post" action="task_stop.php" class="task-stop-form">';
@@ -3269,7 +3269,8 @@ function render_expeditions(): void
         if ($markFilter === 'any' && !$expHasBestMark) {
             continue;
         }
-        echo '<tr>';
+        $expRowClass = $killRows === [] ? 'expedition-main-row expedition-main-row-empty' : 'expedition-main-row';
+        echo '<tr class="' . h($expRowClass) . '" data-expedition-row="1" data-exp-id="' . h((string) $expId) . '">';
         foreach ($selectedCols as $key) {
             $value = $row[$key] ?? '';
             if (in_array($key, ['e_start_at', 'e_end_at'], true)) {
@@ -3317,7 +3318,7 @@ function render_expeditions(): void
             echo '<span class="muted">Sin muertes</span>';
         } else {
             $expOpenAttr = '';
-            echo '<details class="exp-kills-details" data-exp-id="' . h((string) $expId) . '"' . $expOpenAttr . '><summary>Ver muertes (' . h((string) count($killRows)) . ')</summary>';
+            echo '<details class="exp-kills-details" data-exp-id="' . h((string) $expId) . '"' . $expOpenAttr . '><summary>Expandir (' . h((string) count($killRows)) . ')</summary>';
             echo '<table><thead><tr>';
             foreach ($selectedKillCols as $colKey) {
                 $thClass = $columnAlignClass($colKey, $killNumericCols, $killCenterCols);
@@ -6706,11 +6707,7 @@ function render_logs(): void
             continue;
         }
         $name = basename($path);
-        $taskBaseName = pathinfo($name, PATHINFO_FILENAME);
-        $taskId = $taskBaseName;
-        if (str_contains($taskBaseName, '__')) {
-            $taskId = substr($taskBaseName, (int) strrpos($taskBaseName, '__') + 2);
-        }
+        $taskId = pathinfo($name, PATHINFO_FILENAME);
         $task = TaskManager::read($taskId);
         if (!$isAdmin) {
             if (!is_array($task)) {
@@ -9678,26 +9675,37 @@ closeBtn.style.justifyContent = 'center';
         if (!(row instanceof HTMLTableRowElement) || row.classList.contains('subtable-row-js') || row.classList.contains('repeated-exp-header')) {
             return;
         }
-        const detailsList = Array.from(row.querySelectorAll(':scope details'))
-            .filter((d) => d instanceof HTMLDetailsElement && !d.classList.contains('filter-details'));
-        if (detailsList.length !== 1) {
-            return;
-        }
-        const details = detailsList[0];
-        const summary = details.querySelector(':scope > summary');
-        if (!(summary instanceof HTMLElement)) {
+        const details = row.querySelector(':scope > td details.exp-kills-details, :scope > td > details.exp-kills-details');
+        if (!(details instanceof HTMLDetailsElement)) {
             return;
         }
         row.classList.add('row-toggle-subtable');
-        row.addEventListener('click', (ev) => {
+    });
+
+    const content = document.querySelector('.content');
+    if (content instanceof HTMLElement) {
+        content.addEventListener('click', (ev) => {
             if (isInteractiveTarget(ev.target)) {
                 return;
             }
+
+            const row = ev.target instanceof Element ? ev.target.closest('tr.row-toggle-subtable') : null;
+            if (!(row instanceof HTMLTableRowElement)) {
+                return;
+            }
+            if (row.classList.contains('subtable-row-js') || row.classList.contains('repeated-exp-header')) {
+                return;
+            }
+
+            const details = row.querySelector(':scope > td details.exp-kills-details, :scope > td > details.exp-kills-details');
+            if (!(details instanceof HTMLDetailsElement)) {
+                return;
+            }
+
             ev.preventDefault();
             details.open = !details.open;
         });
-    });
-
+    }
     window.thcExpeditionsSubtablesReady = true;
     document.dispatchEvent(new CustomEvent('thc:expeditions-subtables-ready'));
 })();
@@ -12077,6 +12085,61 @@ closeBtn.style.justifyContent = 'center';
 
 
 
+
+(() => {
+    // Toggle universal para tablas con subtabla dentro de <details>.
+    // Mantiene el click nativo en summary/enlaces/controles y permite abrir/cerrar haciendo click en la fila.
+    const interactiveSelector = 'summary, a, button, input, select, textarea, label';
+    const ignoredRowSelector = 'tr.subtable-row-js, tr.repeated-exp-header';
+
+    const findDirectDetails = (row) => {
+        if (!(row instanceof HTMLTableRowElement)) {
+            return null;
+        }
+
+        return row.querySelector(
+            ':scope > td > details.exp-kills-details,' +
+            ':scope > td details.exp-kills-details,' +
+            ':scope > td > details.kill-hits-details,' +
+            ':scope > td details.kill-hits-details,' +
+            ':scope > td > details:not(.filter-details),' +
+            ':scope > td details:not(.filter-details)'
+        );
+    };
+
+    document.addEventListener('click', (event) => {
+        const target = event.target;
+        if (!(target instanceof Element)) {
+            return;
+        }
+
+        // No tocar el comportamiento propio de botones, enlaces, filtros, formularios ni el summary.
+        if (target.closest(interactiveSelector)) {
+            return;
+        }
+
+        const row = target.closest('tr');
+        if (!(row instanceof HTMLTableRowElement) || row.matches(ignoredRowSelector)) {
+            return;
+        }
+
+        const details = findDirectDetails(row);
+        if (!(details instanceof HTMLDetailsElement)) {
+            return;
+        }
+
+        // Si el click ocurre dentro de una subtabla ya abierta, no cerrar el padre accidentalmente.
+        const clickedDetails = target.closest('details');
+        if (clickedDetails && clickedDetails !== details) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        details.open = !details.open;
+    }, true);
+})();
 
 </script>
 </body>

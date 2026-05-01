@@ -124,7 +124,7 @@ final class TrophyImporter
             'limit' => max(1, $limit),
         ]);
 
-        $url = 'https://api.thehunter.com/v1/Trophy/list?' . $query;
+        $url = $this->config['api']['base_url'] . '?' . $query;
         return $this->fetchJson($url);
     }
 

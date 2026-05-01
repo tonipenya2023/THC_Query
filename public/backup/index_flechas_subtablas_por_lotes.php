@@ -480,7 +480,7 @@ function query_page(): int
 function query_page_size(int $default = 100): int
 {
     $raw = query_int('page_size');
-    $allowed = [50, 100, 200, 500];
+    $allowed = [20, 50, 100, 200, 500];
 
     if ($raw === null || !in_array($raw, $allowed, true)) {
         return $default;
@@ -1186,7 +1186,7 @@ function render_advanced(): void
 
     $value = query_text('value');
     $page = query_page();
-    $pageSize = query_page_size(100);
+    $pageSize = query_page_size(20);
 
     $selectedType = $columns[$selectedColumn];
     $numericTypes = ['smallint', 'integer', 'bigint', 'numeric', 'real', 'double precision', 'decimal'];
@@ -1303,7 +1303,9 @@ function render_advanced(): void
     $rows = app_query_all(
         $sql,
         $params + [
-            ':_limit' => $pageSize,
+            // Se traen más candidatos porque algunos filtros se aplican después en PHP.
+            // Luego se pintan como máximo $pageSize expediciones reales.
+            ':_limit' => max($pageSize * 5, $pageSize),
             ':_offset' => $offset,
         ]
     );
@@ -1352,6 +1354,7 @@ function render_advanced(): void
     echo '<input type="text" name="value" placeholder="Valor del filtro" value="' . h(query_raw('value')) . '">';
 
     echo '<select name="page_size">';
+    echo '<option value="20"' . ($pageSize === 20 ? ' selected' : '') . '>20 filas</option>';
     echo '<option value="50"' . ($pageSize === 50 ? ' selected' : '') . '>50 filas</option>';
     echo '<option value="100"' . ($pageSize === 100 ? ' selected' : '') . '>100 filas</option>';
     echo '<option value="200"' . ($pageSize === 200 ? ' selected' : '') . '>200 filas</option>';
@@ -1561,7 +1564,7 @@ function render_dashboard(): void
         echo '<td class="task-label-editable" data-task-label-key="' . h($recentTaskKey) . '">' . h((string) ($task['label'] ?? '')) . '</td>';
         echo '<td>' . h($taskStatus) . '</td>';
         echo '<td>' . h((string) ($task['created_at'] ?? '')) . '</td>';
-        echo '<td><a href="task_view.php?id=' . urlencode($taskId) . '">ver</a></td>';
+        echo '<td><a href="?view=logs&log=' . urlencode($taskId . '.log') . '">ver</a></td>';
         echo '<td>';
         if (in_array($taskStatus, ['queued', 'running'], true)) {
             echo '<form method="post" action="task_stop.php" class="task-stop-form">';
@@ -1575,6 +1578,7 @@ function render_dashboard(): void
         }
         echo '</td>';
         echo '</tr>';
+        $renderedExpeditionRows++;
     }
     echo '</tbody></table>';
     echo '</section>';
@@ -1629,7 +1633,7 @@ function render_expeditions(): void
 {
     $hasKillDetailExpeditionId = app_relation_has_column('gpt', 'v_kill_detail_scrapes_latest', 'expedition_id');
     $page = query_page();
-    $pageSize = query_page_size(100);
+    $pageSize = query_page_size(20);
     $isReset = is_reset_requested();
     $allDefs = expedition_join_column_defs();
     $columnDefs = [];
@@ -2417,7 +2421,7 @@ function render_expeditions(): void
     $offset = ($page - 1) * $pageSize;
 
     echo '<section class="card"><h2>Expediciones</h2>';
-    echo '<form class="table-filters" method="get" action="' . h(current_path()) . '">';
+    echo '<form class="table-filters table-filters-remodel" method="get" action="' . h(current_path()) . '">';
     echo '<input type="hidden" name="view" value="expeditions">';
     echo '<input type="hidden" name="page" value="1">';
     echo '<input type="hidden" name="col_order" value="' . h(query_raw('col_order')) . '">';
@@ -2427,6 +2431,10 @@ function render_expeditions(): void
     echo '<input type="hidden" name="k_dir" value="' . h($killSortDir) . '">';
     echo '<input type="hidden" name="h_sort" value="' . h($hitSortKey) . '">';
     echo '<input type="hidden" name="h_dir" value="' . h($hitSortDir) . '">';
+
+    echo '<details class="filter-box filter-box-main"><summary>Filtros</summary><div class="filter-box-content">';
+
+    echo '<details class="filter-line-group" open><summary>Filtro expediciones</summary><div class="filter-line-content">';
     echo '<input type="text" name="expedition_id" data-col-target="e_expedition_id" placeholder="ID" value="' . h(query_raw('expedition_id')) . '">';
     echo '<input type="text" name="user_id" data-col-target="e_user_id" placeholder="IdUsuario" value="' . h(query_raw('user_id')) . '">';
     echo '<select name="player_name[]" multiple data-check-combo="1" data-check-combo-placeholder="Jugador (todos)" data-check-combo-many-label="jugadores" data-col-target="e_player_name">';
@@ -2445,8 +2453,14 @@ function render_expeditions(): void
     echo '</select>';
     echo '<input type="datetime-local" name="start_at" data-col-target="e_start_at" title="Inicio desde fecha/hora" value="' . h(raw_to_datetime_local_value(query_raw('start_at'))) . '">';
     echo '<input type="datetime-local" name="end_at" data-col-target="e_end_at" title="Fin hasta fecha/hora" value="' . h(raw_to_datetime_local_value(query_raw('end_at'))) . '">';
+    echo '<input type="text" name="exp_duration_min" data-col-target="e_duration" placeholder="Duracion min" value="' . h(query_raw('exp_duration_min')) . '">';
+    echo '<input type="text" name="exp_duration_max" data-col-target="e_duration" placeholder="Duracion max" value="' . h(query_raw('exp_duration_max')) . '">';
+    echo '<input type="date" name="date_from" data-col-target="e_start_at" title="Fecha inicio" value="' . h(query_raw('date_from') !== '' ? query_raw('date_from') : query_raw('start_at_from')) . '">';
+    echo '<input type="date" name="date_to" data-col-target="e_end_at" title="Fecha final" value="' . h(query_raw('date_to') !== '' ? query_raw('date_to') : query_raw('end_at_to')) . '">';
+    echo '</div></details>';
+
+    echo '<details class="filter-line-group" open><summary>Filtro muertes</summary><div class="filter-line-content">';
     echo '<input type="text" name="kill_id" data-col-target="k_kill_id" placeholder="Kill ID" value="' . h(query_raw('kill_id')) . '">';
-    echo '<input type="text" name="hit_index" data-col-target="h_hit_index" placeholder="Disparo ID" value="' . h(query_raw('hit_index')) . '">';
     echo '<select name="kill_species_name[]" multiple data-check-combo="1" data-check-combo-placeholder="Nombre especie (todas)" data-col-target="k_species_name">';
     echo '<option value="">Nombre especie (todas)</option>';
     foreach (species_es_name_suggestions() as $value) {
@@ -2456,8 +2470,8 @@ function render_expeditions(): void
     echo '</select>';
     echo '<input type="text" name="kill_gender" data-col-target="k_gender" placeholder="Kill gender" value="' . h(query_raw('kill_gender')) . '">';
     echo '<select name="kill_ethical" data-single-combo="1" data-single-combo-placeholder="Kill etico" data-col-target="k_ethical"><option value="">Kill etico</option><option value="1"' . (query_raw('kill_ethical') === '1' ? ' selected' : '') . '>Si</option><option value="0"' . (query_raw('kill_ethical') === '0' ? ' selected' : '') . '>No</option></select>';
-    echo '<input type="text" name="kill_score_min" data-col-target="k_score" placeholder="Kill Puntuacion" value="' . h(query_raw('kill_score_min')) . '">';
-    echo '<input type="text" name="kill_score_max" data-col-target="k_score" placeholder="Kill Puntuacion" value="' . h(query_raw('kill_score_max')) . '">';
+    echo '<input type="text" name="kill_score_min" data-col-target="k_score" placeholder="Kill Puntuacion min" value="' . h(query_raw('kill_score_min')) . '">';
+    echo '<input type="text" name="kill_score_max" data-col-target="k_score" placeholder="Kill Puntuacion max" value="' . h(query_raw('kill_score_max')) . '">';
     echo '<input type="text" name="kill_distance_min" data-col-target="k_hit_min_distance" placeholder="Kill distancia min (m)" value="' . h(query_raw('kill_distance_min')) . '">';
     echo '<input type="text" name="kill_distance_max" data-col-target="k_hit_min_distance" placeholder="Kill distancia max (m)" value="' . h(query_raw('kill_distance_max')) . '">';
     echo '<input type="text" name="kill_weight_min" data-col-target="k_weight" placeholder="Kill peso min (kg)" value="' . h(query_raw('kill_weight_min')) . '">';
@@ -2470,6 +2484,10 @@ function render_expeditions(): void
     echo '<input type="text" name="kill_shot_location" data-col-target="k_shot_location_text" placeholder="Lugar disparo" value="' . h(query_raw('kill_shot_location')) . '">';
     echo '<select name="mark_filter" data-single-combo="1" data-single-combo-placeholder="Marca (todas)"><option value="">Marca (todas)</option><option value="any"' . ($markFilter === 'any' ? ' selected' : '') . '>MM (MMP o MMD)</option><option value="mmp"' . ($markFilter === 'mmp' ? ' selected' : '') . '>Solo MMP</option><option value="mmd"' . ($markFilter === 'mmd' ? ' selected' : '') . '>Solo MMD</option></select>';
     echo '<select name="photo_tax_filter" data-single-combo="1" data-single-combo-placeholder="Foto/Tax"><option value="">Todas</option><option value="ft"' . ($photoTaxFilter === 'ft' ? ' selected' : '') . '>Foto o Tax</option><option value="f"' . ($photoTaxFilter === 'f' ? ' selected' : '') . '>Foto</option><option value="t"' . ($photoTaxFilter === 't' ? ' selected' : '') . '>Tax</option></select>';
+    echo '</div></details>';
+
+    echo '<details class="filter-line-group" open><summary>Filtro disparos</summary><div class="filter-line-content">';
+    echo '<input type="text" name="hit_index" data-col-target="h_hit_index" placeholder="Disparo ID" value="' . h(query_raw('hit_index')) . '">';
     echo '<input type="text" name="hit_weapon_id" data-col-target="h_weapon_id" placeholder="Disparo weapon_id" value="' . h(query_raw('hit_weapon_id')) . '">';
     echo '<input type="text" name="hit_ammo_id" data-col-target="h_ammo_id" placeholder="Disparo ammo_id" value="' . h(query_raw('hit_ammo_id')) . '">';
     echo '<input type="text" name="hit_organ" data-col-target="h_organ" placeholder="Disparo organo" value="' . h(query_raw('hit_organ')) . '">';
@@ -2482,32 +2500,39 @@ function render_expeditions(): void
     echo '<input type="text" name="hit_body_part_text" data-col-target="h_body_part_text" placeholder="Parte cuerpo" value="' . h(query_raw('hit_body_part_text')) . '">';
     echo '<input type="text" name="hit_posture_text" data-col-target="h_posture_text" placeholder="Postura" value="' . h(query_raw('hit_posture_text')) . '">';
     echo '<input type="text" name="hit_platform_text" data-col-target="h_platform_text" placeholder="Plataforma" value="' . h(query_raw('hit_platform_text')) . '">';
-    echo '<input type="text" name="exp_duration_min" placeholder="Duracion" value="' . h(query_raw('exp_duration_min')) . '">';
-    echo '<input type="text" name="exp_duration_max" placeholder="Duracion" value="' . h(query_raw('exp_duration_max')) . '">';
-    echo '<input type="date" name="date_from" data-col-target="e_start_at" title="Fecha inicio" value="' . h(query_raw('date_from') !== '' ? query_raw('date_from') : query_raw('start_at_from')) . '">';
-    echo '<input type="date" name="date_to" data-col-target="e_end_at" title="Fecha final" value="' . h(query_raw('date_to') !== '' ? query_raw('date_to') : query_raw('end_at_to')) . '">';
-    echo '<details class="filter-details visible-columns" data-col-prefix="col_" data-order-field="col_order"><summary>Columnas Expediciones</summary><div class="visible-row">';
+    echo '</div></details>';
+
+    echo '</div></details>';
+
+    echo '<details class="filter-box visible-box-main"><summary>Visibles</summary><div class="filter-box-content">';
+    echo '<details class="filter-details visible-columns visible-line-group" data-col-prefix="col_" data-order-field="col_order"><summary>Visibles expediciones</summary><div class="visible-row">';
     foreach ($columnDefs as $key => $def) {
         $checked = in_array($key, $selectedCols, true) ? ' checked' : '';
         echo '<label class="visible-item" draggable="true" data-col-key="' . h($key) . '"><input class="col-check" type="checkbox" name="col_' . h($key) . '" value="1"' . $checked . '><span>' . h($def['label']) . '</span></label>';
     }
     echo '<button type="button" class="btn-reset-cols" data-default-cols="' . h(implode(',', $defaultCols)) . '">Restablecer</button>';
     echo '</div></details>';
-    echo '<details class="filter-details visible-columns" data-col-prefix="kcol_" data-order-field="kcol_order"><summary>Columnas de Muertes</summary><div class="visible-row">';
+
+    echo '<details class="filter-details visible-columns visible-line-group" data-col-prefix="kcol_" data-order-field="kcol_order"><summary>Visibles muertes</summary><div class="visible-row">';
     foreach ($killColumnDefs as $key => $label) {
         $checked = in_array($key, $selectedKillCols, true) ? ' checked' : '';
         echo '<label class="visible-item" draggable="true" data-col-key="' . h($key) . '"><input class="col-check" type="checkbox" name="kcol_' . h($key) . '" value="1"' . $checked . '><span>' . h($label) . '</span></label>';
     }
     echo '<button type="button" class="btn-reset-cols" data-default-cols="' . h(implode(',', $defaultKillCols)) . '">Restablecer</button>';
     echo '</div></details>';
-    echo '<details class="filter-details visible-columns" data-col-prefix="hcol_" data-order-field="hcol_order"><summary>Columnas de Disparos</summary><div class="visible-row">';
+
+    echo '<details class="filter-details visible-columns visible-line-group" data-col-prefix="hcol_" data-order-field="hcol_order"><summary>Visibles disparos</summary><div class="visible-row">';
     foreach ($hitColumnDefs as $key => $label) {
         $checked = in_array($key, $selectedHitCols, true) ? ' checked' : '';
         echo '<label class="visible-item" draggable="true" data-col-key="' . h($key) . '"><input class="col-check" type="checkbox" name="hcol_' . h($key) . '" value="1"' . $checked . '><span>' . h($label) . '</span></label>';
     }
     echo '<button type="button" class="btn-reset-cols" data-default-cols="' . h(implode(',', $defaultHitCols)) . '">Restablecer</button>';
     echo '</div></details>';
+    echo '</div></details>';
+
+    echo '<div class="filter-actions-row">';
     echo '<select name="page_size">';
+    echo '<option value="20"' . ($pageSize === 20 ? ' selected' : '') . '>20 filas</option>';
     echo '<option value="50"' . ($pageSize === 50 ? ' selected' : '') . '>50 filas</option>';
     echo '<option value="100"' . ($pageSize === 100 ? ' selected' : '') . '>100 filas</option>';
     echo '<option value="200"' . ($pageSize === 200 ? ' selected' : '') . '>200 filas</option>';
@@ -2516,6 +2541,7 @@ function render_expeditions(): void
     echo '<button type="submit">Filtrar</button>';
     echo '<button type="submit" name="export_csv" value="1">Exportar CSV</button>';
     echo '<a class="btn-link" href="?view=expeditions&reset=1">Limpiar</a>';
+    echo '</div>';
     echo '</form>';
 
     $rows = app_query_all(
@@ -3188,7 +3214,11 @@ function render_expeditions(): void
         }
         return implode('/', $parts);
     };
+    $renderedExpeditionRows = 0;
     foreach ($rows as $row) {
+        if ($renderedExpeditionRows >= $pageSize) {
+            break;
+        }
         $expId = (int) ($row['_exp_id'] ?? 0);
         $killRows = $killsByExpedition[$expId] ?? [];
         $expBadgeColor = null;
@@ -6706,11 +6736,7 @@ function render_logs(): void
             continue;
         }
         $name = basename($path);
-        $taskBaseName = pathinfo($name, PATHINFO_FILENAME);
-        $taskId = $taskBaseName;
-        if (str_contains($taskBaseName, '__')) {
-            $taskId = substr($taskBaseName, (int) strrpos($taskBaseName, '__') + 2);
-        }
+        $taskId = pathinfo($name, PATHINFO_FILENAME);
         $task = TaskManager::read($taskId);
         if (!$isAdmin) {
             if (!is_array($task)) {
@@ -9165,48 +9191,97 @@ window.thcWriteGlobalPref = (key, value) => {
 </script>
 <script>
 (() => {
-    const isSubtableDetails = (d) =>
-        d instanceof HTMLDetailsElement &&
-        !d.classList.contains('filter-details') &&
-        !!d.querySelector(':scope > table');
+    const currentView = new URLSearchParams(window.location.search).get('view') || 'dashboard';
+    const isSubtableDetails = (d) => {
+        if (!(d instanceof HTMLDetailsElement)) {
+            return false;
+        }
+
+        // En Expediciones, las flechas solo deben abrir/cerrar las subtablas de Muertes.
+        if (currentView === 'expeditions') {
+            return d.classList.contains('exp-kills-details');
+        }
+
+        // En el resto de vistas se mantiene el comportamiento anterior.
+        return !d.classList.contains('filter-details') && !!d.querySelector(':scope > table');
+    };
 
     const allDetails = Array.from(document.querySelectorAll('.content details')).filter(isSubtableDetails);
     if (allDetails.length === 0) {
         return;
     }
 
-    const host = document.querySelector('.content form.table-filters') || document.querySelector('.content section.card');
+    const firstCard = allDetails[0]?.closest('.card') || document.querySelector('.content section.card');
+    const host = firstCard?.querySelector('.totals-inline-right')
+        || document.querySelector('.content form.table-filters')
+        || firstCard
+        || document.querySelector('.content section.card');
+
     if (!host) {
         return;
     }
 
-    const row = document.createElement('div');
-    row.style.display = 'flex';
+    const row = document.createElement('span');
+    row.className = 'totals-arrow-buttons subtables-mini-row';
+    row.style.display = 'inline-flex';
     row.style.gap = '10px';
-    row.style.margin = '8px 0 10px';
+    row.style.alignItems = 'center';
+    row.style.marginLeft = 'auto';
 
     const openBtn = document.createElement('button');
     openBtn.type = 'button';
-    openBtn.className = 'subtables-mini-btn';
+    openBtn.className = 'subtables-mini-btn totals-arrow-button';
     openBtn.innerHTML = '&#8595;';
     openBtn.title = 'Desplegar subtablas';
     openBtn.style.display = 'flex';
-openBtn.style.alignItems = 'center';
-openBtn.style.justifyContent = 'center';
+    openBtn.style.alignItems = 'center';
+    openBtn.style.justifyContent = 'center';
 
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
-    closeBtn.className = 'subtables-mini-btn';
+    closeBtn.className = 'subtables-mini-btn totals-arrow-button';
     closeBtn.innerHTML = '&#8593;';
     closeBtn.title = 'Plegar subtablas';
     closeBtn.style.display = 'flex';
-closeBtn.style.alignItems = 'center';
-closeBtn.style.justifyContent = 'center';
+    closeBtn.style.alignItems = 'center';
+    closeBtn.style.justifyContent = 'center';
+
+    let subtableBatchRunning = false;
 
     const syncOpen = (open) => {
-        allDetails.forEach((d) => {
-            d.open = open;
-        });
+        if (subtableBatchRunning) {
+            return;
+        }
+
+        const targets = allDetails.filter((d) => d.open !== open);
+        if (targets.length === 0) {
+            return;
+        }
+
+        subtableBatchRunning = true;
+        openBtn.disabled = true;
+        closeBtn.disabled = true;
+
+        let index = 0;
+        const batchSize = currentView === 'expeditions' ? 1 : 3;
+
+        const step = () => {
+            const limit = Math.min(index + batchSize, targets.length);
+            for (; index < limit; index++) {
+                targets[index].open = open;
+            }
+
+            if (index < targets.length) {
+                window.requestAnimationFrame(step);
+                return;
+            }
+
+            openBtn.disabled = false;
+            closeBtn.disabled = false;
+            subtableBatchRunning = false;
+        };
+
+        window.requestAnimationFrame(step);
     };
 
     openBtn.addEventListener('click', () => syncOpen(true));
@@ -9214,7 +9289,12 @@ closeBtn.style.justifyContent = 'center';
 
     row.appendChild(openBtn);
     row.appendChild(closeBtn);
-    host.insertAdjacentElement('afterend', row);
+
+    if (host.classList.contains('totals-inline-right')) {
+        host.appendChild(row);
+    } else {
+        host.insertAdjacentElement('afterend', row);
+    }
 })();
 </script>
 <script>
@@ -10556,9 +10636,9 @@ closeBtn.style.justifyContent = 'center';
             'single:photo_tax_filter',
             'field:date_from',
             'field:date_to',
-            'details:Columnas Expediciones',
-            'details:Columnas de Muertes',
-            'details:Columnas de Disparos',
+            'details:Visibles expediciones',
+            'details:Visibles muertes',
+            'details:Visibles disparos',
             'field:page_size',
             'button:Filtrar',
             'button:Exportar CSV'
@@ -12079,6 +12159,31 @@ closeBtn.style.justifyContent = 'center';
 
 
 </script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Click en fila de expedición: abre/cierra la subtabla de muertes.
+    // No interfiere con enlaces, botones, inputs, selects, summaries ni clicks dentro de subtablas.
+    document.querySelectorAll('details.exp-kills-details').forEach(function (details) {
+        const ownerRow = details.closest('tr');
+        if (!(ownerRow instanceof HTMLTableRowElement)) return;
+
+        ownerRow.classList.add('expedition-click-row');
+
+        ownerRow.addEventListener('click', function (event) {
+            const target = event.target;
+            if (!(target instanceof Element)) return;
+
+            if (target.closest('a, button, input, select, textarea, label, summary')) return;
+            if (target.closest('.subtable-row-js, .exp-kills-layout, .kill-hits-details')) return;
+
+            details.open = !details.open;
+        });
+    });
+});
+</script>
+
 </body>
 </html>
 

@@ -1,14 +1,15 @@
 <?php
-
 declare(strict_types=1);
 
 $dbDsn = getenv('THC_DB_DSN') ?: 'pgsql:host=localhost;port=5432;dbname=test';
 $dbUser = getenv('THC_DB_USER') ?: 'postgres';
 $dbPassword = getenv('THC_DB_PASSWORD') ?: 'system';
 $dbSchema = getenv('THC_DB_SCHEMA') ?: 'gpt';
+
 $apiUserAgent = getenv('THC_API_USER_AGENT') ?: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36';
 $apiTimeout = getenv('THC_API_TIMEOUT');
 $timeoutValue = is_string($apiTimeout) && ctype_digit($apiTimeout) ? (int) $apiTimeout : 30;
+
 $scoreTemplatesRaw = getenv('THC_LB_SCORE_TEMPLATES');
 $rangeTemplatesRaw = getenv('THC_LB_RANGE_TEMPLATES');
 

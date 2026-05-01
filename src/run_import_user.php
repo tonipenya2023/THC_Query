@@ -38,7 +38,7 @@ while (true) {
     } catch (Throwable $e) {
         $message = "[ERROR] pagina offset={$offset}: {$e->getMessage()}\n";
         fwrite(STDERR, $message);
-        file_put_contents($logFile, $message, FILE_APPEND);
+        file_put_contents($loºFile, $message, FILE_APPEND);
         $errors++;
         break;
     }

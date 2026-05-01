@@ -139,22 +139,20 @@ final class CompetitionJoiner
         }
 
         $headers = [
+            'Cookie: ' . $cookie,
             'Accept: application/json, text/plain, */*',
             'Origin: https://www.thehunter.com',
             'Referer: https://www.thehunter.com/#competitions',
             'X-Requested-With: XMLHttpRequest',
+            'Content-Type: application/x-www-form-urlencoded; charset=UTF-8',
         ];
-
-        $url = 'https://api.thehunter.com/v1/Competition/join'
-            . '?id=' . rawurlencode((string) $competitionId)
-            . '&oauth_access_token=' . rawurlencode($oauthToken);
-
-        $response = $this->httpRequest('GET', $url, $headers, '');
+        $body = 'id=' . rawurlencode((string) $competitionId) . '&oauth_access_token=' . rawurlencode($oauthToken);
+        $response = $this->httpRequest('POST', 'https://api.thehunter.com/v1/Competition/join', $headers, $body);
         $normalized = $this->normalizeJoinResponse($response);
 
         return [
             'status' => $normalized['status'],
-            'method' => 'GET',
+            'method' => 'POST',
             'param' => 'id+oauth_access_token',
             'response' => $response,
         ];
